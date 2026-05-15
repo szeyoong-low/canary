@@ -18,7 +18,7 @@ This is a full-stack web application with an AI agent orchestration layer.
 | Database | PostgreSQL via Supabase/Railway/Neon (TBC) |
 | Auth | Clerk/Auth.js/BetterAuth (TBC) |
 | Deployment | Vercel (frontend), Railway (backend), Docker |
-| Package manager | npm (frontend), pip (backend) |
+| Package manager | npm (frontend), uv (backend) |
 | CI/CD | Git |
 | Design | Figma |
 | Planning | Notion |
