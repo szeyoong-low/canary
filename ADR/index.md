@@ -5,3 +5,4 @@
 4. [Railway for backend deployment](./ADR-004-railway-backend-deploy.md)
 5. [uv for Python dependency management](./ADR-005-uv-dependency-management.md)
 6. [React TypeScript without compiler or framework mode](./ADR-006-vite-react-variant.md)
+7. [FastAPI CORSMiddleware to handle browser Same-Origin Policy](./ADR-007-corsmiddleware-browser-sop.md)

@@ -77,7 +77,7 @@ REST API design, data pipelines, charting
 #### Milestones
 - [ ] Frontend and backend are deployed, Git CI/CD pipeline in place
 - [ ] Claude Code integrated into workflow
-- [ ] A single backend endpoint `/test` that accepts a JSON query, fetches data
+- [ ] A single backend endpoint `api/test` that accepts a JSON query, fetches data
       from `yfinance`, cleans it, and returns it as a chart config JSON
 - [ ] A single page on the frontend that only displays a chart with the processed
       data
@@ -88,7 +88,7 @@ revenue ratio.
 
 ### Phase 2
 #### Goal
-Replace the hardcoded `/test` endpoint with a LangGraph data pipeline that plans
+Replace the hardcoded `api/test` endpoint with a LangGraph data pipeline that plans
 and calls tools to build the chart and generate the insights.
 
 #### Learning objectives
@@ -134,12 +134,3 @@ Database integration, auth patterns
 #### Done when
 Users have a personal dashboard of chart previews and sidebar that they can
 click through to see charts they created in the past.
-
-## Local dev
-
-```bash
-# backend
-
-# frontend
-cd frontend && npm run dev    # http://localhost:5173, proxied to :8000
-```
