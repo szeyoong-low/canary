@@ -5,6 +5,10 @@ Canary is a full-stack agentic financial terminal. Users ask free-text questions
 an AI agent fetches data, transforms it, and returns an interactive chart with
 concise insights synthesised by a LLM.
 
+## Key references
+- Architecture + file structure: `ARCHITECTURE.md`
+- Decision rationale: `ADR/`
+
 ## Phases
 1. Basic full stack app deployed to production. Able to fetch financial data
    from an external API, transform it, and chart a computed metric (e.g.
@@ -16,7 +20,7 @@ concise insights synthesised by a LLM.
 Afterwards, expand the variety of analysis that can be performed, and allow more
 data sources to be incorporated.
 
-## Way of working — read before answering my prompts
+## Way of working — read before answering any prompt
 The highest priority of this project is learning. I want to be capable of making
 architectural decisions and reason about them. I would like the pace to be
 manageable so that I can stay in control. Treat me as a rookie in web development
@@ -32,8 +36,9 @@ every detail in this project.
 - Instead of giving you objectives to fulfil (e.g. Build this feature), I will
   pose **questions** (e.g. How can this be built?)
 - Start off by **suggesting an approach**, and always explain your architectural
-  decisions like I'm a **first-timer** but **be concise**. I want to have a full
-  understanding of the solution's rationale before any code is written.
+  decisions like I'm a **first-timer** but **be concise**. Highlight the tradeoffs
+  involved, and whether this decision will need to change down the line. I want
+  a full understanding of the solution's rationale before any code is written.
 - Give me **sources** where I can read more about these architectural details.
 - Wait for my **explicit go ahead** before writing code. For any significant
   tradeoffs, draft an architectural decision rational markdown file
@@ -61,15 +66,74 @@ every detail in this project.
 
 ## Progress checklist
 ### Phase 1
+#### Goal
+Basic full stack app deployed to production. Able to fetch financial data from
+an external API, transform it, and chart a computed metric (e.g. Capex to
+revenue ratio).
 
-**Goal:** Basic full stack app deployed to production.
-          Able to fetch financial data from an external API, transform it, and
-          chart a computed metric (e.g. Capex to revenue ratio).
+#### Learning objectives
+REST API design, data pipelines, charting
 
-**Done when:** User loads the page and gets a comparison of the Big 5
-               hyperscalers' Capex to revenue ratio.
+#### Milestones
+- [ ] Frontend and backend are deployed, Git CI/CD pipeline in place
+- [ ] Claude Code integrated into workflow
+- [ ] A single backend endpoint `/test` that accepts a JSON query, fetches data
+      from `yfinance`, cleans it, and returns it as a chart config JSON
+- [ ] A single page on the frontend that only displays a chart with the processed
+      data
 
-Details to follow.
+#### Done when
+User loads the page and gets a comparison of the Big 5 hyperscalers' Capex to
+revenue ratio.
+
+### Phase 2
+#### Goal
+Replace the hardcoded `/test` endpoint with a LangGraph data pipeline that plans
+and calls tools to build the chart and generate the insights.
+
+#### Learning objectives
+Agent orchestration, tool use, SSE streaming, API endpoint design.
+
+#### Milestones
+- [ ] Planner node with an LLM that parses the query and creates a plan
+- [ ] Research node that uses python functions as tools to fetch data with
+      extracted parameters
+- [ ] Transformer node uses python functions to clean and normalise raw
+      API data
+- [ ] Visualiser node outputs a JSON chart config compatible with frontend charting
+      component
+- [ ] Storyteller node streams a brief insight about the data over SSE
+- [ ] Agent pipeline set up
+- [ ] Chart and insight panel are displayed at a URL with search parameters
+      embedded, without any full-page refresh occurring
+- [ ] (Stretch goal) Cache API and LLM calls
+- [ ] (Stretch goal) Support multiple types of analysis on different endpoints
+
+#### Done when
+User enters a free text query about the year-on-year change in Q1 revenue of the
+biggest US airlines, and gets a bar chart comparison and a quick analysis streamed
+in real time.
+
+### Phase 3
+#### Goal
+Allow users to save their charts under their own accounts.
+
+#### Learning objectives
+Database integration, auth patterns
+
+#### Milestones
+- [ ] Users must sign in to use the service, all paths protected by middleware
+- [ ] Users' charts are saved to a PostgreSQL database as a JSON blob
+- [ ] Sidebar and personal homepage show all of their past charts
+- [ ] (Stretch goal) Users can share charts publicly
+- [ ] (Stretch goal) Non-authenticated users can see sample charts on the landing
+      page
+- [ ] (Stretch goal) Dark mode toggle
+- [ ] (Stretch goal) Mobile support
+
+#### Done when
+Users have a personal dashboard of chart previews and sidebar that they can
+click through to see charts they created in the past.
 
 ## Local dev
 
@@ -79,7 +143,3 @@ Details to follow.
 # frontend
 cd frontend && npm run dev    # http://localhost:5173, proxied to :8000
 ```
-
-## Key references
-- Architecture + file structure: `ARCHITECTURE.md`
-- Decision rationale: `ADR/`
