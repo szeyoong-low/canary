@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci          # installs exact versions from package-lock.json
+      - run: npm run lint    # ESLint
+      - run: npm run build   # tsc type check + Vite bundle
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-caching: true   # caches the uv package cache between runs
+
+      - run: uv sync --dev       # installs all deps including ruff
+      - run: uv run ruff check . # lint
+      - run: uv run ruff format --check .  # formatting
