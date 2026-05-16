@@ -67,6 +67,8 @@ every detail in this project.
   discrepancies (e.g. outdated version numbers, shell scripts not matching docs,
   dependency names different from examples in documentation) so that I can cross
   check them online.
+- Never ever allow production to fail. We should check code rigorously before
+  any PR gets merged to main.
 
 ## Progress checklist
 ### Phase 1
