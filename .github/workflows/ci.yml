@@ -36,3 +36,20 @@ jobs:
       - run: uv sync --dev       # installs all deps including ruff
       - run: uv run ruff check . # lint
       - run: uv run ruff format --check .  # formatting
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    needs: backend             # only runs if backend lint passes
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway preview
+        run: railway up --service canary --environment preview
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
