@@ -14,6 +14,10 @@ origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5030").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    # Matches all Vercel preview URLs for this project without needing to
+    # whitelist each one individually. Update "canary" if the Vercel project
+    # is named differently.
+    allow_origin_regex=r"https://canary-.*\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

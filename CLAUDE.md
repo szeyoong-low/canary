@@ -63,6 +63,10 @@ every detail in this project.
 - Make sure you give me a heads up before **copying** or lightly adapting code
   from a single source. I may need to give acknowledgements as this is a
   portfolio project.
+- Details like version numbers change constantly. I expect you to flag potential
+  discrepancies (e.g. outdated version numbers, shell scripts not matching docs,
+  dependency names different from examples in documentation) so that I can cross
+  check them online.
 
 ## Progress checklist
 ### Phase 1
