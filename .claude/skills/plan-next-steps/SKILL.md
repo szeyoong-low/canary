@@ -4,7 +4,7 @@ description: At the start of a session, read the project context and devise a pl
 ---
 
 ## Steps
-1. Read the "Progress checklist" in [CLAUDE.md](/CLAUDE.md) to understand what has been built, and what features need to
+1. Read [PROGRESS.md](/PROGRESS.md) to understand what has been built, and what features need to
    be built to complete the phase.
 2. Read [ARCHITECTURE.md](/ARCHITECTURE.md) to get the big picture of the project.
 3. Read the [Architecture Decision Records](/ADR/) to review the rationale behind decisions made so far.

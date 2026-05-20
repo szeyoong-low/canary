@@ -20,7 +20,7 @@ it into an interactive chart along with a concise, ELI5 insight.
 TODO
 
 ## Tech stack
-This project taught me data engineering, modern full-stack development,
+This project taught me data processing, modern full-stack development,
 and using AI agents. It also helped me level up my engineering workflow to
 leverage agentic engineering and utilities like the terminal and IDE tooling.
 This project was deployed to production on day 1, and I maintained a robust

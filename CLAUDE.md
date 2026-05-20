@@ -6,8 +6,9 @@ an AI agent fetches data, transforms it, and returns an interactive chart with
 concise insights synthesised by a LLM.
 
 ## Key references
-- Architecture + file structure: `ARCHITECTURE.md`
-- Decision rationale: `ADR/`
+- Project roadmap: [`PROGRESS.md`](/PROGRESS.md)
+- Architecture + file structure: [`ARCHITECTURE.md`](/ARCHITECTURE.md)
+- Decision rationale: [`ADR/`](/ADR/)
 
 ## Phases
 1. Basic full stack app deployed to production. Able to fetch financial data
@@ -16,9 +17,8 @@ concise insights synthesised by a LLM.
 2. Agentic workflow that takes a free-text query and uses a data pipeline to
    dynamically generate the answer.
 3. Add authentication, so that users can save their charts.
-
-Afterwards, expand the variety of analysis that can be performed, and allow more
-data sources to be incorporated.
+4. Post-launch: Enhance the user experience, optimise performance, security
+   improvements.
 
 ## Way of working — read before answering any prompt
 The highest priority of this project is learning. I want to be capable of making
@@ -69,74 +69,3 @@ every detail in this project.
   check them online.
 - Never ever allow production to fail. We should check code rigorously before
   any PR gets merged to main.
-
-## Progress checklist
-### Phase 1
-#### Goal
-Basic full stack app deployed to production. Able to fetch financial data from
-an external API, transform it, and chart a computed metric (e.g. Capex to
-revenue ratio).
-
-#### Learning objectives
-REST API design, data pipelines, charting
-
-#### Milestones
-- [x] Frontend and backend are deployed, Git CI/CD pipeline in place
-- [x] Claude Code integrated into workflow
-- [ ] A single backend endpoint `api/test` that accepts a JSON query, fetches data
-      from `yfinance`, cleans it, and returns it as a chart config JSON
-- [ ] A single page on the frontend that only displays a chart with the processed
-      data
-
-#### Done when
-User loads the page and gets a comparison of the Big 5 hyperscalers' Capex to
-revenue ratio.
-
-### Phase 2
-#### Goal
-Replace the hardcoded `api/test` endpoint with a LangGraph data pipeline that plans
-and calls tools to build the chart and generate the insights.
-
-#### Learning objectives
-Agent orchestration, tool use, SSE streaming, API endpoint design.
-
-#### Milestones
-- [ ] Planner node with an LLM that parses the query and creates a plan
-- [ ] Research node that uses python functions as tools to fetch data with
-      extracted parameters
-- [ ] Transformer node uses python functions to clean and normalise raw
-      API data
-- [ ] Visualiser node outputs a JSON chart config compatible with frontend charting
-      component
-- [ ] Storyteller node streams a brief insight about the data over SSE
-- [ ] Agent pipeline set up
-- [ ] Chart and insight panel are displayed at a URL with search parameters
-      embedded, without any full-page refresh occurring
-- [ ] (Stretch goal) Cache API and LLM calls
-- [ ] (Stretch goal) Support multiple types of analysis on different endpoints
-
-#### Done when
-User enters a free text query about the year-on-year change in Q1 revenue of the
-biggest US airlines, and gets a bar chart comparison and a quick analysis streamed
-in real time.
-
-### Phase 3
-#### Goal
-Allow users to save their charts under their own accounts.
-
-#### Learning objectives
-Database integration, auth patterns
-
-#### Milestones
-- [ ] Users must sign in to use the service, all paths protected by middleware
-- [ ] Users' charts are saved to a PostgreSQL database as a JSON blob
-- [ ] Sidebar and personal homepage show all of their past charts
-- [ ] (Stretch goal) Users can share charts publicly
-- [ ] (Stretch goal) Non-authenticated users can see sample charts on the landing
-      page
-- [ ] (Stretch goal) Dark mode toggle
-- [ ] (Stretch goal) Mobile support
-
-#### Done when
-Users have a personal dashboard of chart previews and sidebar that they can
-click through to see charts they created in the past.
