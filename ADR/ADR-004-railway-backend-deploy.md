@@ -43,4 +43,26 @@ Render has a longer operational history and a slightly stronger
 uptime reputation. Not a meaningful concern for a learning project.
 
 ## Revisit if
-May need to revisit when real users come on after public release.
+During development, there was an issue with Railway that prevented an image of
+the repo from being uploaded. The dashboard showed that I had run out of credits.
+Although the issue resolved itself later, I need to make my deployment more
+portable in case a migration is needed down the line by using a DockerFile instead.
+
+Another issue arose shortly after:
+> Investigating:  We are seeing a backlog of queued builds, which is causing
+builds to take longer than usual to start and complete. To reduce the backlog,
+we are temporarily pausing new builds on the free, trial, and hobby plans.
+Builds on Pro and higher plans will continue to process, though some delays may
+still occur. Running services are not affected. We are actively working to clear
+the queue and will provide updates as the situation progresses.
+
+Render and Vercel are good candidates if the need arises.
+
+Render is very similar to Railway, requires the least changes. However, the free
+tier has a cold start problem.
+
+Vercel supports FastAPI natively and provides preview deployments for free. It
+handles cold starts very well.
+However, it is not advisable to run agent workflows on serverless functions as
+they may be long-running. This might be alright, as for now I plan for the agent
+workflow to be per request. It also has different setup conventions.
