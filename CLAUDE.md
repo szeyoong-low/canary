@@ -81,8 +81,8 @@ revenue ratio).
 REST API design, data pipelines, charting
 
 #### Milestones
-- [ ] Frontend and backend are deployed, Git CI/CD pipeline in place
-- [ ] Claude Code integrated into workflow
+- [x] Frontend and backend are deployed, Git CI/CD pipeline in place
+- [x] Claude Code integrated into workflow
 - [ ] A single backend endpoint `api/test` that accepts a JSON query, fetches data
       from `yfinance`, cleans it, and returns it as a chart config JSON
 - [ ] A single page on the frontend that only displays a chart with the processed
