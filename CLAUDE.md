@@ -25,7 +25,7 @@ Treat me as a rookie in web development and agentic engineering, but also treat 
 
 - Give me **sources** where I can read more about these architectural decisions.
 
-- Wait for my **explicit go ahead** before writing code. For any significant tradeoffs, draft an architectural decision record markdown file (e.g. `ADR-001-spa-over-mpa.md`) in the [Decision rationale](./canary.wiki/architecture-decisions/) directory. Follow the given [template](./canary.wiki/architecture-decisions/ADR-XXX-template.md). **Do not** update [`Architecture.md`](./canary.wiki/Architecture.md) unless I tell you to do so.
+- Wait for my **explicit go ahead** before writing code. For any significant tradeoffs, draft an architectural decision record markdown file (e.g. `Single page app with URL query parameters.md`) in the [decision rationale](./canary.wiki/architecture-decisions/) directory. Follow the given [template](./canary.wiki/architecture-decisions/ADR-template.md). **Do not** update [`Architecture.md`](./canary.wiki/Architecture.md) unless I tell you to do so.
 
 - If a problem has a well-documented solution or design pattern regarded by industry as **best practice**, use it. If a library or external service can solve it, use it. I want to focus on building the interesting parts rather than reinventing the wheel. If there are real concerns about maintainability, we can refactor this later on.
 
