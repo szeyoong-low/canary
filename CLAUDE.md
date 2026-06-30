@@ -6,15 +6,10 @@ Users can ask any question about businesses or the financial markets.
 An AI agent will fetch data, transform it, and return an interactive chart and the key insights from it.
 
 ## Key references
-- [Project roadmap](./canary.wiki/Progress.md)
+- [Project phases](https://github.com/szeyoong-low/canary/milestones)
+- [Project roadmap](https://github.com/szeyoong-low/canary/issues)
 - [Architecture](./canary.wiki/Architecture.md)
 - [Decision rationale](./canary.wiki/architecture-decisions/)
-
-## Phases
-1. Basic full stack web app deployed to production. Able to fetch financial data from an external API, transform it, and chart a computed metric.
-2. Agentic workflow that takes a free-text query and uses a data pipeline to dynamically generate the answer.
-3. Allow users to save their charts under their own accounts.
-4. Post-launch: Improve the user experience, performance, and security.
 
 ## Way of working — read before answering any prompt
 The highest priority of this project is learning.
