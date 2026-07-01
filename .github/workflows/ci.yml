@@ -25,3 +25,17 @@ jobs:
       - run: npm ci          # installs exact versions from package-lock.json
       - run: npm run lint    # ESLint
       - run: npm run build   # tsc type check + Vite bundle
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      - run: uv sync --dev       # installs all deps including ruff
+      - run: uv run ruff check . # lint
+      - run: uv run ruff format --check .  # formatting
