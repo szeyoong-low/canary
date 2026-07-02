@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
-app = FastAPI()
+from .dependencies import dependency
+
+app = FastAPI(dependencies=[Depends(dependency.get_environment)])
 
 
 @app.get("/health")
