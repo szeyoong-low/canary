@@ -11,3 +11,6 @@ dependencies = [
 dev = [
     "ruff>=0.15.20",
 ]
+
+[tool.fastapi]
+entrypoint = "main:app"
