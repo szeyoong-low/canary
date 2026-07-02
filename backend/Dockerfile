@@ -3,7 +3,7 @@
 FROM python:3.12-slim
 
 # Run all commands from this directory instead of filesystem root
-WORKDIR /app
+WORKDIR /backend
 
 # Copies the uv binary directly from uv's official image instead of pip installing
 COPY --from=ghcr.io/astral-sh/uv:0.11.26 /uv /usr/local/bin/uv
