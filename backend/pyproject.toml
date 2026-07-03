@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi[standard]>=0.138.2",
+    "fastapi[standard-no-fastapi-cloud-cli]>=0.139.0",
 ]
 
 [dependency-groups]

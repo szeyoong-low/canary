@@ -3,7 +3,7 @@
 FROM python:3.12-slim
 
 # Run all commands from this directory instead of filesystem root
-WORKDIR /app
+WORKDIR /backend
 
 # Copies the uv binary directly from uv's official image instead of pip installing
 COPY --from=ghcr.io/astral-sh/uv:0.11.26 /uv /usr/local/bin/uv
@@ -29,4 +29,4 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 # Host: listen on all network interfaces (https://dev.to/engrmark/what-is-host0000-goa)
 # Shell form (not array form) so $PORT expands at runtime from the environment
 # Railway injects $PORT at runtime
-CMD uv run fastapi run main.py --host 0.0.0.0 --port $PORT
+CMD uv run fastapi run --port $PORT
