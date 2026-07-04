@@ -12,7 +12,7 @@ async def load_dataframe(
     api_base_url: str,
     endpoint: str,
     query_params: dict[str, Any],
-) -> pl.DataFrame:
+) -> pl.LazyFrame:
     """
     Use the provided HTTP client to fetch data from the specified external API
     endpoint with the provided query parameters.
@@ -71,6 +71,6 @@ async def load_dataframe(
 
     if struct_cols:
         # Remove null rows created during unnesting
-        lf = lf.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
+        return lf.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
 
-    return lf.collect()
+    return lf
