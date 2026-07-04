@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 
-from .constants import *
+from . import constants
 
 router = APIRouter()
 
 
-@router.get(f"{SIMPLE_TIME_SERIES_ENDPOINT}{METRIC_PATH_PARAM}")
+@router.get(f"{constants.SIMPLE_TIME_SERIES_ENDPOINT}{constants.METRIC_PATH_PARAM}")
 def simple_time_series(metric: str):
     return metric
