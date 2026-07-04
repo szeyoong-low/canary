@@ -7,3 +7,7 @@ SUCCESS_STATUS_CODES = (
     httpx.codes.TEMPORARY_REDIRECT,  # 307
     httpx.codes.PERMANENT_REDIRECT,  # 308
 )
+
+# For unpivoting
+KEY_COLUMN_NAME = "key"
+VALUE_COLUMN_NAME = "value"
