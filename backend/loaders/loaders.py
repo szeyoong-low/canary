@@ -54,13 +54,16 @@ async def load_dataframe(
         else:
             index_cols.append(cname)
 
+    # Use the Polars lazy API to allow for optimisations
+    lf = df.lazy()
+
     for s in struct_cols:
         # Promotes all keys in the struct column to a top-level column
-        df = df.unnest(s)
+        lf = lf.unnest(s)
 
         # Spread the unnested columns over rows instead of columns by
         # melting them into a pair of key-value columns
-        df = df.unpivot(
+        lf = lf.unpivot(
             index=index_cols,
             variable_name=constants.KEY_COLUMN_NAME,
             value_name=constants.VALUE_COLUMN_NAME,
@@ -68,6 +71,6 @@ async def load_dataframe(
 
     if struct_cols:
         # Remove null rows created during unnesting
-        return df.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
+        lf = lf.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
 
-    return df
+    return lf.collect()
