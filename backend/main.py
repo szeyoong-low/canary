@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .dependencies import dependency
+from .routers import cartesian
 
 app = FastAPI(dependencies=[Depends(dependency.get_environment)])
 
@@ -16,6 +17,8 @@ app.add_middleware(
     allow_headers=["*"],
     # By default, only GET methods are allowed
 )
+
+app.include_router(cartesian.router)
 
 
 @app.get("/health")
