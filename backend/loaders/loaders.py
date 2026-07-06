@@ -45,17 +45,15 @@ async def load_dataframe(
             detail=f"Error for {query_params} at {resource_url}: HTTP {response.status_code}: {response.text}",
         )
 
-    df = pl.DataFrame(response.json())
+    # Use the Polars lazy API to allow for optimisations
+    lf = pl.LazyFrame(response.json())
 
     struct_cols, index_cols = set(), list()
-    for cname, dtype in df.schema.items():
+    for cname, dtype in lf.collect_schema().items():
         if isinstance(dtype, pl.Struct):
             struct_cols.add(cname)
         else:
             index_cols.append(cname)
-
-    # Use the Polars lazy API to allow for optimisations
-    lf = df.lazy()
 
     for s in struct_cols:
         # Promotes all keys in the struct column to a top-level column
