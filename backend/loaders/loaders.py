@@ -5,7 +5,6 @@ from httpx import AsyncClient, codes, Response
 from polars import LazyFrame
 
 from . import constants
-from .normalise import _normalise_fmp
 
 
 async def load_data(
@@ -54,4 +53,4 @@ async def load_data(
         )
 
     # Use the Polars lazy API to allow for optimisations
-    return _normalise_fmp(LazyFrame(response.json()))
+    return constants.NORMALISER[external_api](LazyFrame(response.json()))
