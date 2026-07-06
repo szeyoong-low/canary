@@ -24,7 +24,3 @@ SUCCESS_STATUS_CODES: tuple = (
     codes.TEMPORARY_REDIRECT,  # 307
     codes.PERMANENT_REDIRECT,  # 308
 )
-
-# For unpivoting
-KEY_COLUMN_NAME: str = "key"
-VALUE_COLUMN_NAME: str = "value"
