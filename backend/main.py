@@ -1,8 +1,8 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .dependencies import dependency, Environment
-from .routers import cartesian
+from .src.dependencies import dependency, Environment
+from .src.routers import cartesian
 
 app: FastAPI = FastAPI(dependencies=[Depends(dependency.get_environment)])
 
