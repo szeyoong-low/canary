@@ -12,13 +12,14 @@ def _normalise_fmp(data: pl.LazyFrame) -> pl.LazyFrame:
         else:
             index_cols.append(cname)
 
+    data_normalised: pl.LazyFrame = data
     for s in struct_cols:
         # Promotes all keys in the struct column to a top-level column
-        data = data.unnest(s)
+        data_normalised: pl.LazyFrame = data_normalised.unnest(s)
 
         # Spread the unnested columns over rows instead of columns by
         # melting them into a pair of key-value columns
-        data = data.unpivot(
+        data_normalised: pl.LazyFrame = data_normalised.unpivot(
             index=index_cols,
             variable_name=constants.KEY_COLUMN_NAME,
             value_name=constants.VALUE_COLUMN_NAME,
@@ -26,6 +27,6 @@ def _normalise_fmp(data: pl.LazyFrame) -> pl.LazyFrame:
 
     if struct_cols:
         # Remove null rows created during unnesting
-        return data.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
+        return data_normalised.filter(~pl.col(constants.VALUE_COLUMN_NAME).is_null())
 
-    return data
+    return data_normalised

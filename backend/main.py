@@ -1,12 +1,12 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .dependencies import dependency
+from .dependencies import dependency, Environment
 from .routers import cartesian
 
-app = FastAPI(dependencies=[Depends(dependency.get_environment)])
+app: FastAPI = FastAPI(dependencies=[Depends(dependency.get_environment)])
 
-env = dependency.get_environment()
+env: Environment = dependency.get_environment()
 
 # Browsers enforce a Same-Origin Policy, which blocks clients from making requests
 # to servers from a different origin unless explicitly allowed by the server

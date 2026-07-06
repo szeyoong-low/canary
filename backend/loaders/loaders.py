@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import HTTPException
-from httpx import AsyncClient, codes
+from httpx import AsyncClient, codes, Response
 import polars as pl
 
 from . import constants
@@ -37,9 +37,9 @@ async def load_data(
         HTTPException 502: API returns a non-success status code
     """
 
-    resource_url = f"{api_base_url}{endpoint}"
+    resource_url: str = f"{api_base_url}{endpoint}"
 
-    response = await http_client.get(url=resource_url, params=query_params)
+    response: Response = await http_client.get(url=resource_url, params=query_params)
 
     if response.status_code not in constants.SUCCESS_STATUS_CODES:
         raise HTTPException(

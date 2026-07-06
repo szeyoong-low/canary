@@ -1,13 +1,13 @@
-import httpx
+from httpx import codes
 
-SUCCESS_STATUS_CODES = (
-    httpx.codes.OK,  # 200
-    httpx.codes.MOVED_PERMANENTLY,  # 301
-    httpx.codes.FOUND,  # 302
-    httpx.codes.TEMPORARY_REDIRECT,  # 307
-    httpx.codes.PERMANENT_REDIRECT,  # 308
+SUCCESS_STATUS_CODES: tuple = (
+    codes.OK,  # 200
+    codes.MOVED_PERMANENTLY,  # 301
+    codes.FOUND,  # 302
+    codes.TEMPORARY_REDIRECT,  # 307
+    codes.PERMANENT_REDIRECT,  # 308
 )
 
 # For unpivoting
-KEY_COLUMN_NAME = "key"
-VALUE_COLUMN_NAME = "value"
+KEY_COLUMN_NAME: str = "key"
+VALUE_COLUMN_NAME: str = "value"
