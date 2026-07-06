@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import HTTPException
 from httpx import AsyncClient, codes, Response
-import polars as pl
+from polars import LazyFrame
 
 from . import constants
 from .normalise import _normalise_fmp
@@ -10,10 +10,10 @@ from .normalise import _normalise_fmp
 
 async def load_data(
     http_client: AsyncClient,
-    api_base_url: str,
+    external_api: constants.ExternalAPI,
     endpoint: str,
     query_params: dict[str, Any],
-) -> pl.LazyFrame:
+) -> LazyFrame:
     """
     Use the provided HTTP client to fetch data from the specified external API
     endpoint with the provided query parameters.
@@ -37,7 +37,13 @@ async def load_data(
         HTTPException 502: API returns a non-success status code
     """
 
-    resource_url: str = f"{api_base_url}{endpoint}"
+    try:
+        resource_url: str = f"{constants.BASE_URL[external_api]()}{endpoint}"
+    except KeyError:
+        raise HTTPException(
+            codes.INTERNAL_SERVER_ERROR,
+            "No base URL associated with the endpoint in the dispatch table.",
+        )
 
     response: Response = await http_client.get(url=resource_url, params=query_params)
 
@@ -48,4 +54,4 @@ async def load_data(
         )
 
     # Use the Polars lazy API to allow for optimisations
-    return _normalise_fmp(pl.LazyFrame(response.json()))
+    return _normalise_fmp(LazyFrame(response.json()))
