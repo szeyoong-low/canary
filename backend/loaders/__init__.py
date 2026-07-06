@@ -1,1 +1,1 @@
-from .loaders import load_dataframe as load_dataframe
+from .loaders import load_data as load_data
