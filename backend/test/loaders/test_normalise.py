@@ -27,7 +27,7 @@ async def test_normalise_nested():
     actual: DataFrame = (
         await load_data(http_client, const.FMP_API, const.DUMMY_STRING, {})
     ).collect()
-    
+
     output_file: str = dataset_path("fmp_prod_segment_norm")
     expected: DataFrame = read_json(output_file)
     assert_frame_equal(actual, expected)
