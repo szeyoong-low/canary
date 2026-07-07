@@ -3,7 +3,7 @@ from typing import Callable, Literal
 
 JSON_EXT: str = ".json"
 
-type Dataset = Literal["fmp_wide"]
+type Dataset = Literal["fmp_prod_segment_raw"]
 
 
 dataset_path: Callable[[Dataset], str] = lambda dataset: (

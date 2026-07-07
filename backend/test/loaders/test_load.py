@@ -21,7 +21,7 @@ FMP_API: constants.ExternalAPI = "FMP"
 @patch.dict(f"{LOADERS_CONSTANTS_PATH}{NORMALISER_DISPATCH}", {FMP_API: lambda x: x})
 async def test_load_regular():
     """Loading without normalisation should return the original JSON"""
-    dataset_file: str = dataset_path("fmp_wide")
+    dataset_file: str = dataset_path("fmp_prod_segment_raw")
     with open(dataset_file, mode="r") as data:
         original_json: Any = load(data)
         
