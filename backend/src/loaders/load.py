@@ -12,6 +12,7 @@ async def load_data(
     external_api: constants.ExternalAPI,
     endpoint: str,
     query_params: dict[str, Any],
+    headers: dict[str, Any],
 ) -> LazyFrame:
     """
     Use the provided HTTP client to fetch data from the specified external API
@@ -23,7 +24,8 @@ async def load_data(
         http_client: HTTP client that supports concurrency
         api_base_url: external API domain name (must have trailing slash)
         endpoint: external API endpoint path (must not have leading slash)
-        query_params: any key-value mapping to use in the request
+        query_params: key-value mapping to use as query parameters
+        headers: key-value mapping to use in the request header
 
     Having the HTTP client supplied by the caller allows a connection pool to be
     shared, which eliminates redundant connection opening/closing and TLS handshakes.
@@ -44,12 +46,19 @@ async def load_data(
             "No base URL associated with the endpoint in the dispatch table.",
         )
 
-    response: Response = await http_client.get(url=resource_url, params=query_params)
+    response: Response = await http_client.get(
+        url=resource_url, params=query_params, headers=headers
+    )
 
     if response.status_code not in constants.SUCCESS_STATUS_CODES:
         raise HTTPException(
             status_code=codes.INTERNAL_SERVER_ERROR,
-            detail=f"Error for {query_params} at {resource_url}: HTTP {response.status_code}: {response.text}",
+            detail=(
+                f"Error for at {resource_url}:\n"
+                f"HTTP {response.status_code}: {response.text}\n"
+                f"Parameters: {query_params}\n"
+                f"Headers: {headers}",
+            ),
         )
 
     # Use the Polars lazy API to allow for optimisations

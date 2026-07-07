@@ -25,7 +25,7 @@ async def test_normalise_nested():
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (
-        await load_data(http_client, const.FMP_API, const.DUMMY_STRING, {})
+        await load_data(http_client, const.FMP_API, const.DUMMY_STRING, {}, {})
     ).collect()
 
     output_file: str = dataset_path("fmp_prod_segment_norm")

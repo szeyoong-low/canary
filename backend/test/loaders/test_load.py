@@ -31,7 +31,7 @@ async def test_load_regular():
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (
-        await load_data(http_client, const.FMP_API, const.DUMMY_STRING, {})
+        await load_data(http_client, const.FMP_API, const.DUMMY_STRING, {}, {})
     ).collect()
     expected: DataFrame = read_json(dataset_file)
     assert_frame_equal(actual, expected)
