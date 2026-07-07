@@ -48,7 +48,5 @@ def volatility(
                 window_size=window,
             ),
             partial(one.scalar_product, columns=alias, scalar=sqrt(window)),
-            # Get rid of rough working
-            partial(many.drop_columns, columns=percentage_change_col),
         ],
     )

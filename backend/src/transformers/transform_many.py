@@ -12,7 +12,3 @@ def sort_data(data: LazyFrame, by: ColumnIdentifier, *arg, **kwarg) -> LazyFrame
     """
 
     return data.sort(by=by, *arg, **kwarg)
-
-
-def drop_columns(data: LazyFrame, columns: ColumnIdentifier) -> LazyFrame:
-    return data.drop(columns)
