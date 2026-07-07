@@ -1,7 +1,8 @@
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
+from httpx import codes
 
 from ..catalog import (
     AnalysisCatalogEntry,
@@ -22,7 +23,10 @@ def get_environment() -> Environment:
 
 @lru_cache
 def get_analysis_catalog(analysis: str) -> AnalysisCatalogEntry:
-    return ANALYSIS_CATALOG[analysis]
+    try:
+        return ANALYSIS_CATALOG[analysis]
+    except KeyError:
+        raise HTTPException(codes.INTERNAL_SERVER_ERROR, f"{analysis} is not supported")
 
 
 type AnalysisCatalogDep = Annotated[AnalysisCatalogEntry, Depends(get_analysis_catalog)]
@@ -30,7 +34,10 @@ type AnalysisCatalogDep = Annotated[AnalysisCatalogEntry, Depends(get_analysis_c
 
 @lru_cache
 def get_metric_catalog(metric: str) -> MetricCatalogEntry:
-    return METRIC_CATALOG[metric]
+    try:
+        return METRIC_CATALOG[metric]
+    except KeyError:
+        raise HTTPException(codes.INTERNAL_SERVER_ERROR, f"{metric} is not supported")
 
 
 type MetricCatalogDep = Annotated[MetricCatalogEntry, Depends(get_metric_catalog)]
