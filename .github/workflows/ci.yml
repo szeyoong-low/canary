@@ -22,9 +22,12 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - run: npm ci          # installs exact versions from package-lock.json
-      - run: npm run lint    # ESLint
-      - run: npm run build   # tsc type check + Vite bundle
+      - name: Install all dependencies
+        run: npm ci
+      - name: Lint code with ESLint
+        run: npm run lint
+      - name: Typescript compiler type check and Vite bundle
+        run: npm run build
 
   backend:
     runs-on: ubuntu-latest
@@ -36,9 +39,14 @@ jobs:
 
       - uses: astral-sh/setup-uv@v8.1.0
 
-      - run: uv sync --dev       # installs all deps including ruff
-      - run: uv run ruff check . # lint
-      - run: uv run ruff format --check .  # formatting
+      - name: Install all dependencies
+        run: uv sync --dev
+      - name: Lint code with ruff
+        run: uv run ruff check .
+      - name: Check code formatting with ruff
+        run: uv run ruff format --check .
+      - name: Run test suite
+        run: uv run pytest
 
   deploy-backend:
     runs-on: ubuntu-latest
