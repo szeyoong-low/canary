@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from . import Environment
+from .environment import Environment
 
 
 @lru_cache
