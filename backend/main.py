@@ -7,6 +7,10 @@ app = FastAPI(dependencies=[Depends(dependency.get_environment)])
 
 env = dependency.get_environment()
 
+# Browsers enforce a Same-Origin Policy, which blocks clients from making requests
+# to servers from a different origin unless explicitly allowed by the server
+# through a Cross-Origin Resource Sharing (CORS) whitelist.
+# Source: https://fastapi.tiangolo.com/tutorial/cors/
 app.add_middleware(
     CORSMiddleware,
     # Comma-separated list of origins allowed to call this API.
