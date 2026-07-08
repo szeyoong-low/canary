@@ -4,6 +4,6 @@ from .environment import Environment
 
 
 @lru_cache
-def get_environment():
+def get_environment() -> Environment:
     """For dependency injection, as shown in https://fastapi.tiangolo.com/advanced/settings/#lru-cache-technical-details"""
     return Environment()  # pyright: ignore[reportCallIssue] (Initialised by pydantic_settings)
