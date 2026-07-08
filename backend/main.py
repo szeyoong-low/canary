@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .dependencies import get_environment, Environment
+from .src.dependencies import get_environment, Environment
 
 app: FastAPI = FastAPI(dependencies=[Depends(get_environment)])
 
