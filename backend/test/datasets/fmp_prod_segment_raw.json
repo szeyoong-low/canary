@@ -1,0 +1,31 @@
+[
+  {
+    "symbol": "AAPL",
+    "fiscalYear": 2025,
+    "period": "FY",
+    "reportedCurrency": "USD",
+    "date": "2025-09-27",
+    "data": {
+      "Mac": 33708000000,
+      "Service": 109158000000,
+      "Wearables, Home and Accessories": 35686000000,
+      "iPad": 28023000000,
+      "iPhone": 209586000000
+    }
+  },
+  {
+    "symbol": "AAPL",
+    "fiscalYear": 2013,
+    "period": "FY",
+    "reportedCurrency": "USD",
+    "date": "2013-09-28",
+    "data": {
+      "Wearables, Home and Accessories": 5706000000,
+      "iPad": 31980000000,
+      "iPhone": 91279000000,
+      "Mac": 21483000000,
+      "iPod": 4411000000,
+      "iTunes, Software And Service": 16051000000
+    }
+  }
+]
