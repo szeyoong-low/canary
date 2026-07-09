@@ -1,9 +1,9 @@
 from fastapi import HTTPException
-from httpx import AsyncClient, codes, Response
+from httpx import AsyncClient, codes, HTTPStatusError, Response
 from polars import LazyFrame
 
 from . import ExternalAPI, ExternalEndpoint
-from .constants import BASE_URL, NORMALISER, SUCCESS_STATUS_CODES
+from .constants import BASE_URL, NORMALISER
 from ..utility.types import params
 
 
@@ -50,11 +50,9 @@ async def load_data(
         url=resource_url, params=query_params, headers=headers
     )
 
-    # Better than `raise_for_status` for two reasons:
-    # 1. Redirects need not be rejected, otherwise we would be vulnerable to
-    #    non-breaking changes in the external API
-    # 2. Details of the request and the error can be flashed
-    if response.status_code not in SUCCESS_STATUS_CODES:
+    try:
+        response.raise_for_status()
+    except HTTPStatusError:
         raise HTTPException(
             status_code=codes.INTERNAL_SERVER_ERROR,
             detail=(
