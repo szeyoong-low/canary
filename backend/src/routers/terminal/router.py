@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from polars import concat, LazyFrame
 from starlette.datastructures import QueryParams
 
-from ...transformations import Metric
+from ...transformations import Metric, MetricGen, MetricGenParams
 from ...transformations.metric_gen import METRIC_GEN
 
 
@@ -33,11 +33,11 @@ async def terminal_path_op(
     query_params: QueryParams = request.query_params
 
     async with AsyncClient(follow_redirects=True) as client:
+        metric_gen_params: MetricGenParams = METRIC_GEN[metric]
+        metric_gen_fun: MetricGen = metric_gen_params["function"]
+
         indiv_frames: list[LazyFrame] = await gather(
-            *(
-                METRIC_GEN[metric](client, sym, submetric, query_params)
-                for sym in symbol
-            )
+            *(metric_gen_fun(client, sym, submetric, query_params) for sym in symbol)
         )
 
     merged_frames: LazyFrame = concat(

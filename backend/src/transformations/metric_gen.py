@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from . import Metric, MetricGen
+from . import Metric, MetricGenParams
 from ..loaders import load_data, REQUEST_HEADERS
 from ..models.primitive_models import DateRangeModel
 
@@ -52,6 +52,9 @@ async def share_price_eod(
     )
 
 
-METRIC_GEN: dict[Metric, MetricGen] = {
-    "share-price-eod": share_price_eod,
+METRIC_GEN: dict[Metric, MetricGenParams] = {
+    "share-price-eod": {
+        "function": share_price_eod,
+        "key": "date",
+    },
 }
