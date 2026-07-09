@@ -14,13 +14,15 @@ router = APIRouter(prefix=TERMINAL_PREFIX)
 
 # Path parameters
 METRIC_PATH_PARAM = "/{metric}"
+SUBMETRIC_PATH_PARAM = "/{submetric}"
 DISPLAY_PATH_PARAM = "/{display}"
-TERMINAL_PATH = f"{METRIC_PATH_PARAM}{DISPLAY_PATH_PARAM}"
+TERMINAL_PATH = f"{METRIC_PATH_PARAM}{SUBMETRIC_PATH_PARAM}{DISPLAY_PATH_PARAM}"
 
 
 @router.get(TERMINAL_PATH)
 async def terminal_path_op(
     metric: Metric,
+    submetric: str,
     display: str,
     analysis: Annotated[list[str], Query()],
     view: Annotated[list[str], Query()],
@@ -30,8 +32,10 @@ async def terminal_path_op(
     query_params: QueryParams = request.query_params
 
     async with AsyncClient(follow_redirects=True) as client:
-        for s in symbol:
-            init_data: LazyFrame = await METRIC_GEN[metric](client, s, query_params)
+        for sym in symbol:
+            init_data: LazyFrame = await METRIC_GEN[metric](
+                client, sym, submetric, query_params
+            )
             print(init_data.collect())
 
     return {

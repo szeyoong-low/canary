@@ -1,18 +1,45 @@
 from httpx import AsyncClient
-from polars import LazyFrame, lit
+from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from . import SYMBOL_IDENTIFIER
+from . import Metric, MetricGen
 from ..loaders import load_data, REQUEST_HEADERS
 from ..models.primitive_models import DateRangeModel
 
 
+SHARE_PRICE_EOD_SUBMETRIC: list[str] = [
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "change",
+    "changePercent",
+    "vwap",
+]
+
+
 async def share_price_eod(
-    http_client: AsyncClient, symbol: str, query_params: QueryParams
+    http_client: AsyncClient,
+    symbol: str,
+    submetric: str,
+    query_params: QueryParams,
 ) -> LazyFrame:
     validated_params: DateRangeModel = DateRangeModel.model_validate(query_params)
 
-    data: LazyFrame = await load_data(
+    # I decided that it is better style to have the metric and submetric sit
+    # together as path parameters instead of having the submetric be a query
+    # parameter. What this forgoes is the ability to use a Pydantic model for
+    # type checking against a literal.
+    if submetric not in SHARE_PRICE_EOD_SUBMETRIC:
+        raise ValueError(f"{submetric} not one of {SHARE_PRICE_EOD_SUBMETRIC}")
+
+    # It is unnecessary to drop unused columns as Polars lazy API will cull them
+    # eventually. There is no risk of column name clashes down the road. As per
+    # the contract, anything other the three columns can be assumed to not exist.
+    # If a later transformation creates a column with the same name, it will simply
+    # overwrite it.
+    return await load_data(
         http_client=http_client,
         external_api="FMP",
         endpoint="historical-price-eod/full",
@@ -24,7 +51,6 @@ async def share_price_eod(
         headers=REQUEST_HEADERS["FMP"](),
     )
 
-    return data.with_columns(lit(symbol).alias(SYMBOL_IDENTIFIER))
 
 METRIC_GEN: dict[Metric, MetricGen] = {
     "share-price-eod": share_price_eod,
