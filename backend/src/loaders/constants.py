@@ -10,7 +10,11 @@ type ExternalAPI = Literal["FMP"]
 
 # Dispatch tables
 # The base URLs must have a trailing slash
-BASE_URL: dict[ExternalAPI, str] = {"FMP": get_environment().fmp_base_url}
+# Kept as a callable to achieve pseudo-lazy evaluation, so that there is no
+# coupling with the test suite which must still evaluate it when importing.
+BASE_URL: dict[ExternalAPI, Callable[[], str]] = {
+    "FMP": (lambda: get_environment().fmp_base_url)
+}
 
 NORMALISER: dict[ExternalAPI, Callable[[LazyFrame], LazyFrame]] = {
     "FMP": _normalise_fmp

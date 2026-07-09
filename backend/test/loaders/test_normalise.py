@@ -1,6 +1,6 @@
 from json import load
 from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 from httpx import codes
 from polars import DataFrame, read_json
@@ -11,6 +11,7 @@ from ..datasets import dataset_path
 from src.loaders import load_data
 
 
+@patch.dict(const.BASE_URL_DISPATCH, {const.FMP_API: (lambda: "")})
 async def test_normalise_nested():
     """A dataset with nested JSON objects is normalised to a wide dataset"""
     input_file: str = dataset_path("fmp_prod_segment_raw")

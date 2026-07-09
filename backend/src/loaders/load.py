@@ -39,7 +39,7 @@ async def load_data(
     """
 
     try:
-        resource_url: str = f"{BASE_URL[external_api]}{endpoint}"
+        resource_url: str = f"{BASE_URL[external_api]()}{endpoint}"
     except KeyError:
         raise HTTPException(
             codes.INTERNAL_SERVER_ERROR,

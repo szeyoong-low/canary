@@ -12,8 +12,9 @@ from src.loaders import load_data
 
 
 # Internally-constructed dependencies are patched
+@patch.dict(const.BASE_URL_DISPATCH, {const.FMP_API: (lambda: "")})
 @patch.dict(
-    f"{const.LOADERS_CONSTANTS_PATH}{const.NORMALISER_DISPATCH}",
+    const.NORMALISER_DISPATCH,
     {const.FMP_API: lambda x: x},
 )
 async def test_load_only_regular():
