@@ -5,7 +5,8 @@ from httpx import AsyncClient
 from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from ...transformations import Metric, METRIC_GEN
+from ...transformations import Metric
+from ...transformations.metric_gen import METRIC_GEN
 
 
 TERMINAL_PREFIX = "/terminal"

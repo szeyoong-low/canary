@@ -5,8 +5,6 @@ from httpx import AsyncClient
 from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from . import metric_gen
-
 SYMBOL_IDENTIFIER = "symbol"
 
 """
@@ -25,7 +23,3 @@ Output: Awaitable LazyFrame with only three types of columns: [symbol, key, valu
 type MetricGen = Callable[[AsyncClient, str, QueryParams], Awaitable[LazyFrame]]
 
 type Metric = Literal["share-price-eod"]
-
-METRIC_GEN: dict[Metric, MetricGen] = {
-    "share-price-eod": metric_gen.share_price_eod,
-}

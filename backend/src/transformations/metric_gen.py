@@ -25,3 +25,7 @@ async def share_price_eod(
     )
 
     return data.with_columns(lit(symbol).alias(SYMBOL_IDENTIFIER))
+
+METRIC_GEN: dict[Metric, MetricGen] = {
+    "share-price-eod": share_price_eod,
+}
