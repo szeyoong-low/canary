@@ -1,17 +1,18 @@
 from httpx import AsyncClient
-from polars import LazyFrame
+from polars import LazyFrame, lit
+from starlette.datastructures import QueryParams
 
+from . import SYMBOL_IDENTIFIER
 from ..loaders import load_data, REQUEST_HEADERS
 from ..models.primitive_models import DateRangeModel
-from ..utility.types import params
 
 
 async def share_price_eod(
-    http_client: AsyncClient, symbol: str, query_params: params
+    http_client: AsyncClient, symbol: str, query_params: QueryParams
 ) -> LazyFrame:
     validated_params: DateRangeModel = DateRangeModel.model_validate(query_params)
 
-    return await load_data(
+    data: LazyFrame = await load_data(
         http_client=http_client,
         external_api="FMP",
         endpoint="historical-price-eod/full",
@@ -22,3 +23,5 @@ async def share_price_eod(
         },
         headers=REQUEST_HEADERS["FMP"](),
     )
+
+    return data.with_columns(lit(symbol).alias(SYMBOL_IDENTIFIER))

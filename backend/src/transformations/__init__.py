@@ -1,9 +1,13 @@
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
+from typing import Literal
 
 from httpx import AsyncClient
 from polars import LazyFrame
+from starlette.datastructures import QueryParams
 
-from ..utility.types import params
+from . import metric_gen
+
+SYMBOL_IDENTIFIER = "symbol"
 
 """
 Metric generator contract
@@ -14,8 +18,14 @@ Inputs:
     - query_params: raw query parameters captured by the path handler, to be
         validated with a Pydantic model
 
-Output: LazyFrame with only three columns: [symbol, key, value (metric)]
+Output: Awaitable LazyFrame with only three types of columns: [symbol, key, values (for each metric)]
     - symbol: as per input
     - key-value: the metric that forms the basis of all further analysis
 """
-type MetricGen = Callable[[AsyncClient, str, params], LazyFrame]
+type MetricGen = Callable[[AsyncClient, str, QueryParams], Awaitable[LazyFrame]]
+
+type Metric = Literal["share-price-eod"]
+
+METRIC_GEN: dict[Metric, MetricGen] = {
+    "share-price-eod": metric_gen.share_price_eod,
+}
