@@ -1,8 +1,9 @@
 from typing import Annotated
 
+from asyncio import gather
 from fastapi import APIRouter, Query, Request
 from httpx import AsyncClient
-from polars import LazyFrame
+from polars import concat, LazyFrame
 from starlette.datastructures import QueryParams
 
 from ...transformations import Metric
@@ -32,11 +33,17 @@ async def terminal_path_op(
     query_params: QueryParams = request.query_params
 
     async with AsyncClient(follow_redirects=True) as client:
-        for sym in symbol:
-            init_data: LazyFrame = await METRIC_GEN[metric](
-                client, sym, submetric, query_params
+        indiv_frames: list[LazyFrame] = await gather(
+            *(
+                METRIC_GEN[metric](client, sym, submetric, query_params)
+                for sym in symbol
             )
-            print(init_data.collect())
+        )
+
+    merged_frames: LazyFrame = concat(
+        indiv_frames, how="vertical_relaxed", parallel=True
+    )
+    print(merged_frames.collect())
 
     return {
         "metric": metric,
