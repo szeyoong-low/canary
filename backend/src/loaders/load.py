@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from httpx import AsyncClient, codes, Response
 from polars import LazyFrame
 
-from . import ExternalAPI
+from . import ExternalAPI, ExternalEndpoint
 from .constants import BASE_URL, NORMALISER, SUCCESS_STATUS_CODES
 from ..utility.types import params
 
@@ -10,7 +10,7 @@ from ..utility.types import params
 async def load_data(
     http_client: AsyncClient,
     external_api: ExternalAPI,
-    endpoint: str,
+    endpoint: ExternalEndpoint,
     query_params: params,
     headers: params,
 ) -> LazyFrame:

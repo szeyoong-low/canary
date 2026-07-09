@@ -8,6 +8,10 @@ from .normalise import _normalise_fmp
 
 type ExternalAPI = Literal["FMP"]
 
+type EndpointFMP = Literal["historical-price-eod/full"]
+
+type ExternalEndpoint = EndpointFMP
+
 # Dispatch tables
 # The base URLs must have a trailing slash
 # Kept as a callable to achieve pseudo-lazy evaluation, so that there is no
