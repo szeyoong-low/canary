@@ -10,7 +10,7 @@ type ExternalAPI = Literal["FMP"]
 
 type EndpointFMP = Literal["historical-price-eod/full"]
 
-type ExternalEndpoint = EndpointFMP
+type ExternalEndpoint = EndpointFMP | Literal["TEST"]
 
 # Dispatch tables
 # Kept as a callable to achieve pseudo-lazy evaluation, so that there is no
