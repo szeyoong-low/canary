@@ -1,19 +1,18 @@
-from typing import Any
-
 from fastapi import HTTPException
 from httpx import AsyncClient, codes, Response
 from polars import LazyFrame
 
-from . import constants as const
 from . import ExternalAPI
+from .constants import BASE_URL, NORMALISER, SUCCESS_STATUS_CODES
+from ..utility.types import params
 
 
 async def load_data(
     http_client: AsyncClient,
     external_api: ExternalAPI,
     endpoint: str,
-    query_params: dict[str, Any],
-    headers: dict[str, Any],
+    query_params: params,
+    headers: params,
 ) -> LazyFrame:
     """
     Use the provided HTTP client to fetch data from the specified external API
@@ -40,7 +39,7 @@ async def load_data(
     """
 
     try:
-        resource_url: str = f"{const.BASE_URL[external_api]}{endpoint}"
+        resource_url: str = f"{BASE_URL[external_api]}{endpoint}"
     except KeyError:
         raise HTTPException(
             codes.INTERNAL_SERVER_ERROR,
@@ -55,7 +54,7 @@ async def load_data(
     # 1. Redirects need not be rejected, otherwise we would be vulnerable to
     #    non-breaking changes in the external API
     # 2. Details of the request and the error can be flashed
-    if response.status_code not in const.SUCCESS_STATUS_CODES:
+    if response.status_code not in SUCCESS_STATUS_CODES:
         raise HTTPException(
             status_code=codes.INTERNAL_SERVER_ERROR,
             detail=(
@@ -68,7 +67,7 @@ async def load_data(
 
     # Use the Polars lazy API to allow for optimisations
     try:
-        return const.NORMALISER[external_api](LazyFrame(response.json()))
+        return NORMALISER[external_api](LazyFrame(response.json()))
     except KeyError:
         raise HTTPException(
             codes.INTERNAL_SERVER_ERROR,
