@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .src.dependencies import Environment, get_environment
+from .src.routers import terminal
 
 app: FastAPI = FastAPI()
 
@@ -20,6 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
     # By default, only GET methods are allowed
 )
+
+app.include_router(terminal.router)
 
 
 @app.get("/health")
