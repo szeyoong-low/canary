@@ -4,7 +4,7 @@ from starlette.datastructures import QueryParams
 
 from . import Metric, MetricGenParams
 from ..loaders import load_data, REQUEST_HEADERS
-from ..models.primitive_models import DateRangeModel
+from .models.primitives import DateRangeModel
 
 
 SHARE_PRICE_EOD_SUBMETRIC: list[str] = [
