@@ -4,15 +4,15 @@ from polars import LazyFrame
 
 from . import ExternalAPI, ExternalEndpoint
 from .constants import BASE_URL, NORMALISER
-from ..utility.types import params
+from ..utility.types import Params
 
 
 async def load_data(
     http_client: AsyncClient,
     external_api: ExternalAPI,
     endpoint: ExternalEndpoint,
-    query_params: params,
-    headers: params,
+    query_params: Params,
+    headers: Params,
 ) -> LazyFrame:
     """
     Use the provided HTTP client to fetch data from the specified external API

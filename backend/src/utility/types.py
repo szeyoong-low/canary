@@ -1,3 +1,3 @@
 from typing import Any
 
-type params = dict[str, Any]
+type Params = dict[str, Any]

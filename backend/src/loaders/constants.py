@@ -4,7 +4,7 @@ from polars import LazyFrame
 
 from ..dependencies import get_environment
 from .normalise import _normalise_fmp
-from ..utility.types import params
+from ..utility.types import Params
 
 type ExternalAPI = Literal["FMP"]
 
@@ -15,7 +15,7 @@ type ExternalEndpoint = EndpointFMP | Literal["TEST"]
 # Dispatch tables
 # Kept as a callable to achieve pseudo-lazy evaluation, so that there is no
 # coupling with the test suite which must still evaluate it when importing.
-REQUEST_HEADERS: dict[ExternalAPI, Callable[[], params]] = {
+REQUEST_HEADERS: dict[ExternalAPI, Callable[[], Params]] = {
     "FMP": (lambda: {"apikey": get_environment().fmp_api_key}),
 }
 
