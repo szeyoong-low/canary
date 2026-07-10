@@ -40,9 +40,7 @@ async def terminal_path_op(
             *(metric_gen_fun(client, sym, submetric, query_params) for sym in symbol)
         )
 
-    merged_frames: LazyFrame = concat(
-        indiv_frames, how="vertical_relaxed", parallel=True
-    )
+    merged_frames: LazyFrame = concat(indiv_frames, how="align_left", parallel=True)
     print(merged_frames.collect())
 
     return {

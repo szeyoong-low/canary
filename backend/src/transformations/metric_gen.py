@@ -1,5 +1,5 @@
 from httpx import AsyncClient
-from polars import LazyFrame
+from polars import all, col, LazyFrame
 from starlette.datastructures import QueryParams
 
 from . import Metric, MetricGenParams
@@ -17,6 +17,8 @@ SHARE_PRICE_EOD_SUBMETRIC: list[str] = [
     "changePercent",
     "vwap",
 ]
+
+SHARE_PRICE_EOD_KEY = "date"
 
 
 async def share_price_eod(
@@ -39,7 +41,7 @@ async def share_price_eod(
     # the contract, anything other the three columns can be assumed to not exist.
     # If a later transformation creates a column with the same name, it will simply
     # overwrite it.
-    return await load_data(
+    data: LazyFrame = await load_data(
         http_client=http_client,
         external_api="FMP",
         endpoint="historical-price-eod/full",
@@ -51,10 +53,15 @@ async def share_price_eod(
         headers=REQUEST_HEADERS["FMP"](),
     )
 
+    return data.select(
+        col(SHARE_PRICE_EOD_KEY),
+        all().exclude(SHARE_PRICE_EOD_KEY).name.prefix(f"{symbol}_".upper()),
+    )
+
 
 METRIC_GEN: dict[Metric, MetricGenParams] = {
     "share-price-eod": {
         "function": share_price_eod,
-        "key": "date",
+        "key": SHARE_PRICE_EOD_KEY,
     },
 }
