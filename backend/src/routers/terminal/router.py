@@ -21,7 +21,7 @@ TERMINAL_PATH = f"{METRIC_PATH_PARAM}{SUBMETRIC_PATH_PARAM}{DISPLAY_PATH_PARAM}"
 
 
 @router.get(TERMINAL_PATH)
-async def terminal_path_op(
+async def terminal_handler(
     metric: Metric,
     submetric: str,
     display: str,
