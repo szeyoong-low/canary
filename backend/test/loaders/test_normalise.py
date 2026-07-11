@@ -8,7 +8,7 @@ from polars.testing import assert_frame_equal
 
 from .constants import BASE_URL_DISPATCH, FMP_API
 from ..datasets.paths import dataset_path
-from src.loaders.load import load_data
+from src.loaders.load import _load_data
 
 
 @patch.dict(BASE_URL_DISPATCH, {FMP_API: (lambda: "")})
@@ -22,7 +22,7 @@ async def test_normalise_nested():
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (
-        await load_data(http_client, FMP_API, "TEST", {}, {})
+        await _load_data(http_client, FMP_API, "TEST", {}, {})
     ).collect()
 
     output_file: str = dataset_path("fmp_prod_segment_norm")
