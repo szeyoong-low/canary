@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from functools import reduce
 
 from polars import col, LazyFrame, Struct
@@ -11,7 +12,7 @@ https://github.com/szeyoong-low/canary/wiki/Wide-data-shape-as-default"""
 
 def _normalise_fmp(data: LazyFrame) -> LazyFrame:
 
-    struct_cols: set[str] = {
+    struct_cols: Iterable[str] = {
         cname
         for cname, dtype in data.collect_schema().items()
         if isinstance(dtype, Struct)
