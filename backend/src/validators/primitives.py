@@ -3,6 +3,8 @@ from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from .field import PositiveInt
+
 """Modular Pydantic models to be composed or used as-is for validating simple query parameters"""
 
 
@@ -26,3 +28,11 @@ class DateRangeModel(QueryBaseModel):
             )
 
         return self
+
+
+class WindowFunctionModel(QueryBaseModel):
+    window: PositiveInt
+
+
+class TimeHorizonModel(QueryBaseModel):
+    horizon: PositiveInt
