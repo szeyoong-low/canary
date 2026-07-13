@@ -1,4 +1,11 @@
+from typing import Annotated
+
+from fastapi import Query
+
 from ..constants import MetricGroup
+
+type SetQueryParam = Annotated[set[str], Query()]
+
 
 DISPLAY_PATH_PARAM: str = "{display}"
 
