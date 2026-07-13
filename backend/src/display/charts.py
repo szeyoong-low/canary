@@ -46,9 +46,10 @@ def time_series(data: DataFrame, keys: Columns, entities: Entities) -> ChartConf
     chart_config.yAxis = [Axis(type="value")]
 
     data_cols: list[Column] = data.schema.names()
-    data_cols.remove(key_list.pop())
+    key: Column = key_list.pop()
+    data_cols.remove(key)
 
-    return _style_lines(chart_config, data_cols, entities)
+    return _style_lines(chart_config, data_cols, entities, key)
 
 
 DISPLAY_FUNCTIONS: dict[str, DisplayFunction] = {
