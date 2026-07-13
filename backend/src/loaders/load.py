@@ -2,7 +2,8 @@ from httpx import AsyncClient
 from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from .constants import METRIC_GROUP_KEYS, REQUEST_HEADERS
+from .constants import METRIC_GROUP_KEYS
+from .dispatch import REQUEST_HEADERS
 from .utility import _load_data
 from ..validators.primitives import DateRangeModel
 

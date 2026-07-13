@@ -2,7 +2,8 @@ from fastapi import HTTPException
 from httpx import AsyncClient, codes, HTTPStatusError, Response
 from polars import LazyFrame
 
-from .constants import BASE_URL, ExternalAPI, ExternalEndpoint, NORMALISER
+from .constants import ExternalAPI, ExternalEndpoint
+from .dispatch import BASE_URL, NORMALISER
 from ..types import Params
 
 
