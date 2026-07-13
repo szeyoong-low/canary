@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 from polars import col, Expr, LazyFrame
 
+from ..constants import individual_entity_regex
 from ..types import Column, ColumnOptional
 
 """
@@ -21,6 +22,7 @@ def _apply_unary_function(
     source_col: Column,
     dest_col: ColumnOptional,
     function: Callable[[Expr], Expr],
+    aggregate: bool = False,
 ) -> LazyFrame:
     """
     args:
@@ -28,10 +30,12 @@ def _apply_unary_function(
         dest_col: Write the results to a new column of name `dest_col`,
             overwrite `source_col` if None.
         function: Any unary function on a Polars expression
+        aggregate: If this is a horizontal aggregate function, the source columns
+            will be `source_col` of each individual entity
     """
 
     return data.with_columns(
-        function(col(source_col)).alias(
-            dest_col if dest_col is not None else source_col
-        )
+        function(
+            col(individual_entity_regex(source_col) if aggregate else source_col)
+        ).alias(dest_col if dest_col is not None else source_col)
     )

@@ -3,7 +3,7 @@ from typing import Awaitable
 
 from fastapi import HTTPException
 from httpx import AsyncClient, codes
-from polars import col, LazyFrame
+from polars import all, col, LazyFrame
 from starlette.datastructures import QueryParams
 
 from .collective import COLLECTIVE_TRANSFORMATIONS
@@ -91,7 +91,7 @@ def resolve_transformations(
             else:
                 raise HTTPException(
                     codes.UNPROCESSABLE_ENTITY,
-                    f"{transformation} in {analysis} must be a transformation",
+                    f"{last_transformation} in {analysis} must be a transformation",
                 )
 
     if (len(individual) + len(collective) + base_metric_count) == 0:
@@ -158,8 +158,8 @@ async def apply_analysis_function(
 
 
 async def pivot_single_entity(
-    data: Awaitable[LazyFrame], symbol: str, keys: Columns, columns: Columns
+    data: Awaitable[LazyFrame], symbol: str, keys: Columns
 ) -> LazyFrame:
     return (await data).select(
-        col(keys), col(columns).name.prefix(symbol + TRANSFORMATION_SEPARATOR)
+        col(keys), all().name.prefix(symbol + TRANSFORMATION_SEPARATOR)
     )

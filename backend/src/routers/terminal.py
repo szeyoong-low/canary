@@ -4,9 +4,10 @@ from functools import partial, reduce
 from asyncio import gather
 from fastapi import APIRouter, Request
 from httpx import AsyncClient
-from polars import concat, LazyFrame
+from polars import col, concat, LazyFrame
 from starlette.datastructures import QueryParams
 
+from ..constants import individual_entity_regex
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily
 from ..transformations.utility import (
@@ -54,7 +55,6 @@ async def asset_price_daily_handler(
                         ),
                         sym,
                         keys,
-                        analysis - set(collective_transforms),
                     )
                 )
                 for sym in symbol
@@ -72,6 +72,11 @@ async def asset_price_daily_handler(
             ),
             collective_transforms,
             as_awaitable(merged_entities),
+        )
+        data_output = data_output.select(
+            col(keys),
+            col(map(individual_entity_regex, analysis - set(collective_transforms))),
+            col(collective_transforms),
         )
 
         print(data_output.collect())
