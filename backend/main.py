@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .src.dependencies import Environment, get_environment
-from .src.routers import terminal
+from .src.terminal import terminal
 
 app: FastAPI = FastAPI()
 
