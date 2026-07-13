@@ -3,11 +3,12 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 from httpx import codes
-from polars import DataFrame, read_json
+from polars import col, DataFrame, read_json
 from polars.testing import assert_frame_equal
 
 from .constants import BASE_URL_DISPATCH, FMP_API
 from ..datasets.paths import dataset_path
+from src.loaders.constants import DATE_KEY
 from src.loaders.load import _load_data
 
 
@@ -26,5 +27,7 @@ async def test_normalise_nested():
     ).collect()
 
     output_file: str = dataset_path("fmp_prod_segment_norm")
-    expected: DataFrame = read_json(output_file)
+    expected: DataFrame = read_json(output_file).with_columns(
+        col(DATE_KEY).str.to_date().alias(DATE_KEY)
+    )
     assert_frame_equal(actual, expected)
