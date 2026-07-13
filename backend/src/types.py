@@ -3,7 +3,9 @@ from typing import Any, TypeVar
 
 type Params = dict[str, Any]
 
-type Columns = str | Collection[str]
+type Column = str
+type ColumnOptional = Column | None
+type Columns = Collection[str]
 
 T = TypeVar("T")
 

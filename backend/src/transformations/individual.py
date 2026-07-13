@@ -10,7 +10,7 @@ from starlette.datastructures import QueryParams
 from .constants import TransformationDispatch
 from ..constants import TRANSFORMATION_SEPARATOR
 from .steps import _apply_unary_function
-from ..types import Columns
+from ..types import Column, Columns
 from ..validators.primitives import WindowFunctionModel, TimeHorizonModel
 
 """Compute values for a single entity"""
@@ -23,7 +23,7 @@ RETURNS = "returns"
 async def volatility(
     data: Awaitable[LazyFrame],
     keys: Columns,
-    depends: str | None,
+    depends: Column | None,
     query_params: QueryParams,
     http_client: AsyncClient,
 ) -> LazyFrame:
@@ -47,7 +47,7 @@ async def volatility(
         )
 
     window: int = WindowFunctionModel.model_validate(query_params).window
-    dest_col: str = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
+    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
         lambda lf, step: lf.pipe(step),
@@ -72,7 +72,7 @@ async def volatility(
 async def returns(
     data: Awaitable[LazyFrame],
     keys: Columns,
-    depends: str | None,
+    depends: Column | None,
     query_params: QueryParams,
     http_client: AsyncClient,
 ) -> LazyFrame:
@@ -91,7 +91,7 @@ async def returns(
         )
 
     horizon: int = TimeHorizonModel.model_validate(query_params).horizon
-    dest_col: str = depends + TRANSFORMATION_SEPARATOR + RETURNS
+    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
         lambda lf, step: lf.pipe(step),

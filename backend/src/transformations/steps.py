@@ -2,8 +2,7 @@ from collections.abc import Callable
 
 from polars import col, Expr, LazyFrame
 
-type Column = str
-type ColumnOptional = Column | None
+from ..types import Column, ColumnOptional
 
 """
 Contract of a single step:
