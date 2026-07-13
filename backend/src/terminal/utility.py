@@ -26,17 +26,17 @@ def _validate_display(display: str) -> str:
     return display
 
 
-def _uppercasify_strings(strings: Iterable[str]) -> set[str]:
+def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:
     uppercased: set[str] = set()
 
     for s in strings:
         uppercased.add(s.upper())
 
-    return uppercased
+    return sorted(uppercased)
 
 
 type DisplayPathParam = Annotated[str, AfterValidator(_validate_display)]
 type SetQueryParam = Annotated[set[str], Query()]
 type EntityQueryParam = Annotated[
-    set[str], Query(), AfterValidator(_uppercasify_strings)
+    list[str], Query(), AfterValidator(_uppercasify_sort_strings)
 ]

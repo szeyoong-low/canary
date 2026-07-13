@@ -6,6 +6,4 @@ from .models import ChartConfigModel, Dataset
 
 
 def _serialise_cartesian(data: DataFrame) -> ChartConfigModel:
-    return ChartConfigModel(
-        dataset=[Dataset(source=[data.to_dict(as_series=False)])]
-    )
+    return ChartConfigModel(dataset=[Dataset(source=[data.to_dict(as_series=False)])])

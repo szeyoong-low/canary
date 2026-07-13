@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AfterValidator, BaseModel, ConfigDict
 
 from ..types import Params
 
@@ -14,8 +14,74 @@ from ..types import Params
 # https://pydantic.dev/docs/validation/latest/concepts/performance/#use-BaseModel-over-nested-models
 
 
+MIN_RGB: int = 0
+MAX_RGB: int = 255
+
+
+def _validate_rgb(n: int) -> int:
+    if MIN_RGB <= n <= MAX_RGB:
+        return n
+
+    raise ValueError(f"{n} must lie between {MIN_RGB} and {MAX_RGB} inclusive")
+
+
+type ByteField = Annotated[int, AfterValidator(_validate_rgb)]
+
+NORMALISED_FLOOR: float = 0
+NORMALISED_CEILING: float = 1
+
+
+def _validate_normalised_float(x: float) -> float:
+    if NORMALISED_FLOOR <= x <= NORMALISED_CEILING:
+        return x
+
+    raise ValueError(
+        f"{x} must lie between {NORMALISED_FLOOR} and {NORMALISED_CEILING} inclusive"
+    )
+
+
+type NormalisedFloatField = Annotated[float, AfterValidator(_validate_normalised_float)]
+
+HEX_PREFIX: str = "#"
+
+
+def _validate_hex_string(string: str) -> str:
+    if (
+        2 <= len(string) <= 7
+        and string[0] == HEX_PREFIX
+        and all((c.isalnum() for c in string[1:]))
+    ):
+        return string
+
+    raise ValueError(f"{string} is not in the format #ABC123")
+
+
+type HexColor = Annotated[str, AfterValidator(_validate_hex_string)]
+
+type Number = int | float
+
+
+def _validate_non_negative_number(n: Number) -> Number:
+    if n > 0:
+        return n
+
+    raise ValueError(f"{n} must be a positive number")
+
+
+type NonNegativeNumberField = Annotated[
+    Number, AfterValidator(_validate_non_negative_number)
+]
+
+
 class EChartsBaseModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class RGBA(EChartsBaseModel):
+    red: ByteField = 0
+    green: ByteField = 0
+    blue: ByteField = 0
+    alpha: NormalisedFloatField = 1
 
 
 class Title(EChartsBaseModel):
@@ -39,6 +105,15 @@ class Legend(EChartsBaseModel):
 class Axis(EChartsBaseModel):
     type: Literal["value", "category", "time", "log"]
     data: list | None = None
+
+
+class LineStyle(EChartsBaseModel):
+    color: RGBA | HexColor = "#000"
+    width: NonNegativeNumberField = 2
+    type: Literal["solid", "dashed", "dotted"] = "solid"
+    dashOffset: NonNegativeNumberField = 0
+    cap: Literal["butt", "round", "square"] = "butt"
+    join: Literal["bevel", "round", "miter"] = "bevel"
 
 
 type SeriesType = Literal[
@@ -73,6 +148,8 @@ class Series(EChartsBaseModel):
     type: SeriesType
     yAxisIndex: int = 0
     data: list | None = None
+    encode: dict | None = None
+    lineStyle: LineStyle | None = None
 
 
 class ChartConfigModel(EChartsBaseModel):

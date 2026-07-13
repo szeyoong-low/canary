@@ -6,6 +6,7 @@ type Params = dict[str, Any]
 type Column = str
 type ColumnOptional = Column | None
 type Columns = Collection[str]
+type Entities = Collection[str]
 
 T = TypeVar("T")
 

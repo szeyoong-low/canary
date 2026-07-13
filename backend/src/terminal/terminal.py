@@ -87,4 +87,4 @@ async def asset_price_daily_handler(
             col(collective_transforms),
         )
 
-    return DISPLAY_FUNCTIONS[display](data_output.collect(), keys)
+    return DISPLAY_FUNCTIONS[display](data_output.collect(), keys, symbol)
