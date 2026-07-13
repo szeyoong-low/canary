@@ -14,27 +14,29 @@ from ..types import Params
 # https://pydantic.dev/docs/validation/latest/concepts/performance/#use-BaseModel-over-nested-models
 
 
-class EChartsModel(BaseModel):
+class EChartsBaseModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class Title(EChartsModel):
+class Title(EChartsBaseModel):
     text: str = ""
 
 
-class Dataset(EChartsModel):
-    source: list[Params] | list[list] = list()
+class Dataset(EChartsBaseModel):
+    # Row-objects: to_dicts
+    # Columnar: to_dict (preferred: no repeated key strings, easier CSV conversion)
+    source: list[Params] | dict[str, list] = dict()
 
 
-class Tooltip(EChartsModel):
+class Tooltip(EChartsBaseModel):
     trigger: Literal["item", "axis", "none"] = "item"
 
 
-class Legend(EChartsModel):
+class Legend(EChartsBaseModel):
     data: list = list()
 
 
-class Axis(EChartsModel):
+class Axis(EChartsBaseModel):
     type: Literal["value", "category", "time", "log"]
     data: list | None = None
 
@@ -66,14 +68,14 @@ type SeriesType = Literal[
 ]
 
 
-class Series(EChartsModel):
+class Series(EChartsBaseModel):
     name: str = ""
     type: SeriesType
     yAxisIndex: int = 0
     data: list | None = None
 
 
-class ChartConfigModel(EChartsModel):
+class ChartConfigModel(EChartsBaseModel):
     title: Title | None = None
     dataset: list[Dataset] | None = None
     tooltip: Tooltip = Tooltip()
