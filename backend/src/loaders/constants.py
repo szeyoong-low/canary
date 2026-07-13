@@ -1,7 +1,7 @@
 from collections.abc import Collection
 from typing import Literal
 
-from ..constants import MetricGroup
+from ..constants import DATE_KEY, MetricGroup
 from ..types import Columns
 
 type ExternalAPI = Literal["FMP"]
@@ -9,9 +9,6 @@ type ExternalAPI = Literal["FMP"]
 type EndpointFMP = Literal["historical-price-eod/full"]
 
 type ExternalEndpoint = EndpointFMP | Literal["TEST"]
-
-# Keys of all data loaded for a specific metric group
-DATE_KEY = "date"
 
 METRIC_GROUP_KEYS: dict[MetricGroup, Columns] = {"asset-price-daily": [DATE_KEY]}
 

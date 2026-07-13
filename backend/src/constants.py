@@ -1,5 +1,7 @@
 from typing import Literal
 
+from .types import Column
+
 
 type MetricGroup = Literal["asset-price-daily"]
 
@@ -14,3 +16,7 @@ EMPTY_STRING: str = ""
 # Prepend this to `foo/bar/baz` to match `AAPL/foo/bar/baz`
 def individual_entity_regex(column_name: str) -> str:
     return f"^[^{TRANSFORMATION_SEPARATOR}]+/{column_name}$"
+
+
+# Allowed key columns
+DATE_KEY: Column = "date"
