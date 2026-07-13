@@ -43,6 +43,7 @@ def resolve_transformations(
 
     individual: set[str] = set()
     collective: set[str] = set()
+    base_metric_count: int = 0
 
     for analysis in analysis_list:
         transformation_list: list[str] = analysis.split(TRANSFORMATION_SEPARATOR)
@@ -59,7 +60,7 @@ def resolve_transformations(
 
         for metric in first_transformations:
             if metric in base_metrics:
-                pass  # No-op, must already in the frame
+                base_metric_count += 1  # No-op, must already in the frame
             elif metric in INDIVIDUAL_TRANSFORMATIONS:
                 individual.add(metric)
             else:
@@ -93,7 +94,7 @@ def resolve_transformations(
                     f"{transformation} in {analysis} must be a transformation",
                 )
 
-    if (len(individual) + len(collective)) == 0:
+    if (len(individual) + len(collective) + base_metric_count) == 0:
         raise HTTPException(
             codes.UNPROCESSABLE_ENTITY,
             "Analysis functions must be specified using query parameters, e.g. analysis=foo/bar/baz",
