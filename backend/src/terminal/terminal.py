@@ -8,6 +8,8 @@ from polars import col, concat, LazyFrame
 from starlette.datastructures import QueryParams
 
 from ..constants import individual_entity_regex
+from ..display.charts import DISPLAY_FUNCTIONS
+from ..display.models import ChartConfigModel
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily
 from ..transformations.utility import (
@@ -16,18 +18,23 @@ from ..transformations.utility import (
     resolve_transformations,
 )
 from ..types import as_awaitable, Columns
-from .utility import _get_terminal_path, SetQueryParam
+from .utility import (
+    DisplayPathParam,
+    EntityQueryParam,
+    _get_terminal_path,
+    SetQueryParam,
+)
 
 router = APIRouter(prefix="/terminal")
 
 
 @router.get(_get_terminal_path("asset-price-daily"))
 async def asset_price_daily_handler(
-    display: str,
+    display: DisplayPathParam,
     analysis: SetQueryParam,
-    symbol: SetQueryParam,
+    symbol: EntityQueryParam,
     request: Request,
-):
+) -> ChartConfigModel:
 
     indiv_transforms: Iterable[str]
     collective_transforms: Iterable[str]
@@ -63,27 +70,21 @@ async def asset_price_daily_handler(
 
         merged_entities: LazyFrame = concat(indiv_entities, how="align_full")
 
-        data_output: LazyFrame = await reduce(
-            partial(
-                apply_analysis_function,
-                keys=keys,
-                query_params=query_params,
-                http_client=client,
-            ),
-            collective_transforms,
-            as_awaitable(merged_entities),
-        )
-        data_output = data_output.select(
+        data_output: LazyFrame = (
+            await reduce(
+                partial(
+                    apply_analysis_function,
+                    keys=keys,
+                    query_params=query_params,
+                    http_client=client,
+                ),
+                collective_transforms,
+                as_awaitable(merged_entities),
+            )
+        ).select(
             col(keys),
             col(map(individual_entity_regex, analysis - set(collective_transforms))),
             col(collective_transforms),
         )
 
-        print(data_output.collect())
-
-    return {
-        "metric_group": "asset-price-daily",
-        "display": display,
-        "analysis": analysis,
-        "symbol": symbol,
-    }
+    return DISPLAY_FUNCTIONS[display](data_output.collect(), keys)
