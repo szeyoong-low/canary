@@ -116,6 +116,10 @@ class LineStyle(EChartsBaseModel):
     join: Literal["bevel", "round", "miter"] = "bevel"
 
 
+class ItemStyle(EChartsBaseModel):
+    color: RGBA | HexColor = "#000"
+
+
 type SeriesType = Literal[
     "line",
     "bar",
@@ -149,12 +153,14 @@ class Series(EChartsBaseModel):
     yAxisIndex: int = 0
     data: list | None = None
     encode: dict | None = None
-    lineStyle: LineStyle | None = None
+    lineStyle: LineStyle = LineStyle()
+    itemStyle: ItemStyle = ItemStyle()
+    showSymbol: bool = True
 
 
 class ChartConfigModel(EChartsBaseModel):
-    title: Title | None = None
-    dataset: list[Dataset] | None = None
+    title: Title = Title()
+    dataset: list[Dataset]
     tooltip: Tooltip = Tooltip()
     legend: Legend = Legend()
     xAxis: list[Axis] = list()

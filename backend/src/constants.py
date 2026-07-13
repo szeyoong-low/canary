@@ -11,6 +11,8 @@ INITIAL_METRIC_SEPARATOR: str = "+"
 
 EMPTY_STRING: str = ""
 
+DEC_PLACES_SHOWN: int = 3
+
 
 # Polars takes regular expressions as strings
 # Prepend this to `foo/bar/baz` to match `AAPL/foo/bar/baz`

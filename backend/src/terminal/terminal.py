@@ -5,9 +5,10 @@ from asyncio import gather
 from fastapi import APIRouter, Request
 from httpx import AsyncClient
 from polars import col, concat, LazyFrame
+from polars.selectors import float as pl_float
 from starlette.datastructures import QueryParams
 
-from ..constants import individual_entity_regex
+from ..constants import DEC_PLACES_SHOWN, individual_entity_regex
 from ..display.charts import DISPLAY_FUNCTIONS
 from ..display.models import ChartConfigModel
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
@@ -71,20 +72,26 @@ async def asset_price_daily_handler(
         merged_entities: LazyFrame = concat(indiv_entities, how="align_full")
 
         data_output: LazyFrame = (
-            await reduce(
-                partial(
-                    apply_analysis_function,
-                    keys=keys,
-                    query_params=query_params,
-                    http_client=client,
-                ),
-                collective_transforms,
-                as_awaitable(merged_entities),
+            (
+                await reduce(
+                    partial(
+                        apply_analysis_function,
+                        keys=keys,
+                        query_params=query_params,
+                        http_client=client,
+                    ),
+                    collective_transforms,
+                    as_awaitable(merged_entities),
+                )
             )
-        ).select(
-            col(keys),
-            col(map(individual_entity_regex, analysis - set(collective_transforms))),
-            col(collective_transforms),
+            .select(
+                col(keys),
+                col(
+                    map(individual_entity_regex, analysis - set(collective_transforms))
+                ),
+                col(collective_transforms),
+            )
+            .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
     return DISPLAY_FUNCTIONS[display](data_output.collect(), keys, symbol)
