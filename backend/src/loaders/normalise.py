@@ -1,4 +1,8 @@
-from polars import LazyFrame, Struct
+from functools import reduce
+
+from polars import col, LazyFrame, Struct
+
+from .constants import DATE_KEY
 
 
 """Normalise into a wide data shape, as explained in
@@ -13,9 +17,15 @@ def _normalise_fmp(data: LazyFrame) -> LazyFrame:
         if isinstance(dtype, Struct)
     }
 
-    data_normalised: LazyFrame = data
-    for s in struct_cols:
-        # Promote all keys in the struct column to a top-level column
-        data_normalised: LazyFrame = data_normalised.unnest(s)
+    # Promote all keys in the struct column to a top-level column
+    data_normalised: LazyFrame = reduce(
+        (lambda lf, s: lf.unnest(s)),
+        struct_cols,
+        data,
+    )
+
+    # Try parsing dates
+    if DATE_KEY in data_normalised.collect_schema():
+        return data_normalised.with_columns(col(DATE_KEY).str.to_date().alias(DATE_KEY))
 
     return data_normalised

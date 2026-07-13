@@ -36,3 +36,8 @@ class WindowFunctionModel(QueryBaseModel):
 
 class TimeHorizonModel(QueryBaseModel):
     horizon: PositiveInt
+
+
+class DateIndexModel(QueryBaseModel):
+    base: PositiveInt
+    reference: date

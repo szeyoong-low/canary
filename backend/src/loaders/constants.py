@@ -11,7 +11,9 @@ type EndpointFMP = Literal["historical-price-eod/full"]
 type ExternalEndpoint = EndpointFMP | Literal["TEST"]
 
 # Keys of all data loaded for a specific metric group
-METRIC_GROUP_KEYS: dict[MetricGroup, Columns] = {"asset-price-daily": ["date"]}
+DATE_KEY = "date"
+
+METRIC_GROUP_KEYS: dict[MetricGroup, Columns] = {"asset-price-daily": [DATE_KEY]}
 
 # Base metrics
 # It would be better if we can use the schema of the data returned by the endpoint.

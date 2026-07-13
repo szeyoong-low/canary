@@ -4,20 +4,22 @@ from typing import Awaitable
 
 from fastapi import HTTPException
 from httpx import AsyncClient, codes
-from polars import Expr, LazyFrame
+from polars import col, Expr, LazyFrame
 from starlette.datastructures import QueryParams
 
 from .constants import TransformationDispatch
 from ..constants import TRANSFORMATION_SEPARATOR
+from ..loaders.constants import DATE_KEY
 from .steps import _apply_unary_function
 from ..types import Column, Columns
-from ..validators.primitives import WindowFunctionModel, TimeHorizonModel
+from ..validators import primitives as prim
 
 """Compute values for a single entity"""
 
 # Column names
 VOLATILITY = "volatility"
 RETURNS = "returns"
+INDEX_TO_DATE = "index-to-date"
 
 
 async def volatility(
@@ -46,7 +48,7 @@ async def volatility(
             codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
         )
 
-    window: int = WindowFunctionModel.model_validate(query_params).window
+    window: int = prim.WindowFunctionModel.model_validate(query_params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
@@ -90,7 +92,7 @@ async def returns(
             codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
         )
 
-    horizon: int = TimeHorizonModel.model_validate(query_params).horizon
+    horizon: int = prim.TimeHorizonModel.model_validate(query_params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
@@ -113,9 +115,48 @@ async def returns(
     )
 
 
+async def index_to_date(
+    data: Awaitable[LazyFrame],
+    keys: Columns,
+    depends: str | None,
+    query_params: QueryParams,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    """
+    Create an index based on `reference`, which is assigned a value of `base`.
+
+    args:
+        - depends: cannot be None
+        - http_client: unused but required to accept as part of contract
+    """
+
+    if depends is None:
+        raise HTTPException(
+            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
+        )
+
+    if DATE_KEY not in keys:
+        raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
+
+    model: prim.DateIndexModel = prim.DateIndexModel.model_validate(query_params)
+
+    return _apply_unary_function(
+        data=await data,
+        source_col=depends,
+        dest_col=depends + TRANSFORMATION_SEPARATOR + INDEX_TO_DATE,
+        function=(
+            lambda x: (
+                (x / col(depends).filter(col(DATE_KEY) == model.reference).first())
+                * model.base
+            )
+        ),
+    )
+
+
 # Invariant: Transformations must be registered in exactly one of
 # INDIVIDUAL_TRANSFORMATIONS or COLLECTIVE_TRANSFORMATIONS
 INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
     VOLATILITY: volatility,
     RETURNS: returns,
+    INDEX_TO_DATE: index_to_date,
 }
