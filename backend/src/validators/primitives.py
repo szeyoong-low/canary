@@ -3,7 +3,7 @@ from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from .field import PositiveInt
+from .fields import PositiveInt
 
 """Modular Pydantic models to be composed or used as-is for validating simple query parameters"""
 
