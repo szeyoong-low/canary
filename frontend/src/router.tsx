@@ -1,9 +1,12 @@
 import { createBrowserRouter } from "react-router";
+import Home from "./routes/home";
+import Layout from "./routes/layout";
 
-function Root() {
-  return <p>Canary is here</p>;
-}
-
-const router = createBrowserRouter([{ path: "/", Component: Root }]);
+const router = createBrowserRouter([
+  {
+    Component: Layout,
+    children: [{ index: true, Component: Home, handle: { title: "Home" } }],
+  },
+]);
 
 export default router;
