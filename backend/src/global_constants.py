@@ -1,6 +1,6 @@
 from typing import Literal
 
-from .types import Column
+from .global_types import Column
 
 
 type MetricGroup = Literal["asset-price-daily"]

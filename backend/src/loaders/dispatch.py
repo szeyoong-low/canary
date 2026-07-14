@@ -4,8 +4,8 @@ from polars import LazyFrame
 
 from .constants import ExternalAPI
 from ..dependencies import get_environment
+from ..global_types import Params
 from ..loaders.normalise import _normalise_fmp
-from ..types import Params
 
 
 # Kept as a callable to achieve pseudo-lazy evaluation so that there is no

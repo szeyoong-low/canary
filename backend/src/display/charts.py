@@ -4,11 +4,11 @@ from fastapi import HTTPException
 from httpx import codes
 from polars import DataFrame
 
-from ..constants import DATE_KEY
+from ..global_constants import DATE_KEY
+from ..global_types import Column, Columns, Entities
 from .models import Axis, ChartConfigModel
 from .serialise import _serialise_cartesian
 from .style import _style_lines
-from ..types import Column, Columns, Entities
 
 """
 Contract of display functions

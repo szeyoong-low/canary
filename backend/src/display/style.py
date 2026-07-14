@@ -1,8 +1,8 @@
 from coloraide import Color
 
-from ..constants import TRANSFORMATION_SEPARATOR
+from ..global_constants import TRANSFORMATION_SEPARATOR
+from ..global_types import Column, Entities
 from .models import ChartConfigModel, ItemStyle, LineStyle, Series
-from ..types import Column, Entities
 
 """Add legend and series to chart config"""
 

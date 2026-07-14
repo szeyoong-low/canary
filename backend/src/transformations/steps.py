@@ -2,8 +2,8 @@ from collections.abc import Callable
 
 from polars import col, Expr, LazyFrame
 
-from ..constants import individual_entity_regex
-from ..types import Column, ColumnOptional
+from ..global_constants import individual_entity_regex
+from ..global_types import Column, ColumnOptional
 
 """
 Contract of a single step:

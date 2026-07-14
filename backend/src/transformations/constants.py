@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from polars import LazyFrame
 from starlette.datastructures import QueryParams
 
-from ..types import Columns
+from ..global_types import Columns
 
 """
 Contract of transformations

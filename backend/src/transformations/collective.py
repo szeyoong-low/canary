@@ -6,9 +6,9 @@ from polars import LazyFrame, mean_horizontal
 from starlette.datastructures import QueryParams
 
 from .constants import TransformationDispatch
-from ..constants import TRANSFORMATION_SEPARATOR
+from ..global_constants import TRANSFORMATION_SEPARATOR
+from ..global_types import Column, Columns
 from .steps import _apply_unary_function
-from ..types import Column, Columns
 
 """Compute values for all entities"""
 

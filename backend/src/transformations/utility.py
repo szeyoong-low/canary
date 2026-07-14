@@ -7,9 +7,13 @@ from polars import all, col, LazyFrame
 from starlette.datastructures import QueryParams
 
 from .collective import COLLECTIVE_TRANSFORMATIONS
-from ..constants import EMPTY_STRING, INITIAL_METRIC_SEPARATOR, TRANSFORMATION_SEPARATOR
+from ..global_constants import (
+    EMPTY_STRING,
+    INITIAL_METRIC_SEPARATOR,
+    TRANSFORMATION_SEPARATOR,
+)
+from ..global_types import Columns
 from .individual import INDIVIDUAL_TRANSFORMATIONS
-from ..types import Columns
 
 
 def resolve_transformations(

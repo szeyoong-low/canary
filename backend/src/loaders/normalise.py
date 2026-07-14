@@ -3,7 +3,7 @@ from functools import reduce
 
 from polars import col, LazyFrame, Struct
 
-from ..constants import DATE_KEY
+from ..global_constants import DATE_KEY
 
 
 """Normalise into a wide data shape, as explained in

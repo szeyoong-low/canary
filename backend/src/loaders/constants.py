@@ -1,8 +1,8 @@
 from collections.abc import Collection
 from typing import Literal
 
-from ..constants import DATE_KEY, MetricGroup
-from ..types import Columns
+from ..global_constants import DATE_KEY, MetricGroup
+from ..global_types import Columns
 
 type ExternalAPI = Literal["FMP"]
 

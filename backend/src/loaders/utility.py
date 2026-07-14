@@ -4,7 +4,7 @@ from polars import LazyFrame
 
 from .constants import ExternalAPI, ExternalEndpoint
 from .dispatch import BASE_URL, NORMALISER
-from ..types import Params
+from ..global_types import Params
 
 
 async def _load_data(

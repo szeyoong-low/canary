@@ -5,8 +5,8 @@ from fastapi import Query
 from httpx import codes
 from pydantic import AfterValidator
 
-from ..constants import MetricGroup
 from ..display.charts import DISPLAY_FUNCTIONS
+from ..global_constants import MetricGroup
 
 
 DISPLAY_PATH_PARAM: str = "{display}"
@@ -36,7 +36,9 @@ def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:
 
 
 type DisplayPathParam = Annotated[str, AfterValidator(_validate_display)]
+
 type SetQueryParam = Annotated[set[str], Query()]
+
 type EntityQueryParam = Annotated[
     list[str], Query(), AfterValidator(_uppercasify_sort_strings)
 ]

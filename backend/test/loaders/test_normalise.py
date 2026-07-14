@@ -8,7 +8,7 @@ from polars.testing import assert_frame_equal
 
 from .constants import BASE_URL_DISPATCH, FMP_API
 from ..datasets.paths import dataset_path
-from src.constants import DATE_KEY
+from src.global_constants import DATE_KEY
 from src.loaders.load import _load_data
 
 

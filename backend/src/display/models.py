@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, ConfigDict
 
-from ..types import Params
+from ..global_types import Params
 
 # Will not use generic types to enforce that lists are homogeneous:
 # 1. It doesn't matter for ECharts rendering
