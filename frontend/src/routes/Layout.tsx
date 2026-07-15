@@ -1,10 +1,10 @@
 import { Outlet, useMatches } from "react-router";
+import ThemeToggle from "@/components/ThemeToggle";
 import { projectTitle } from "@/shared/constants";
 import { isTitleHandle } from "@/shared/types";
-import ThemeToggle from "@/components/ThemeToggle";
 import "@/styles/layout.css";
 
-function Layout() {
+export default function Layout() {
   // Search from the deepest match outward so the most specific route is used.
   const title =
     useMatches()
@@ -29,5 +29,3 @@ function Layout() {
     </div>
   );
 }
-
-export default Layout;

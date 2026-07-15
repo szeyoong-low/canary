@@ -18,7 +18,7 @@ function getInitialTheme(): Theme {
   return window.matchMedia(darkMediaQuery).matches ? dark : light;
 }
 
-function ThemeToggle({ className }: ClassNameProps) {
+export default function ThemeToggle({ className }: ClassNameProps) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
@@ -49,5 +49,3 @@ function ThemeToggle({ className }: ClassNameProps) {
     </form>
   );
 }
-
-export default ThemeToggle;
