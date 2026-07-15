@@ -10,10 +10,10 @@ button {
   width: calc(2 * var(--thumb-diameter));
   background-color: var(--color-white);
   border-radius: var(--pill-border-radius);
-  border: var(--root-border-width) solid var(--canary-theme);
+  border: var(--root-border-width) solid var(--canary-theme-color);
   position: relative;
   &[data-checked] {
-    background-color: var(--canary-theme);
+    background-color: var(--canary-theme-color);
   }
 }
 

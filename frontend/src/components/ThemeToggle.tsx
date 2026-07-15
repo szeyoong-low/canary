@@ -28,9 +28,9 @@ function ThemeToggle({ className }: ClassNameProps) {
 
   return (
     <form className={clsx(className)}>
-      <div className="flex items-center">
+      <div className="flex items-center gap-x-2">
         <label id="theme-toggle-label" htmlFor="theme-toggle">
-          {theme === dark ? "Dark mode" : "Light mode"}
+          {theme === dark ? "Dark" : "Light"}
         </label>
         <Switch.Root
           id="theme-toggle"

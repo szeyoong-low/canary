@@ -5,7 +5,7 @@ import Layout from "@/routes/layout";
 const router = createBrowserRouter([
   {
     Component: Layout,
-    children: [{ index: true, Component: Home, handle: { title: "Home" } }],
+    children: [{ index: true, Component: Home }],
   },
 ]);
 
