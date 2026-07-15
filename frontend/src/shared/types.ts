@@ -10,3 +10,7 @@ export function isTitleHandle(handle: unknown): handle is TitleHandle {
     typeof handle.title === "string"
   );
 }
+
+export interface ClassNameProps {
+  className?: string;
+}

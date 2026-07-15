@@ -1,5 +1,7 @@
 import { Switch } from "@base-ui/react/switch";
+import { clsx } from "clsx";
 import { useEffect, useState } from "react";
+import { type ClassNameProps } from "@/shared/types";
 import "@/styles/component.css";
 
 // Constants MUST match the inline no-flash script in index.html.
@@ -16,7 +18,7 @@ function getInitialTheme(): Theme {
   return window.matchMedia(darkMediaQuery).matches ? dark : light;
 }
 
-function ThemeToggle() {
+function ThemeToggle({ className }: ClassNameProps) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ function ThemeToggle() {
   }, [theme]);
 
   return (
-    <form>
+    <form className={clsx(className)}>
       <div className="flex items-center">
         <label id="theme-toggle-label" htmlFor="theme-toggle">
           {theme === dark ? "Dark mode" : "Light mode"}
