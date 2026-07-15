@@ -1,0 +1,29 @@
+button {
+  all: unset;
+}
+
+.SwitchRoot {
+  --thumb-diameter: 20px;
+  --root-border-width: 3px;
+
+  height: var(--thumb-diameter);
+  width: calc(2 * var(--thumb-diameter));
+  background-color: light-dark(var(--color-white), var(--canary-theme));
+  border-radius: var(--pill-border-radius);
+  border: var(--root-border-width) solid var(--canary-theme);
+  position: relative;
+}
+
+.SwitchThumb {
+  display: block;
+  width: var(--thumb-diameter);
+  height: var(--thumb-diameter);
+  background-color: var(--color-white);
+  box-shadow: 2px 0 2px var(--color-gray-300);
+  border-radius: var(--pill-border-radius);
+  transition: transform var(--transition-delay);
+  will-change: transform;
+  &[data-state="checked"] {
+    transform: translateX(var(--thumb-diameter));
+  }
+}

@@ -5,6 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canary</title>
+    <script>
+      // Runs synchronously before <body> and React to prevent FOUC.
+      // The constants must match src/components/ThemeToggle.tsx.
+      const dark = "dark";
+      const light = "light";
+      const darkMediaQuery = `(prefers-color-scheme: ${dark})`;
+      const themeKey = "theme";
+
+      var stored = localStorage.getItem(themeKey);
+      var theme =
+        stored === light || stored === dark
+          ? stored
+          : window.matchMedia(darkMediaQuery).matches
+            ? dark
+            : light;
+      document.documentElement.style.colorScheme = theme;
+    </script>
   </head>
   <body>
     <div id="root"></div>

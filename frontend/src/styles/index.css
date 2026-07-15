@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+:root {
+  /* Colour palette */
+  --canary-theme: #ffc856;
+  --text-primary: light-dark(var(--color-black), var(--color-white));
+  --background-primary: light-dark(var(--color-white), var(--color-black));
+  --background-secondary: light-dark(var(--color-gray-200), #1e1e1e);
+  --border-primary: light-dark(var(--color-black), var(--color-white));
+  --transparent: rgba(0, 0, 0, 0);
+
+  /* Constants */
+  --pill-border-radius: 9999px;
+  --transition-delay: 300ms;
+
+  color-scheme: light dark;
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+}
+
+@theme {
+  --color-theme: var(--canary-theme);
+}
