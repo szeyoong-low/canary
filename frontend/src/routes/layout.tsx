@@ -1,6 +1,6 @@
 import { Outlet, useMatches } from "react-router";
-import { projectTitle } from "../shared/constants";
-import { isTitleHandle } from "../shared/types";
+import { projectTitle } from "@/shared/constants";
+import { isTitleHandle } from "@/shared/types";
 
 function Layout() {
   // Search from the deepest match outward so the most specific route is used.
