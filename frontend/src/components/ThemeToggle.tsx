@@ -1,4 +1,4 @@
-import { Switch } from "radix-ui";
+import { Switch } from "@base-ui/react/switch";
 import { useEffect, useState } from "react";
 import "@/styles/component.css";
 
@@ -34,8 +34,12 @@ function ThemeToggle() {
           id="theme-toggle"
           aria-labelledby="theme-toggle-label"
           checked={theme === dark}
-          onCheckedChange={(checked) => setTheme(checked ? dark : light)}
+          onCheckedChange={(checked) => {
+            setTheme(checked ? dark : light);
+          }}
           className="SwitchRoot"
+          nativeButton
+          render={<button />}
         >
           <Switch.Thumb className="SwitchThumb" />
         </Switch.Root>
