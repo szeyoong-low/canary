@@ -1,11 +1,11 @@
 import { Outlet } from "react-router";
-import ThemeToggle from "@/components/ThemeToggle";
+import { ThemeProvider, ThemeToggle } from "@/components";
 import { projectName } from "@/shared/constants";
 import "@/styles/layout.css";
 
 export default function Layout() {
   return (
-    <div>
+    <ThemeProvider>
       <header className="flex items-center justify-center-safe">
         <title>{projectName}</title>
         <h1 className="page-title font-medium font-stretch-30% text-3xl">
@@ -16,6 +16,6 @@ export default function Layout() {
       <main>
         <Outlet />
       </main>
-    </div>
+    </ThemeProvider>
   );
 }
