@@ -1,10 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import { loadChartConfig } from "@/lib/api";
-import { Demo, Home, Layout } from "@/routes/index";
+import { Demo, Error, Home, Layout } from "@/routes/index";
 
 const router = createBrowserRouter([
   {
     Component: Layout,
+    ErrorBoundary: Error,
     children: [
       { index: true, Component: Home },
       {

@@ -35,7 +35,7 @@ export async function loadChartConfig({
 
   if (!response.ok) {
     throw new Error(
-      `Server error: ${String(response.status)}: ${response.statusText}`,
+      `Server error at ${response.url}: ${String(response.status)}: ${response.statusText}`,
     );
   }
 
