@@ -11,7 +11,7 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem(themeKey, theme);
-    document.documentElement.style.colorScheme = theme;
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   return <ThemeContext value={{ theme, setTheme }}>{children}</ThemeContext>;
