@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { loadChartConfig } from "@/lib/api";
 import { Demo, Error, Home, Layout } from "@/routes";
 
-const router = createBrowserRouter([
+export default createBrowserRouter([
   {
     Component: Layout,
     ErrorBoundary: Error,
@@ -16,5 +16,3 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-
-export default router;

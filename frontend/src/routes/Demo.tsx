@@ -1,6 +1,6 @@
 import { type ECharts, type EChartsOption } from "echarts";
-import { useEffect, useRef } from "react";
-import { useLoaderData, useParams } from "react-router";
+import { type RefObject, useEffect, useRef } from "react";
+import { type Params, useLoaderData, useParams } from "react-router";
 import { chartContainerID, renderChart } from "@/lib/renderChart";
 import { type Theme, useTheme } from "@/lib/themeContext";
 import { demoTitles } from "@/shared/constants";
@@ -14,11 +14,14 @@ const echartsTheme: Record<Theme, string> = {
 
 export default function Demo() {
   const chartConfig: EChartsOption = useLoaderData<EChartsOption>();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme(); // Only reactive elements can be deps
-  const themeRef = useRef<Theme>(theme); // Needed: react hooks need exhaustive deps
-  const chartRef = useRef<ECharts>(undefined);
-  const params = useParams();
+  const containerRef: RefObject<HTMLDivElement | null> =
+    useRef<HTMLDivElement>(null);
+
+  const { theme }: { theme: Theme } = useTheme(); // Only reactive elements can be deps
+  const themeRef: RefObject<Theme> = useRef<Theme>(theme); // Needed: react hooks need exhaustive deps
+  const chartRef: RefObject<ECharts | undefined> = useRef<ECharts>(undefined);
+
+  const params: Params = useParams();
   if (!isDemoParams(params)) {
     throw new Error("Can't parse demo ID");
   }
@@ -28,12 +31,15 @@ export default function Demo() {
   }
 
   useEffect(() => {
-    const chart = renderChart(chartConfig, echartsTheme[themeRef.current]);
+    const chart: ECharts = renderChart(
+      chartConfig,
+      echartsTheme[themeRef.current],
+    );
     chartRef.current = chart;
 
     // ECharts doesn't auto-resize with its container, so watch the
     // container element and tell the chart to resize when it does.
-    const resizeObserver = new ResizeObserver(() => {
+    const resizeObserver: ResizeObserver = new ResizeObserver(() => {
       chart.resize();
     });
     // Will have been set as effects run after mount
