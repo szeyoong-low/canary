@@ -1,8 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { loadChartConfig } from "@/lib/api";
-import Demo from "@/routes/Demo";
-import Home from "@/routes/Home";
-import Layout from "@/routes/Layout";
+import { Demo, Home, Layout } from "@/routes/index";
 
 const router = createBrowserRouter([
   {
