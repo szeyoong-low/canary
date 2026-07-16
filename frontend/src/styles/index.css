@@ -30,5 +30,5 @@
 }
 
 @theme {
-  --color-theme: var(--canary-theme);
+  --color-theme: var(--canary-theme-color);
 }
