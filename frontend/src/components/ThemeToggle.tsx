@@ -1,12 +1,7 @@
 import { Switch } from "@base-ui/react/switch";
 import { clsx } from "clsx";
 import { type ClassNameProps } from "@/shared/types";
-import {
-  dark,
-  light,
-  type ThemeContextValue,
-  useTheme,
-} from "@/components/ThemeProvider";
+import { dark, light, type ThemeContextValue , useTheme } from "@/lib/themeContext";
 import "@/styles/component.css";
 
 export default function ThemeToggle({ className }: ClassNameProps) {

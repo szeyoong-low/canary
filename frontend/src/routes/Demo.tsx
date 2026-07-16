@@ -1,8 +1,8 @@
 import { type ECharts, type EChartsOption } from "echarts";
 import { useEffect, useRef } from "react";
 import { useLoaderData, useParams } from "react-router";
-import { type Theme, useTheme } from "@/components/ThemeProvider";
 import { chartContainerID, renderChart } from "@/lib/renderChart";
+import { type Theme, useTheme } from "@/lib/themeContext";
 import { demoTitles } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 

@@ -1,6 +1,6 @@
 import * as echarts from "echarts";
 // Can't import tree-shakeable bundle. Backend can return any chart.
-import { type Theme } from "@/components/ThemeProvider";
+import { type Theme } from "@/lib/themeContext";
 
 export const chartContainerID: string = "chartContainer";
 
