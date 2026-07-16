@@ -6,6 +6,12 @@ import { type Theme, useTheme } from "@/lib/themeContext";
 import { demoTitles } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
+// ECharts ships "default" (light) and "dark".
+const echartsTheme: Record<Theme, string> = {
+  light: "default",
+  dark: "dark",
+};
+
 export default function Demo() {
   const chartConfig: EChartsOption = useLoaderData<EChartsOption>();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +28,7 @@ export default function Demo() {
   }
 
   useEffect(() => {
-    const chart = renderChart(chartConfig, themeRef.current);
+    const chart = renderChart(chartConfig, echartsTheme[themeRef.current]);
     chartRef.current = chart;
 
     // ECharts doesn't auto-resize with its container, so watch the
@@ -43,7 +49,7 @@ export default function Demo() {
   }, [chartConfig]);
 
   useEffect(() => {
-    chartRef.current?.setTheme(theme);
+    chartRef.current?.setTheme(echartsTheme[theme]);
     themeRef.current = theme;
   }, [theme]);
 
