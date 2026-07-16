@@ -17,4 +17,5 @@ header {
 
 main {
   position: relative;
+  margin-block: 20px;
 }
