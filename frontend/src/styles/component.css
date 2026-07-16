@@ -1,0 +1,40 @@
+button {
+  all: unset;
+}
+
+.SwitchRoot {
+  --thumb-diameter: 20px;
+  --root-border-width: 3px;
+
+  height: var(--thumb-diameter);
+  width: calc(2 * var(--thumb-diameter));
+  background-color: var(--color-white);
+  border-radius: var(--pill-border-radius);
+  border: var(--root-border-width) solid var(--canary-theme-color);
+  position: relative;
+  &[data-checked] {
+    background-color: var(--canary-theme-color);
+  }
+}
+
+.SwitchThumb {
+  --shadow-offset-x: 2px;
+  --shadow-offset-y: 0;
+  --shadow-blur-radius: 4px;
+
+  display: block;
+  width: var(--thumb-diameter);
+  height: var(--thumb-diameter);
+  background-color: var(--color-white);
+
+  border-radius: var(--pill-border-radius);
+  transition: transform var(--transition-delay);
+  will-change: transform;
+  &[data-checked] {
+    transform: translateX(var(--thumb-diameter));
+  }
+  &[data-unchecked] {
+    box-shadow: var(--shadow-offset-x) var(--shadow-offset-y)
+      var(--shadow-blur-radius) var(--color-gray-300);
+  }
+}

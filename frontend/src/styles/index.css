@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root {
+  /* Colour palette */
+  --canary-theme-color: #ffc856;
+  --text-color-primary: light-dark(var(--color-black), var(--color-white));
+  --background-color-primary: light-dark(
+    var(--color-white),
+    var(--color-black)
+  );
+  --background-color-secondary: light-dark(var(--color-gray-200), #1e1e1e);
+  --border-color-primary: light-dark(var(--color-black), var(--color-white));
+  --transparent-color: rgba(0, 0, 0, 0);
+  --border-width-primary: 1px;
+
+  /* Constants */
+  --pill-border-radius: 9999px;
+  --transition-delay: 300ms;
+
+  color-scheme: light dark;
+  color: var(--text-color-primary);
+  background-color: var(--background-color-primary);
+
+  /* Fonts */
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
+}
+
+@theme {
+  --color-theme: var(--canary-theme-color);
+}

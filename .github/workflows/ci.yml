@@ -24,6 +24,8 @@ jobs:
 
       - name: Install all dependencies
         run: npm ci
+      - name: Format code with prettier
+        run: npx prettier . --check
       - name: Lint code with ESLint
         run: npm run lint
       - name: Typescript compiler type check and Vite bundle
@@ -41,10 +43,10 @@ jobs:
 
       - name: Install all dependencies
         run: uv sync --dev
-      - name: Lint code with ruff
-        run: uv run ruff check .
       - name: Check code formatting with ruff
         run: uv run ruff format --check .
+      - name: Lint code with ruff
+        run: uv run ruff check .
       - name: Run test suite
         run: uv run pytest
 
