@@ -1,9 +1,8 @@
 from datetime import date
+from typing import Annotated
 from typing_extensions import Self
 
-from pydantic import BaseModel, ConfigDict, model_validator
-
-from .fields import PositiveInt
+from pydantic import AfterValidator, BaseModel, ConfigDict, model_validator
 
 """Modular Pydantic models to be composed or used as-is for validating simple query parameters"""
 
@@ -14,6 +13,16 @@ class QueryBaseModel(BaseModel):
         # Each will extract and validate the fields they need independently.
         extra="ignore",
     )
+
+
+def _check_positive_int(n: int) -> int:
+    if n > 0:
+        return n
+
+    raise ValueError(f"{n} must be a positive integer")
+
+
+type PositiveInt = Annotated[int, AfterValidator(_check_positive_int)]
 
 
 class DateRangeModel(QueryBaseModel):
@@ -28,16 +37,3 @@ class DateRangeModel(QueryBaseModel):
             )
 
         return self
-
-
-class WindowFunctionModel(QueryBaseModel):
-    window: PositiveInt
-
-
-class TimeHorizonModel(QueryBaseModel):
-    horizon: PositiveInt
-
-
-class DateIndexModel(QueryBaseModel):
-    base: PositiveInt
-    reference: date
