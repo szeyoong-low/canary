@@ -14,17 +14,17 @@ from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
 from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily
+from .models import (
+    DisplayPathParam,
+    EntityQueryParam,
+    SetQueryParam,
+)
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
     resolve_transformations,
 )
-from .utility import (
-    DisplayPathParam,
-    EntityQueryParam,
-    _get_terminal_path,
-    SetQueryParam,
-)
+from .utility import _get_terminal_path
 
 router = APIRouter(prefix="/terminal")
 
