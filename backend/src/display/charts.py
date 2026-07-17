@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Literal
 
 from fastapi import HTTPException
 from httpx import codes
@@ -10,22 +10,21 @@ from .models import Axis, ChartConfigModel
 from .serialise import _serialise_cartesian
 from .style import _style_lines
 
+
+type DisplayFunctionName = Literal["time-series"]
+
 """
-Contract of display functions
+Contract of display functions for Cartesian charts
 
 Input:
     - data (DataFrame): Wide frame whose every column should be displayed.
     - keys (Columns)
     - entities (Entities)
 
-Output: EChartsModel with the following fields populated
-    - `dataset`
-    - `series`
-    - `legend`
-
+Output: EChartsModel with all fields populated
 """
 
-type DisplayFunction = Callable[[DataFrame, Columns, Entities], ChartConfigModel]
+type DisplayCartesian = Callable[[DataFrame, Columns, Entities], ChartConfigModel]
 
 TIME_SERIES_ALLOWED_KEYS: Columns = {
     DATE_KEY,
@@ -52,6 +51,6 @@ def time_series(data: DataFrame, keys: Columns, entities: Entities) -> ChartConf
     return _style_lines(chart_config, data_cols, entities, key)
 
 
-DISPLAY_FUNCTIONS: dict[str, DisplayFunction] = {
+DISPLAY_CARTESIAN: dict[DisplayFunctionName, DisplayCartesian] = {
     "time-series": time_series,
 }

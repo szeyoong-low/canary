@@ -9,7 +9,7 @@ from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
 from starlette.datastructures import QueryParams
 
-from ..display.charts import DISPLAY_FUNCTIONS
+from ..display.charts import DISPLAY_CARTESIAN, DisplayFunctionName
 from ..display.models import ChartConfigModel
 from ..global_constants import (
     DEC_PLACES_SHOWN,
@@ -19,7 +19,6 @@ from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
 from .models import (
-    DisplayPathParam,
     EntityQueryParam,
     SequenceQueryParam,
     SetQueryParam,
@@ -36,7 +35,7 @@ router = APIRouter(prefix="/terminal")
 
 @router.get(_get_terminal_path("asset-price-daily"))
 async def asset_price_daily_handler(
-    display: DisplayPathParam,
+    display: DisplayFunctionName,
     analysis: SetQueryParam,
     symbol: EntityQueryParam,
     request: Request,
@@ -99,12 +98,12 @@ async def asset_price_daily_handler(
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_FUNCTIONS[display](data_output.collect(), keys, symbol)
+    return DISPLAY_CARTESIAN[display](data_output.collect(), keys, symbol)
 
 
 @router.get(_get_terminal_path("market-composition"))
 async def market_composition_handler(
-    display: DisplayPathParam,
+    display: DisplayFunctionName,
     analysis: SetQueryParam,
     drilldown: SequenceQueryParam[Literal["country", "exchange", "industry", "sector"]],
     request: Request,
