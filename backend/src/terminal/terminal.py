@@ -98,7 +98,7 @@ async def asset_price_daily_handler(
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_CARTESIAN[display](data_output.collect(), keys, symbol)
+    return DISPLAY_CARTESIAN[display](data_output, keys, symbol)
 
 
 @router.get(_get_terminal_path("market-composition"))

@@ -2,7 +2,7 @@ from typing import Callable, Literal
 
 from fastapi import HTTPException
 from httpx import codes
-from polars import DataFrame
+from polars import LazyFrame
 
 from ..global_constants import DATE_KEY
 from ..global_types import Column, Columns, Entities
@@ -17,21 +17,21 @@ type DisplayFunctionName = Literal["time-series"]
 Contract of display functions for Cartesian charts
 
 Input:
-    - data (DataFrame): Wide frame whose every column should be displayed.
+    - data (LazyFrame): Wide frame whose every column should be displayed.
     - keys (Columns)
     - entities (Entities)
 
 Output: EChartsModel with all fields populated
 """
 
-type DisplayCartesian = Callable[[DataFrame, Columns, Entities], ChartConfigModel]
+type DisplayCartesian = Callable[[LazyFrame, Columns, Entities], ChartConfigModel]
 
 TIME_SERIES_ALLOWED_KEYS: Columns = {
     DATE_KEY,
 }
 
 
-def time_series(data: DataFrame, keys: Columns, entities: Entities) -> ChartConfigModel:
+def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConfigModel:
 
     chart_config: ChartConfigModel = _serialise_cartesian(data)
 
