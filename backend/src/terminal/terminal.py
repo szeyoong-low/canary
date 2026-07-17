@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from functools import partial, reduce
+from typing import Literal
 
 from asyncio import gather
 from fastapi import APIRouter, Request
@@ -10,13 +11,17 @@ from starlette.datastructures import QueryParams
 
 from ..display.charts import DISPLAY_FUNCTIONS
 from ..display.models import ChartConfigModel
-from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
+from ..global_constants import (
+    DEC_PLACES_SHOWN,
+    individual_entity_regex,
+)
 from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
-from ..loaders.load import load_asset_price_daily
+from ..loaders.load import load_asset_price_daily, load_market_composition
 from .models import (
     DisplayPathParam,
     EntityQueryParam,
+    SequenceQueryParam,
     SetQueryParam,
 )
 from ..transformations.utility import (
@@ -95,3 +100,44 @@ async def asset_price_daily_handler(
         )
 
     return DISPLAY_FUNCTIONS[display](data_output.collect(), keys, symbol)
+
+
+@router.get(_get_terminal_path("market-composition"))
+async def market_composition_handler(
+    display: DisplayPathParam,
+    analysis: SetQueryParam,
+    drilldown: SequenceQueryParam[Literal["country", "exchange", "industry", "sector"]],
+    request: Request,
+) -> ChartConfigModel:
+
+    indiv_transforms: Iterable[str]
+    # Collective transformations are meaningless here as all entities are
+    # already in a single table
+    indiv_transforms, _ = resolve_transformations(
+        analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
+    )
+
+    query_params: QueryParams = request.query_params
+
+    async with AsyncClient(follow_redirects=True) as client:
+        data_output: LazyFrame = (
+            (
+                await reduce(
+                    partial(
+                        apply_analysis_function,
+                        keys=[],
+                        query_params=query_params,
+                        http_client=client,
+                    ),
+                    indiv_transforms,
+                    load_market_composition(client, query_params),
+                )
+            )
+            .select(
+                col(drilldown),
+                col(indiv_transforms),
+            )
+            .with_columns(pl_float().round(DEC_PLACES_SHOWN))
+        )
+
+    return ChartConfigModel(dataset=[])

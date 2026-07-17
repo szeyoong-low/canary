@@ -6,7 +6,7 @@ from ..global_types import Columns
 
 type ExternalAPI = Literal["FMP"]
 
-type EndpointFMP = Literal["historical-price-eod/full"]
+type EndpointFMP = Literal["company-screener", "historical-price-eod/full"]
 
 type ExternalEndpoint = EndpointFMP | Literal["TEST"]
 
@@ -18,7 +18,7 @@ METRIC_GROUP_KEYS: dict[MetricGroup, Columns] = {"asset-price-daily": [DATE_KEY]
 # locking. It is safe to assume that versioned external APIs from for-profit data
 # vendors will return consistent schemas.
 
-ASSET_PRICE_DAILY_BASE_METRICS: Collection[str] = {
+ASSET_PRICE_DAILY_BASE_METRICS: Columns = {
     "open",
     "high",
     "low",
@@ -29,6 +29,15 @@ ASSET_PRICE_DAILY_BASE_METRICS: Collection[str] = {
     "vwap",
 }
 
-METRIC_GROUP_BASE_METRICS: dict[MetricGroup, Collection[str]] = {
+MARKET_COMPOSITION_BASE_METRICS: Columns = {
+    "marketCap",
+    "beta",
+    "price",
+    "lastAnnualDividend",
+    "volume",
+}
+
+METRIC_GROUP_BASE_METRICS: dict[MetricGroup, Columns] = {
     "asset-price-daily": ASSET_PRICE_DAILY_BASE_METRICS,
+    "market-composition": MARKET_COMPOSITION_BASE_METRICS,
 }
