@@ -1,8 +1,14 @@
+from collections.abc import Container
 from datetime import date
-from typing import Annotated
+from types import UnionType
+from typing import Annotated, Any, get_args, get_origin, Union
 from typing_extensions import Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, model_validator
+from pydantic.fields import FieldInfo
+from starlette.datastructures import QueryParams
+
+from ..global_types import Params
 
 """Modular Pydantic models to be composed or used as-is for validating simple query parameters"""
 
@@ -13,6 +19,48 @@ class QueryBaseModel(BaseModel):
         # Each will extract and validate the fields they need independently.
         extra="ignore",
     )
+
+    @staticmethod
+    def _is_collection_type(annotation: Any) -> bool:
+        """
+        Whether a field annotation ultimately holds a collection of values.
+
+        Unwraps unions (e.g. `set[str] | None`) so an optional collection still counts.
+        """
+
+        origin: Any = get_origin(annotation)
+
+        if origin in (Union, UnionType):
+            return any(
+                QueryBaseModel._is_collection_type(arg) for arg in get_args(annotation)
+            )
+
+        return isinstance(origin, type) and issubclass(origin, Container)
+
+    @classmethod
+    def validate_query_params(cls, raw_params: QueryParams) -> Self:
+        """
+        Validate a Starlette `QueryParams` multidict into this model.
+
+        A repeated key (`exchange=NASDAQ&exchange=NYSE`) in `QueryParams`
+        carries several values, but Pydantic uses plain mapping access which
+        keeps only one. We shape the raw values before running Pydantic.
+        """
+
+        shaped_params: Params = {}
+
+        name: str
+        field: FieldInfo
+        for name, field in cls.model_fields.items():
+            if name not in raw_params:
+                continue
+
+            if QueryBaseModel._is_collection_type(field.annotation):
+                shaped_params[name] = raw_params.getlist(name)
+            else:
+                shaped_params[name] = raw_params[name]
+
+        return cls.model_validate(shaped_params)
 
 
 def _check_positive_int(n: int) -> int:
