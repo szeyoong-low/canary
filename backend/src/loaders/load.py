@@ -10,7 +10,7 @@ from ..validators.primitives import DateRangeModel
 
 """Data is left as-is in its long shape (yet to pivot on `symbol`)"""
 
-LIMIT_NUM_ENTRIES: int = 1000
+LIMIT_NUM_ENTRIES: int = 200
 
 
 async def load_asset_price_daily(
@@ -20,9 +20,7 @@ async def load_asset_price_daily(
 ) -> LazyFrame:
     """Data is sorted earliest to latest"""
 
-    validated_params: DateRangeModel = DateRangeModel.validate_query_params(
-        query_params
-    )
+    validated_params: DateRangeModel = DateRangeModel.model_validate(query_params)
 
     return (
         await _load_data(
@@ -62,7 +60,7 @@ async def load_market_composition(
             "isFund": validated_params.category == "fund",
             "isActivelyTrading": True,
             "limit": LIMIT_NUM_ENTRIES,
-            "includeAllShareClasses": True,
+            "includeAllShareClasses": False,
         },
         headers=REQUEST_HEADERS["FMP"](),
     )

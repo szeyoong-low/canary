@@ -1,4 +1,3 @@
-from collections.abc import Collection
 from typing import Literal
 
 from ..global_constants import DATE_KEY, MetricGroup

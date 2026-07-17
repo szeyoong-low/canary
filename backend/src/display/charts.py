@@ -3,15 +3,17 @@ from typing import Callable, Literal
 from fastapi import HTTPException
 from httpx import codes
 from polars import LazyFrame
+from starlette.datastructures import QueryParams
 
 from ..global_constants import DATE_KEY
 from ..global_types import Column, Columns, Entities
-from .models import Axis, ChartConfigModel
-from .serialise import _serialise_cartesian
+from .input_models import HierarchyInputModel
+from .output_models import Axis, ChartConfigModel
+from .serialise import _serialise_cartesian, _serialise_hierarchy
 from .style import _style_lines
 
 
-type DisplayFunctionName = Literal["time-series"]
+type DisplayFunctionName = Literal["time-series", "treemap"]
 
 """
 Contract of display functions for Cartesian charts
@@ -53,4 +55,49 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
 
 DISPLAY_CARTESIAN: dict[DisplayFunctionName, DisplayCartesian] = {
     "time-series": time_series,
+}
+
+"""
+Contract of display functions for Hierarchical charts
+
+Input:
+    - data (LazyFrame): Wide frame whose every column should be displayed on hover.
+    - drilldown (list[Column]): Columns used to create hierarchy, where the
+        highest level is the first element and the lowest is the last.
+        The lowest drilldown is to be used as labels
+    - query_params (Starlette QueryParams), used to extract
+        - aggregate_col (Column): Numeric column used for deaggregation and to
+            determine the size of the displayed node
+        - colour_col (ColumnOptional): Numeric column used to determine the
+            colour based on a colour mapping. If None, Hue and tint are decided
+            by top 2 levels.
+
+Output: EChartsModel with all fields populated
+"""
+
+type DisplayHierarchy = Callable[
+    [LazyFrame, list[Column], QueryParams], ChartConfigModel
+]
+
+
+def treemap(
+    data: LazyFrame,
+    drilldown: list[Column],
+    query_params: QueryParams,
+) -> ChartConfigModel:
+    validated_input: HierarchyInputModel = HierarchyInputModel.model_validate(
+        query_params
+    )
+
+    chart: ChartConfigModel = _serialise_hierarchy(
+        data, drilldown, validated_input.aggregate_col
+    )
+
+    chart.series[0].type = "treemap"
+
+    return chart
+
+
+DISPLAY_HIERARCHY: dict[DisplayFunctionName, DisplayHierarchy] = {
+    "treemap": treemap,
 }

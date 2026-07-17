@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from functools import partial, reduce
-from typing import Literal
 
 from asyncio import gather
 from fastapi import APIRouter, Request
@@ -9,8 +8,8 @@ from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
 from starlette.datastructures import QueryParams
 
-from ..display.charts import DISPLAY_CARTESIAN, DisplayFunctionName
-from ..display.models import ChartConfigModel
+from ..display.charts import DISPLAY_CARTESIAN, DisplayFunctionName, DISPLAY_HIERARCHY
+from ..display.output_models import ChartConfigModel
 from ..global_constants import (
     DEC_PLACES_SHOWN,
     individual_entity_regex,
@@ -20,7 +19,7 @@ from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
 from .models import (
     EntityQueryParam,
-    SequenceQueryParam,
+    MarketDrilldownQueryParam,
     SetQueryParam,
 )
 from ..transformations.utility import (
@@ -105,7 +104,7 @@ async def asset_price_daily_handler(
 async def market_composition_handler(
     display: DisplayFunctionName,
     analysis: SetQueryParam,
-    drilldown: SequenceQueryParam[Literal["country", "exchange", "industry", "sector"]],
+    drilldown: MarketDrilldownQueryParam,
     request: Request,
 ) -> ChartConfigModel:
 
@@ -134,9 +133,9 @@ async def market_composition_handler(
             )
             .select(
                 col(drilldown),
-                col(indiv_transforms),
+                col(analysis),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return ChartConfigModel(dataset=[])
+    return DISPLAY_HIERARCHY[display](data_output, drilldown, query_params)
