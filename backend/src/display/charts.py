@@ -3,11 +3,9 @@ from typing import Callable, Literal
 from fastapi import HTTPException
 from httpx import codes
 from polars import LazyFrame
-from starlette.datastructures import QueryParams
 
 from ..global_constants import DATE_KEY
-from ..global_types import Column, Columns, Entities
-from .input_models import HierarchyInputModel
+from ..global_types import Column, Columns, ColumnOptional, Entities
 from .output_models import Axis, ChartConfigModel
 from .serialise import _serialise_series, _serialise_hierarchy
 from .style import _style_lines
@@ -61,36 +59,35 @@ DISPLAY_SERIES: dict[DisplayFunctionName, DisplaySeries] = {
 Contract of display functions for Hierarchical charts
 
 Input:
-    - data (LazyFrame): Wide frame whose every column should be displayed on hover.
+    - data (LazyFrame): Wide frame whose every column should be displayed on
+        hover. Should have been drilled down and aggregated, so there should be
+        only one row for each entity at the lowest drilldown.
     - drilldown (list[Column]): Columns used to create hierarchy, where the
         highest level is the first element and the lowest is the last.
         The lowest drilldown is to be used as labels
-    - query_params (Starlette QueryParams), used to extract
-        - aggregate_col (Column): Numeric column used for deaggregation and to
-            determine the size of the displayed node
-        - colour_col (ColumnOptional): Numeric column used to determine the
-            colour based on a colour mapping. If None, Hue and tint are decided
-            by top 2 levels.
+    - aggregate_col (Column): Numeric column used for deaggregation and to
+        determine the size of the displayed node
+    - colour_col (ColumnOptional): Numeric column used to determine the
+        colour based on a colour mapping. If None, Hue and tint are decided
+        by top 2 levels.
 
 Output: EChartsModel with all fields populated
 """
 
 type DisplayHierarchy = Callable[
-    [LazyFrame, list[Column], QueryParams], ChartConfigModel
+    [LazyFrame, list[Column], Column, ColumnOptional], ChartConfigModel
 ]
 
 
 def treemap(
     data: LazyFrame,
     drilldown: list[Column],
-    query_params: QueryParams,
+    aggregate_col: Column,
+    colour_col: ColumnOptional,
 ) -> ChartConfigModel:
-    validated_input: HierarchyInputModel = HierarchyInputModel.model_validate(
-        query_params
-    )
 
     chart: ChartConfigModel = _serialise_hierarchy(
-        data, drilldown, validated_input.aggregate_col
+        data, drilldown, aggregate_col, colour_col
     )
 
     chart.series[0].type = "treemap"

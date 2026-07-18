@@ -18,6 +18,8 @@ from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
 from .models import (
+    ColumnQueryParam,
+    ColumnOptionalQueryParam,
     EntityQueryParam,
     MarketDrilldownQueryParam,
     SetQueryParam,
@@ -106,6 +108,8 @@ async def market_composition_handler(
     analysis: SetQueryParam,
     drilldown: MarketDrilldownQueryParam,
     request: Request,
+    aggregate_col: ColumnQueryParam,
+    colour_col: ColumnOptionalQueryParam = None,
 ) -> ChartConfigModel:
 
     indiv_transforms: Iterable[str]
@@ -131,11 +135,12 @@ async def market_composition_handler(
                     load_market_composition(client, query_params),
                 )
             )
-            .select(
-                col(drilldown),
-                col(analysis),
+            .group_by(drilldown)
+            .agg(
+                col(aggregate_col).first(),
+                col(analysis).exclude(aggregate_col).first(),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_HIERARCHY[display](data_output, drilldown, query_params)
+    return DISPLAY_HIERARCHY[display](data_output, drilldown, aggregate_col, colour_col)

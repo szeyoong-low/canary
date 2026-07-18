@@ -72,14 +72,9 @@ def _build_nodes(
 def _build_leaf(
     data: DataFrame, entity: str, aggregate_col: Column, colour_col: ColumnOptional
 ) -> Params:
-    # Every column rides along as hover data (params.data.<col> in the tooltip).
-    node: Params = data.row(0, named=True)
-    node[HIERARCHY_NAME_FIELD] = entity
-    node[HIERARCHY_VALUE_FIELD] = data[aggregate_col].sum()
-
-    if colour_col is not None:
-        # Overwrite in place so the summed colour stays consistent with value,
-        # and a later style pass finds it under its own column name.
-        node[colour_col] = data[colour_col].sum()
+    node: Params = data.row(0, named=True) | {
+        HIERARCHY_NAME_FIELD: entity,
+        HIERARCHY_VALUE_FIELD: data[aggregate_col].first(),
+    }
 
     return node
