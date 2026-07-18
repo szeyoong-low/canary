@@ -9,14 +9,14 @@ from ..global_constants import DATE_KEY
 from ..global_types import Column, Columns, Entities
 from .input_models import HierarchyInputModel
 from .output_models import Axis, ChartConfigModel
-from .serialise import _serialise_cartesian, _serialise_hierarchy
+from .serialise import _serialise_series, _serialise_hierarchy
 from .style import _style_lines
 
 
 type DisplayFunctionName = Literal["time-series", "treemap"]
 
 """
-Contract of display functions for Cartesian charts
+Contract of display functions for Series charts
 
 Input:
     - data (LazyFrame): Wide frame whose every column should be displayed.
@@ -26,7 +26,7 @@ Input:
 Output: EChartsModel with all fields populated
 """
 
-type DisplayCartesian = Callable[[LazyFrame, Columns, Entities], ChartConfigModel]
+type DisplaySeries = Callable[[LazyFrame, Columns, Entities], ChartConfigModel]
 
 TIME_SERIES_ALLOWED_KEYS: Columns = {
     DATE_KEY,
@@ -35,7 +35,7 @@ TIME_SERIES_ALLOWED_KEYS: Columns = {
 
 def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConfigModel:
 
-    chart_config: ChartConfigModel = _serialise_cartesian(data)
+    chart_config: ChartConfigModel = _serialise_series(data)
 
     key_list: list[Column] = list(keys)
     if len(keys) != 1 or key_list[0] not in TIME_SERIES_ALLOWED_KEYS:
@@ -53,7 +53,7 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
     return _style_lines(chart_config, data_cols, entities, key)
 
 
-DISPLAY_CARTESIAN: dict[DisplayFunctionName, DisplayCartesian] = {
+DISPLAY_SERIES: dict[DisplayFunctionName, DisplaySeries] = {
     "time-series": time_series,
 }
 

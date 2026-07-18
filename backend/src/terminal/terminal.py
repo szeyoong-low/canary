@@ -8,7 +8,7 @@ from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
 from starlette.datastructures import QueryParams
 
-from ..display.charts import DISPLAY_CARTESIAN, DisplayFunctionName, DISPLAY_HIERARCHY
+from ..display.charts import DISPLAY_SERIES, DisplayFunctionName, DISPLAY_HIERARCHY
 from ..display.output_models import ChartConfigModel
 from ..global_constants import (
     DEC_PLACES_SHOWN,
@@ -97,7 +97,7 @@ async def asset_price_daily_handler(
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_CARTESIAN[display](data_output, keys, symbol)
+    return DISPLAY_SERIES[display](data_output, keys, symbol)
 
 
 @router.get(_get_terminal_path("market-composition"))

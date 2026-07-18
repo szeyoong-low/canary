@@ -6,7 +6,7 @@ from .output_models import ChartConfigModel, Dataset, Series
 """Initialise a chart config model with a dataset"""
 
 
-def _serialise_cartesian(data: LazyFrame) -> ChartConfigModel:
+def _serialise_series(data: LazyFrame) -> ChartConfigModel:
     return ChartConfigModel(
         dataset=[Dataset(source=data.collect().to_dict(as_series=False))]
     )
