@@ -2,11 +2,9 @@ from collections.abc import Iterable
 from functools import partial, reduce
 
 from asyncio import gather
-from fastapi import APIRouter, Request
 from httpx import AsyncClient
 from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
-from starlette.datastructures import QueryParams
 
 from ..display.charts import DISPLAY_SERIES, DisplayFunctionName, DISPLAY_HIERARCHY
 from ..display.output_models import ChartConfigModel
@@ -14,32 +12,25 @@ from ..global_constants import (
     DEC_PLACES_SHOWN,
     individual_entity_regex,
 )
-from ..global_types import as_awaitable, Columns
+from ..global_types import as_awaitable, Column, Columns, ColumnOptional
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
-from ..loaders.load import load_asset_price_daily_qp, load_market_composition_qp
+from ..loaders.load import load_asset_price_daily, load_market_composition
 from .models import (
-    ColumnQueryParam,
-    ColumnOptionalQueryParam,
-    EntityQueryParam,
-    MarketDrilldownQueryParam,
-    SetQueryParam,
+    EntityParam,
+    MarketDrilldownParam,
 )
 from ..transformations.utility import (
-    apply_analysis_function_qp,
+    apply_analysis_function,
     pivot_single_entity,
     resolve_transformations,
 )
-from .utility import _get_terminal_path
-
-router = APIRouter(prefix="/terminal")
 
 
-@router.get(_get_terminal_path("asset-price-daily"))
-async def asset_price_daily_handler(
+async def asset_price_daily(
     display: DisplayFunctionName,
-    analysis: SetQueryParam,
-    symbol: EntityQueryParam,
-    request: Request,
+    analysis: set[str],
+    symbol: EntityParam,
+    **kwargs,
 ) -> ChartConfigModel:
 
     indiv_transforms: Iterable[str]
@@ -48,7 +39,6 @@ async def asset_price_daily_handler(
         analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
-    query_params: QueryParams = request.query_params
     keys: Columns = METRIC_GROUP_KEYS["asset-price-daily"]
 
     async with AsyncClient(follow_redirects=True) as client:
@@ -58,13 +48,13 @@ async def asset_price_daily_handler(
                     pivot_single_entity(
                         reduce(
                             partial(
-                                apply_analysis_function_qp,
+                                apply_analysis_function,
                                 keys=keys,
-                                query_params=query_params,
+                                params=kwargs,
                                 http_client=client,
                             ),
                             indiv_transforms,
-                            load_asset_price_daily_qp(client, sym, query_params),
+                            load_asset_price_daily(client, sym, kwargs),
                         ),
                         sym,
                         keys,
@@ -80,9 +70,9 @@ async def asset_price_daily_handler(
             (
                 await reduce(
                     partial(
-                        apply_analysis_function_qp,
+                        apply_analysis_function,
                         keys=keys,
-                        query_params=query_params,
+                        params=kwargs,
                         http_client=client,
                     ),
                     collective_transforms,
@@ -102,14 +92,13 @@ async def asset_price_daily_handler(
     return DISPLAY_SERIES[display](data_output, keys, symbol)
 
 
-@router.get(_get_terminal_path("market-composition"))
-async def market_composition_handler(
+async def market_composition(
     display: DisplayFunctionName,
-    analysis: SetQueryParam,
-    drilldown: MarketDrilldownQueryParam,
-    request: Request,
-    aggregate_col: ColumnQueryParam,
-    colour_col: ColumnOptionalQueryParam = None,
+    analysis: set[str],
+    drilldown: MarketDrilldownParam,
+    aggregate_col: Column,
+    colour_col: ColumnOptional = None,
+    **kwargs,
 ) -> ChartConfigModel:
 
     indiv_transforms: Iterable[str]
@@ -119,20 +108,18 @@ async def market_composition_handler(
         analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
     )
 
-    query_params: QueryParams = request.query_params
-
     async with AsyncClient(follow_redirects=True) as client:
         data_output: LazyFrame = (
             (
                 await reduce(
                     partial(
-                        apply_analysis_function_qp,
+                        apply_analysis_function,
                         keys=[],
-                        query_params=query_params,
+                        params=kwargs,
                         http_client=client,
                     ),
                     indiv_transforms,
-                    load_market_composition_qp(client, query_params),
+                    load_market_composition(client, kwargs),
                 )
             )
             .group_by(drilldown)

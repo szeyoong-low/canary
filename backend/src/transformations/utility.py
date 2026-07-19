@@ -6,14 +6,14 @@ from httpx import AsyncClient, codes
 from polars import all, col, LazyFrame
 from starlette.datastructures import QueryParams
 
-from .collective import COLLECTIVE_TRANSFORMATIONS
+from .collective import COLLECTIVE_TRANSFORMATIONS, COLLECTIVE_TRANSFORMATIONS_QP
 from ..global_constants import (
     EMPTY_STRING,
     INITIAL_METRIC_SEPARATOR,
     TRANSFORMATION_SEPARATOR,
 )
-from ..global_types import Columns
-from .individual import INDIVIDUAL_TRANSFORMATIONS
+from ..global_types import Columns, Params
+from .individual import INDIVIDUAL_TRANSFORMATIONS, INDIVIDUAL_TRANSFORMATIONS_QP
 
 
 def resolve_transformations(
@@ -120,7 +120,7 @@ async def apply_analysis_function(
     data: Awaitable[LazyFrame],
     analysis: str,
     keys: Columns,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
 
@@ -133,14 +133,14 @@ async def apply_analysis_function(
         # caller with specifying whether a transformation is individual or
         # collective.
         return await INDIVIDUAL_TRANSFORMATIONS[transformation](
-            data, keys, depends, query_params, http_client
+            data, keys, depends, params, http_client
         )
     except KeyError:
         if transformation == EMPTY_STRING:
             # Must be an individual transformation with no dependencies
             try:
                 return await INDIVIDUAL_TRANSFORMATIONS[depends](
-                    data, keys, None, query_params, http_client
+                    data, keys, None, params, http_client
                 )
             except KeyError:
                 # Collective transformations must be applied on another metric
@@ -152,6 +152,52 @@ async def apply_analysis_function(
             try:
                 # Must be a collective transformation
                 return await COLLECTIVE_TRANSFORMATIONS[transformation](
+                    data, keys, depends, params, http_client
+                )
+            except KeyError:
+                raise HTTPException(
+                    codes.UNPROCESSABLE_ENTITY,
+                    f"Only individual transformations may have no dependencies {transformation}",
+                )
+
+
+async def apply_analysis_function_qp(
+    data: Awaitable[LazyFrame],
+    analysis: str,
+    keys: Columns,
+    query_params: QueryParams,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    # (taking Starlette query params)
+
+    depends: str
+    transformation: str
+    depends, _, transformation = analysis.rpartition(TRANSFORMATION_SEPARATOR)
+
+    try:
+        # This is a constant time hashmap lookup, so we don't need to burden the
+        # caller with specifying whether a transformation is individual or
+        # collective.
+        return await INDIVIDUAL_TRANSFORMATIONS_QP[transformation](
+            data, keys, depends, query_params, http_client
+        )
+    except KeyError:
+        if transformation == EMPTY_STRING:
+            # Must be an individual transformation with no dependencies
+            try:
+                return await INDIVIDUAL_TRANSFORMATIONS_QP[depends](
+                    data, keys, None, query_params, http_client
+                )
+            except KeyError:
+                # Collective transformations must be applied on another metric
+                raise HTTPException(
+                    codes.UNPROCESSABLE_ENTITY,
+                    f"Only individual transformations may have no dependencies {transformation}",
+                )
+        else:
+            try:
+                # Must be a collective transformation
+                return await COLLECTIVE_TRANSFORMATIONS_QP[transformation](
                     data, keys, depends, query_params, http_client
                 )
             except KeyError:

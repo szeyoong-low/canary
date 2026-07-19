@@ -8,9 +8,9 @@ from polars import col, Expr, LazyFrame
 from starlette.datastructures import QueryParams
 
 from . import models
-from .constants import TransformationDispatch
+from .constants import TransformationDispatch, TransformationDispatchQP
 from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns
+from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
 
 """Compute values for a single entity"""
@@ -25,12 +25,152 @@ async def volatility(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
     Calculate the volatility of a metric (usually returns on a financial
     instrument over time).
+
+    Volatility is the standard deviation of observations multiplied by the
+    square root of the number of observations in a rolling window
+
+    Source: https://www.investopedia.com/terms/v/volatility.asp#toc-how-to-calculate-volatility
+
+    args:
+        - depends: cannot be None
+        - keys, http_client: unused but required to accept as part of contract
+    """
+
+    if depends is None:
+        raise HTTPException(
+            codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
+        )
+
+    window: int = models.WindowFunction.model_validate(params).window
+    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
+
+    return reduce(
+        lambda lf, step: lf.pipe(step),
+        [
+            partial(
+                _apply_unary_function,
+                source_col=depends,
+                dest_col=dest_col,
+                function=(lambda x: Expr.rolling_std(x, window_size=window)),
+            ),
+            partial(
+                _apply_unary_function,
+                source_col=dest_col,
+                dest_col=dest_col,
+                function=(lambda x: x * sqrt(window)),
+            ),
+        ],
+        await data,
+    )
+
+
+async def returns(
+    data: Awaitable[LazyFrame],
+    keys: Columns,
+    depends: Column | None,
+    params: Params,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    """
+    Calculate the percentage change of a metric over a given horizon
+    (number of observations).
+
+    args:
+        - depends: cannot be None
+        - keys, http_client: unused but required to accept as part of contract
+    """
+
+    if depends is None:
+        raise HTTPException(
+            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
+        )
+
+    horizon: int = models.TimeHorizon.model_validate(params).horizon
+    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
+
+    return reduce(
+        lambda lf, step: lf.pipe(step),
+        [
+            partial(
+                _apply_unary_function,
+                source_col=depends,
+                dest_col=dest_col,
+                function=(lambda x: Expr.pct_change(x, n=horizon)),
+            ),
+            partial(
+                _apply_unary_function,
+                source_col=dest_col,
+                dest_col=dest_col,
+                function=(lambda x: x * 100),
+            ),
+        ],
+        await data,
+    )
+
+
+async def index_to_date(
+    data: Awaitable[LazyFrame],
+    keys: Columns,
+    depends: str | None,
+    params: Params,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    """
+    Create an index based on `reference`, which is assigned a value of `base`.
+
+    args:
+        - depends: cannot be None
+        - http_client: unused but required to accept as part of contract
+    """
+
+    if depends is None:
+        raise HTTPException(
+            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
+        )
+
+    if DATE_KEY not in keys:
+        raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
+
+    model: models.DateIndex = models.DateIndex.model_validate(params)
+
+    return _apply_unary_function(
+        data=await data,
+        source_col=depends,
+        dest_col=depends + TRANSFORMATION_SEPARATOR + INDEX_TO_DATE,
+        function=(
+            lambda x: (
+                (x / col(depends).filter(col(DATE_KEY) == model.reference).first())
+                * model.base
+            )
+        ),
+    )
+
+
+# Invariant: Transformations must be registered in exactly one of
+# INDIVIDUAL_TRANSFORMATIONS or COLLECTIVE_TRANSFORMATIONS
+INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
+    VOLATILITY: volatility,
+    RETURNS: returns,
+    INDEX_TO_DATE: index_to_date,
+}
+
+
+async def volatility_qp(
+    data: Awaitable[LazyFrame],
+    keys: Columns,
+    depends: Column | None,
+    query_params: QueryParams,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    """
+    Calculate the volatility of a metric (usually returns on a financial
+    instrument over time). (taking Starlette query params)
 
     Volatility is the standard deviation of observations multiplied by the
     square root of the number of observations in a rolling window
@@ -70,7 +210,7 @@ async def volatility(
     )
 
 
-async def returns(
+async def returns_qp(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
@@ -79,7 +219,7 @@ async def returns(
 ) -> LazyFrame:
     """
     Calculate the percentage change of a metric over a given horizon
-    (number of observations).
+    (number of observations). (taking Starlette query params)
 
     args:
         - depends: cannot be None
@@ -114,7 +254,7 @@ async def returns(
     )
 
 
-async def index_to_date(
+async def index_to_date_qp(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: str | None,
@@ -123,6 +263,7 @@ async def index_to_date(
 ) -> LazyFrame:
     """
     Create an index based on `reference`, which is assigned a value of `base`.
+    (taking Starlette query params)
 
     args:
         - depends: cannot be None
@@ -154,8 +295,9 @@ async def index_to_date(
 
 # Invariant: Transformations must be registered in exactly one of
 # INDIVIDUAL_TRANSFORMATIONS or COLLECTIVE_TRANSFORMATIONS
-INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
-    VOLATILITY: volatility,
-    RETURNS: returns,
-    INDEX_TO_DATE: index_to_date,
+# (taking Starlette query params)
+INDIVIDUAL_TRANSFORMATIONS_QP: TransformationDispatchQP = {
+    VOLATILITY: volatility_qp,
+    RETURNS: returns_qp,
+    INDEX_TO_DATE: index_to_date_qp,
 }
