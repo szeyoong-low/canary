@@ -7,11 +7,11 @@ from httpx import AsyncClient, codes
 from polars import col, Expr, LazyFrame
 from starlette.datastructures import QueryParams
 
+from . import models
 from .constants import TransformationDispatch
 from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns
 from .steps import _apply_unary_function
-from ..validators import primitives as prim
 
 """Compute values for a single entity"""
 
@@ -47,7 +47,7 @@ async def volatility(
             codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
         )
 
-    window: int = prim.WindowFunctionModel.model_validate(query_params).window
+    window: int = models.WindowFunction.model_validate(query_params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
@@ -91,7 +91,7 @@ async def returns(
             codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
         )
 
-    horizon: int = prim.TimeHorizonModel.model_validate(query_params).horizon
+    horizon: int = models.TimeHorizon.model_validate(query_params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
@@ -137,7 +137,7 @@ async def index_to_date(
     if DATE_KEY not in keys:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
 
-    model: prim.DateIndexModel = prim.DateIndexModel.model_validate(query_params)
+    model: models.DateIndex = models.DateIndex.model_validate(query_params)
 
     return _apply_unary_function(
         data=await data,

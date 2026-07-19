@@ -35,13 +35,13 @@ HEX_PREFIX: str = "#"
 
 def _validate_hex_string(string: str) -> str:
     if (
-        2 <= len(string) <= 7
+        (len(string) in (4, 7))
         and string[0] == HEX_PREFIX
         and all((c.isalnum() for c in string[1:]))
     ):
         return string
 
-    raise ValueError(f"{string} is not in the format #ABC123")
+    raise ValueError(f"{string} is not in the format #ABC or #ABC123")
 
 
 type HexColor = Annotated[str, AfterValidator(_validate_hex_string)]

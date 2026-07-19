@@ -3,11 +3,11 @@ from typing import Literal
 from .global_types import Column
 
 
-type MetricGroup = Literal["asset-price-daily"]
+type MetricGroup = Literal["asset-price-daily", "market-composition"]
 
 TRANSFORMATION_SEPARATOR: str = "/"
 
-INITIAL_METRIC_SEPARATOR: str = "+"
+INITIAL_METRIC_SEPARATOR: str = ","
 
 EMPTY_STRING: str = ""
 

@@ -41,7 +41,7 @@ class Tooltip(EChartsBaseModel):
 
 
 class Legend(EChartsBaseModel):
-    data: list = list()
+    data: list = []
 
 
 class Axis(EChartsBaseModel):
@@ -102,9 +102,9 @@ class Series(EChartsBaseModel):
 
 class ChartConfigModel(EChartsBaseModel):
     title: Title = Title()
-    dataset: list[Dataset]
+    dataset: list[Dataset] = []
     tooltip: Tooltip = Tooltip()
     legend: Legend = Legend()
-    xAxis: list[Axis] = list()
-    yAxis: list[Axis] = list()
-    series: list[Series] = list()
+    xAxis: list[Axis] = []
+    yAxis: list[Axis] = []
+    series: list[Series] = []

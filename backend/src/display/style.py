@@ -2,7 +2,7 @@ from coloraide import Color
 
 from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Entities
-from .models import ChartConfigModel, ItemStyle, LineStyle, Series
+from .output_models import ChartConfigModel, ItemStyle, LineStyle, Series
 
 """Add legend and series to chart config"""
 
