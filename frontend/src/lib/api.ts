@@ -4,6 +4,7 @@ import { isDemoParams } from "@/shared/types";
 
 const requestLookup: string[] = [
   "asset-price-daily/time-series?analysis=vwap/index-to-date&symbol=aapl&symbol=goog&symbol=msft&symbol=nvda&symbol=tsla&symbol=jpm&symbol=bac&start_date=2026-01-01&end_date=2026-03-31&base=100&reference=2026-01-02",
+  "market-composition/treemap?analysis=marketCap&drilldown=sector,industry,companyName&aggregate_col=marketCap&analysis=price",
 ];
 
 export async function loadChartConfig({
