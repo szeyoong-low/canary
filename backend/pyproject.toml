@@ -5,7 +5,7 @@ description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
     "coloraide>=8.10",
-    "fastapi[standard-no-fastapi-cloud-cli]>=0.139.0",
+    "fastapi[standard-no-fastapi-cloud-cli]>=0.139.2",
     "polars>=1.42.1",
 ]
 
