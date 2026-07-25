@@ -3,9 +3,8 @@ from typing import Awaitable
 
 from httpx import AsyncClient
 from polars import LazyFrame
-from starlette.datastructures import QueryParams
 
-from ..global_types import Columns
+from ..global_types import Columns, Params
 
 """
 Contract of transformations
@@ -15,8 +14,8 @@ Args:
     - keys (Columns): Columns to align on
     - depends (str | None): Immediate preceding dependency transformation. None
         if it is a base metric.
-    - query_params (QueryParams): Raw query parameters captured by the path
-        handler, to be validated with a Pydantic model
+    - params (Params): Raw parameters captured by the tool, to be validated with
+        a Pydantic model
     - http_client (AsyncClient): For loaders
 
 Returns: Awaitable LazyFrame with the transformation and all its dependencies
@@ -27,7 +26,7 @@ Returns: Awaitable LazyFrame with the transformation and all its dependencies
 """
 
 type Transformation = Callable[
-    [Awaitable[LazyFrame], Columns, str | None, QueryParams, AsyncClient],
+    [Awaitable[LazyFrame], Columns, str | None, Params, AsyncClient],
     Awaitable[LazyFrame],
 ]
 

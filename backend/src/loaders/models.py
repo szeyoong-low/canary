@@ -1,9 +1,9 @@
 from typing import Literal
 
-from ..validators.primitives import QueryBaseModel
+from ..validators.primitives import ParamBaseModel
 
 
-class MarketComposition(QueryBaseModel):
+class MarketComposition(ParamBaseModel):
     category: Literal["company", "etf", "fund"] = "company"
     industry: list[str] = []
     sector: list[str] = []

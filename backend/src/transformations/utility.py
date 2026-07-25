@@ -4,7 +4,6 @@ from typing import Awaitable
 from fastapi import HTTPException
 from httpx import AsyncClient, codes
 from polars import all, col, LazyFrame
-from starlette.datastructures import QueryParams
 
 from .collective import COLLECTIVE_TRANSFORMATIONS
 from ..global_constants import (
@@ -12,7 +11,7 @@ from ..global_constants import (
     INITIAL_METRIC_SEPARATOR,
     TRANSFORMATION_SEPARATOR,
 )
-from ..global_types import Columns
+from ..global_types import Columns, Params
 from .individual import INDIVIDUAL_TRANSFORMATIONS
 
 
@@ -101,7 +100,7 @@ def resolve_transformations(
     if (len(individual) + len(collective) + base_metric_count) == 0:
         raise HTTPException(
             codes.UNPROCESSABLE_ENTITY,
-            "Analysis functions must be specified using query parameters, e.g. analysis=foo/bar/baz",
+            "Analysis functions must be specified, e.g. analysis=[foo/bar/baz]",
         )
 
     # Sort by number of items composed, so that dependencies are always resolved.
@@ -120,7 +119,7 @@ async def apply_analysis_function(
     data: Awaitable[LazyFrame],
     analysis: str,
     keys: Columns,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
 
@@ -133,14 +132,14 @@ async def apply_analysis_function(
         # caller with specifying whether a transformation is individual or
         # collective.
         return await INDIVIDUAL_TRANSFORMATIONS[transformation](
-            data, keys, depends, query_params, http_client
+            data, keys, depends, params, http_client
         )
     except KeyError:
         if transformation == EMPTY_STRING:
             # Must be an individual transformation with no dependencies
             try:
                 return await INDIVIDUAL_TRANSFORMATIONS[depends](
-                    data, keys, None, query_params, http_client
+                    data, keys, None, params, http_client
                 )
             except KeyError:
                 # Collective transformations must be applied on another metric
@@ -152,7 +151,7 @@ async def apply_analysis_function(
             try:
                 # Must be a collective transformation
                 return await COLLECTIVE_TRANSFORMATIONS[transformation](
-                    data, keys, depends, query_params, http_client
+                    data, keys, depends, params, http_client
                 )
             except KeyError:
                 raise HTTPException(

@@ -18,6 +18,8 @@ def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:
     return sorted(uppercased)
 
 
+type EntityParam = Annotated[list[str], AfterValidator(_uppercasify_sort_strings)]
+
 type EntityQueryParam = Annotated[
     list[str], Query(), AfterValidator(_uppercasify_sort_strings)
 ]
@@ -50,6 +52,12 @@ MARKET_DRILLDOWN: Columns = {
     "companyName",
 }
 
+
+type MarketDrilldownParam = Annotated[
+    list[str],
+    BeforeValidator(partial(_split_on_separator, sep=INITIAL_METRIC_SEPARATOR)),
+    AfterValidator(partial(_all_valid_columns, columns=MARKET_DRILLDOWN)),
+]
 
 type MarketDrilldownQueryParam = Annotated[
     list[str],

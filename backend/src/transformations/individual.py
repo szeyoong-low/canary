@@ -5,12 +5,11 @@ from typing import Awaitable
 from fastapi import HTTPException
 from httpx import AsyncClient, codes
 from polars import col, Expr, LazyFrame
-from starlette.datastructures import QueryParams
 
 from . import models
 from .constants import TransformationDispatch
 from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns
+from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
 
 """Compute values for a single entity"""
@@ -25,7 +24,7 @@ async def volatility(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -47,7 +46,7 @@ async def volatility(
             codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
         )
 
-    window: int = models.WindowFunction.model_validate(query_params).window
+    window: int = models.WindowFunction.model_validate(params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
@@ -74,7 +73,7 @@ async def returns(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -91,7 +90,7 @@ async def returns(
             codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
         )
 
-    horizon: int = models.TimeHorizon.model_validate(query_params).horizon
+    horizon: int = models.TimeHorizon.model_validate(params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
@@ -118,7 +117,7 @@ async def index_to_date(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: str | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -137,7 +136,7 @@ async def index_to_date(
     if DATE_KEY not in keys:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
 
-    model: models.DateIndex = models.DateIndex.model_validate(query_params)
+    model: models.DateIndex = models.DateIndex.model_validate(params)
 
     return _apply_unary_function(
         data=await data,

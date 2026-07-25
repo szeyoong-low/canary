@@ -3,11 +3,10 @@ from typing import Awaitable
 from fastapi import HTTPException
 from httpx import AsyncClient, codes
 from polars import LazyFrame, mean_horizontal
-from starlette.datastructures import QueryParams
 
 from .constants import TransformationDispatch
 from ..global_constants import TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns
+from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
 
 """Compute values for all entities"""
@@ -20,7 +19,7 @@ async def group_mean(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -28,7 +27,7 @@ async def group_mean(
 
     args:
         - depends: cannot be None
-        - keys, query_params, http_client: unused but required to accept as part of contract
+        - keys, params, http_client: unused but required to accept as part of contract
     """
 
     if depends is None:
