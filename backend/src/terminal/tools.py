@@ -6,17 +6,16 @@ from httpx import AsyncClient
 from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
 
-from ..display.charts import DISPLAY_SERIES, DisplayFunctionName, DISPLAY_HIERARCHY
+from ..display.charts import DISPLAY_SERIES, DISPLAY_HIERARCHY
 from ..display.output_models import ChartConfigModel
 from ..global_constants import (
     DEC_PLACES_SHOWN,
     individual_entity_regex,
 )
-from ..global_types import as_awaitable, Column, Columns, ColumnOptional
+from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
-from .models import MarketDrilldownParam
-from .schemas import AssetPriceDailyParams
+from .schemas import AssetPriceDailyParams, MarketCompositionParams
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
@@ -90,19 +89,15 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
 
 async def market_composition(
-    display: DisplayFunctionName,
-    analysis: set[str],
-    drilldown: MarketDrilldownParam,
-    aggregate_col: Column,
-    colour_col: ColumnOptional = None,
     **kwargs,
 ) -> ChartConfigModel:
+    params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
     # Collective transformations are meaningless here as all entities are
     # already in a single table
     indiv_transforms, _ = resolve_transformations(
-        analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
+        params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
     )
 
     async with AsyncClient(follow_redirects=True) as client:
@@ -119,12 +114,14 @@ async def market_composition(
                     load_market_composition(client, kwargs),
                 )
             )
-            .group_by(drilldown)
+            .group_by(params.drilldown)
             .agg(
-                col(aggregate_col).first(),
-                col(analysis).exclude(aggregate_col).first(),
+                col(params.aggregate_col).first(),
+                col(params.analysis).exclude(params.aggregate_col).first(),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_HIERARCHY[display](data_output, drilldown, aggregate_col, colour_col)
+    return DISPLAY_HIERARCHY[params.display](
+        data_output, params.drilldown, params.aggregate_col, params.colour_col
+    )

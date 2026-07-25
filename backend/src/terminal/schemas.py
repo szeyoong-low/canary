@@ -5,8 +5,8 @@ from pydantic import create_model
 from pydantic.fields import FieldInfo
 
 from ..display.charts import DisplayFunctionName
-from ..global_types import Params
-from .models import EntityParam
+from ..global_types import Column, ColumnOptional, Params
+from .models import EntityParam, MarketDrilldownParam
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
 from ..validators.primitives import DateRangeModel, ParamBaseModel
 
@@ -105,3 +105,11 @@ AssetPriceDailySchema = create_model(
     # Args consumed by analysis functions (with required ones made optional)
     **_optional_fields(DateIndex, TimeHorizon, WindowFunction),
 )
+
+
+class MarketCompositionParams(ParamBaseModel):
+    display: DisplayFunctionName
+    analysis: set[str]
+    drilldown: MarketDrilldownParam
+    aggregate_col: Column
+    colour_col: ColumnOptional = None

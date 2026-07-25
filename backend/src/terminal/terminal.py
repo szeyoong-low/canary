@@ -56,7 +56,11 @@ async def market_composition_handler(
 
     try:
         return await market_composition(
-            display, analysis, drilldown, aggregate_col, colour_col
+            display=display,
+            analysis=analysis,
+            drilldown=drilldown,
+            aggregate_col=aggregate_col,
+            colour_col=colour_col,
         )
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
