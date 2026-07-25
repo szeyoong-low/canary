@@ -3,7 +3,7 @@ from httpx import codes
 
 from ..display.charts import DisplayFunctionName
 from ..display.output_models import ChartConfigModel
-from ..global_types import DataProcessingError
+from ..global_types import DataProcessingError, ImplementationError
 from .models import (
     ColumnQueryParam,
     ColumnOptionalQueryParam,
@@ -37,6 +37,8 @@ async def asset_price_daily_handler(
         )
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
+    except ImplementationError as e:
+        raise HTTPException(e.code, e.message)
 
 
 @router.get(_get_terminal_path("market-composition"))
@@ -55,3 +57,5 @@ async def market_composition_handler(
         )
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
+    except ImplementationError as e:
+        raise HTTPException(e.code, e.message)

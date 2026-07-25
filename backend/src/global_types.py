@@ -20,3 +20,10 @@ class DataProcessingError(Exception):
     def __init__(self, message):
         super().__init__(message)
         self.message = message
+
+
+class ImplementationError(Exception):
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.message = message
+        self.code = code
