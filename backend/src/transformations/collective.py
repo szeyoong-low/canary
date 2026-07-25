@@ -1,10 +1,10 @@
 from typing import Awaitable
 
-from fastapi import HTTPException
-from httpx import AsyncClient, codes
+from httpx import AsyncClient
 from polars import LazyFrame, mean_horizontal
 
 from .constants import TransformationDispatch
+from .exceptions import AnalysisError
 from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
@@ -31,9 +31,7 @@ async def group_mean(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{GROUP_MEAN} must be applied to a metric"
-        )
+        raise AnalysisError(f"{GROUP_MEAN} must be applied to a metric")
 
     return _apply_unary_function(
         data=await data,

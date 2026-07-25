@@ -2,12 +2,12 @@ from functools import partial, reduce
 from math import sqrt
 from typing import Awaitable
 
-from fastapi import HTTPException
-from httpx import AsyncClient, codes
+from httpx import AsyncClient
 from polars import col, Expr, LazyFrame
 
 from . import models
 from .constants import TransformationDispatch
+from .exceptions import AnalysisError
 from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
@@ -42,9 +42,7 @@ async def volatility(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
-        )
+        raise AnalysisError(f"{VOLATILITY} must be applied to a metric")
 
     window: int = models.WindowFunction.model_validate(params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
@@ -86,9 +84,7 @@ async def returns(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
-        )
+        raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
     horizon: int = models.TimeHorizon.model_validate(params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
@@ -129,12 +125,10 @@ async def index_to_date(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
-        )
+        raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
     if DATE_KEY not in keys:
-        raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
+        raise AnalysisError(f"{DATE_KEY} must be a key")
 
     model: models.DateIndex = models.DateIndex.model_validate(params)
 

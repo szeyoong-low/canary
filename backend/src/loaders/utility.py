@@ -1,10 +1,9 @@
-from fastapi import HTTPException
 from httpx import AsyncClient, codes, HTTPStatusError, Response
 from polars import LazyFrame
 
 from .constants import ExternalAPI, ExternalEndpoint
 from .dispatch import BASE_URL, NORMALISER
-from ..global_types import Params
+from ..global_types import ImplementationError, Params
 
 
 async def _load_data(
@@ -41,7 +40,7 @@ async def _load_data(
     try:
         resource_url: str = f"{BASE_URL[external_api]()}{endpoint}"
     except KeyError:
-        raise HTTPException(
+        raise ImplementationError(
             codes.INTERNAL_SERVER_ERROR,
             f"No base URL associated with the endpoint {external_api} in the dispatch table",
         )
@@ -53,9 +52,9 @@ async def _load_data(
     try:
         response.raise_for_status()
     except HTTPStatusError:
-        raise HTTPException(
-            status_code=codes.INTERNAL_SERVER_ERROR,
-            detail=(
+        raise ImplementationError(
+            codes.INTERNAL_SERVER_ERROR,
+            (
                 f"Error for at {response.url}:\n"
                 f"HTTP {response.status_code}: {response.text}\n"
                 f"Parameters: {query_params}\n"
@@ -67,7 +66,7 @@ async def _load_data(
     try:
         return NORMALISER[external_api](LazyFrame(response.json()))
     except KeyError:
-        raise HTTPException(
+        raise ImplementationError(
             codes.INTERNAL_SERVER_ERROR,
             f"No normalisation function associated with the endpoint {external_api} in the dispatch table",
         )

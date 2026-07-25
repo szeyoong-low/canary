@@ -1,11 +1,11 @@
 from collections.abc import Container, Iterable
 from typing import Awaitable
 
-from fastapi import HTTPException
-from httpx import AsyncClient, codes
+from httpx import AsyncClient
 from polars import all, col, LazyFrame
 
 from .collective import COLLECTIVE_TRANSFORMATIONS
+from .exceptions import AnalysisError
 from ..global_constants import (
     EMPTY_STRING,
     INITIAL_METRIC_SEPARATOR,
@@ -41,7 +41,7 @@ def resolve_transformations(
             with duplicates removed
 
     Raises:
-        - HTTPException 502: an analysis function is not well-formed
+        - AnalysisError: an analysis function is not well-formed
     """
 
     individual: set[str] = set()
@@ -68,8 +68,7 @@ def resolve_transformations(
                 individual.add(metric)
             else:
                 # Collective transformation or unrecognised specification
-                raise HTTPException(
-                    codes.UNPROCESSABLE_ENTITY,
+                raise AnalysisError(
                     f"{metric} must be a base metric or an individual transformation",
                 )
 
@@ -77,8 +76,7 @@ def resolve_transformations(
             # Check intermediate transformations
             for transformation in transformation_list[1:-1]:
                 if transformation not in INDIVIDUAL_TRANSFORMATIONS:
-                    raise HTTPException(
-                        codes.UNPROCESSABLE_ENTITY,
+                    raise AnalysisError(
                         f"{transformation} in {analysis} must be an individual transformation",
                     )
 
@@ -92,14 +90,12 @@ def resolve_transformations(
             elif last_transformation in COLLECTIVE_TRANSFORMATIONS:
                 collective.add(analysis)
             else:
-                raise HTTPException(
-                    codes.UNPROCESSABLE_ENTITY,
+                raise AnalysisError(
                     f"{last_transformation} in {analysis} must be a transformation",
                 )
 
     if (len(individual) + len(collective) + base_metric_count) == 0:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY,
+        raise AnalysisError(
             "Analysis functions must be specified, e.g. analysis=[foo/bar/baz]",
         )
 
@@ -143,8 +139,7 @@ async def apply_analysis_function(
                 )
             except KeyError:
                 # Collective transformations must be applied on another metric
-                raise HTTPException(
-                    codes.UNPROCESSABLE_ENTITY,
+                raise AnalysisError(
                     f"Only individual transformations may have no dependencies {transformation}",
                 )
         else:
@@ -154,8 +149,7 @@ async def apply_analysis_function(
                     data, keys, depends, params, http_client
                 )
             except KeyError:
-                raise HTTPException(
-                    codes.UNPROCESSABLE_ENTITY,
+                raise AnalysisError(
                     f"Only individual transformations may have no dependencies {transformation}",
                 )
 
