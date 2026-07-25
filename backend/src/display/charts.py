@@ -1,9 +1,8 @@
 from typing import Callable, Literal
 
-from fastapi import HTTPException
-from httpx import codes
 from polars import LazyFrame
 
+from .exceptions import DisplayError
 from ..global_constants import DATE_KEY
 from ..global_types import Column, Columns, ColumnOptional, Entities
 from .output_models import Axis, ChartConfigModel
@@ -37,9 +36,7 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
 
     key_list: list[Column] = list(keys)
     if len(keys) != 1 or key_list[0] not in TIME_SERIES_ALLOWED_KEYS:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, "The data cannot be displayed as a time series"
-        )
+        raise DisplayError("The data cannot be displayed as a time series")
 
     chart_config.xAxis = [Axis(type="time")]
     chart_config.yAxis = [Axis(type="value")]
