@@ -41,7 +41,7 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
     chart_config.xAxis = [Axis(type="time")]
     chart_config.yAxis = [Axis(type="value")]
 
-    data_cols: list[Column] = data.schema.names()
+    data_cols: list[Column] = data.collect_schema().names()
     key: Column = key_list.pop()
     data_cols.remove(key)
 

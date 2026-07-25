@@ -5,8 +5,8 @@ from pydantic import create_model
 from pydantic.fields import FieldInfo
 
 from ..display.charts import DisplayFunctionName
-from ..global_types import Params
-from .models import EntityParam
+from ..global_types import Column, ColumnOptional, Params
+from .models import EntityParam, MarketDrilldownParam
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
 from ..validators.primitives import DateRangeModel, ParamBaseModel
 
@@ -80,6 +80,13 @@ Actual (strict) validation is done by analysis functions on the specific
 arguments they consume.
 """
 
+
+class AssetPriceDailyParams(ParamBaseModel):
+    display: DisplayFunctionName
+    analysis: set[str]
+    symbol: EntityParam
+
+
 # To support legacy REST endpoint
 AssetPriceDailyAPI = create_model(
     "AssetPriceDailyAPI",
@@ -93,12 +100,16 @@ AssetPriceDailyAPI = create_model(
 AssetPriceDailySchema = create_model(
     "AssetPriceDailySchema",
     __base__=ParamBaseModel,
-    # Args required for orchestration
-    display=DisplayFunctionName,
-    analysis=set[str],
-    symbol=EntityParam,
-    # Args required for seeding
-    **_required_fields(DateRangeModel),
+    # Args required for orchestration and seeding
+    **_required_fields(AssetPriceDailyParams, DateRangeModel),
     # Args consumed by analysis functions (with required ones made optional)
     **_optional_fields(DateIndex, TimeHorizon, WindowFunction),
 )
+
+
+class MarketCompositionParams(ParamBaseModel):
+    display: DisplayFunctionName
+    analysis: set[str]
+    drilldown: MarketDrilldownParam
+    aggregate_col: Column
+    colour_col: ColumnOptional = None
