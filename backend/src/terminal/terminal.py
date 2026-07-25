@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from httpx import codes
+from pydantic import ValidationError
 
 from ..display.charts import DisplayFunctionName
 from ..display.output_models import ChartConfigModel
@@ -39,6 +40,8 @@ async def asset_price_daily_handler(
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
     except ImplementationError as e:
         raise HTTPException(e.code, e.message)
+    except ValidationError as e:
+        raise HTTPException(codes.UNPROCESSABLE_ENTITY, str(e))
 
 
 @router.get(_get_terminal_path("market-composition"))
@@ -59,3 +62,5 @@ async def market_composition_handler(
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
     except ImplementationError as e:
         raise HTTPException(e.code, e.message)
+    except ValidationError as e:
+        raise HTTPException(codes.UNPROCESSABLE_ENTITY, str(e))
