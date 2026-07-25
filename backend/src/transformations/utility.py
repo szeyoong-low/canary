@@ -100,7 +100,7 @@ def resolve_transformations(
     if (len(individual) + len(collective) + base_metric_count) == 0:
         raise HTTPException(
             codes.UNPROCESSABLE_ENTITY,
-            "Analysis functions must be specified using query parameters, e.g. analysis=foo/bar/baz",
+            "Analysis functions must be specified, e.g. analysis=[foo/bar/baz]",
         )
 
     # Sort by number of items composed, so that dependencies are always resolved.

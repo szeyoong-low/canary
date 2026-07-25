@@ -14,8 +14,8 @@ Args:
     - keys (Columns): Columns to align on
     - depends (str | None): Immediate preceding dependency transformation. None
         if it is a base metric.
-    - params (Params): Raw query parameters captured by the tool, to be
-        validated with a Pydantic model
+    - params (Params): Raw parameters captured by the tool, to be validated with
+        a Pydantic model
     - http_client (AsyncClient): For loaders
 
 Returns: Awaitable LazyFrame with the transformation and all its dependencies

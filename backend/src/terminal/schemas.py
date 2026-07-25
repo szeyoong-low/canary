@@ -8,10 +8,10 @@ from ..display.charts import DisplayFunctionName
 from ..global_types import Params
 from .models import EntityParam
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
-from ..validators.primitives import DateRangeModel, QueryBaseModel
+from ..validators.primitives import DateRangeModel, ParamBaseModel
 
 
-def _optional_fields(*models: type[QueryBaseModel]) -> Params:
+def _optional_fields(*models: type[ParamBaseModel]) -> Params:
     """
     Merge several leaf models' fields into one dict with every required field
     (no default) made optional (... | None = None)
@@ -48,7 +48,7 @@ def _optional_fields(*models: type[QueryBaseModel]) -> Params:
     return fields
 
 
-def _required_fields(*models: type[QueryBaseModel]) -> Params:
+def _required_fields(*models: type[ParamBaseModel]) -> Params:
     """
     Merge several leaf models' fields into one dict with fields left as-is
 
@@ -83,7 +83,7 @@ arguments they consume.
 # To support legacy REST endpoint
 AssetPriceDailyAPI = create_model(
     "AssetPriceDailyAPI",
-    __base__=QueryBaseModel,
+    __base__=ParamBaseModel,
     # Args required for seeding
     **_required_fields(DateRangeModel),
     # Args consumed by analysis functions (with required ones made optional)
@@ -92,7 +92,7 @@ AssetPriceDailyAPI = create_model(
 
 AssetPriceDailySchema = create_model(
     "AssetPriceDailySchema",
-    __base__=QueryBaseModel,
+    __base__=ParamBaseModel,
     # Args required for orchestration
     display=DisplayFunctionName,
     analysis=set[str],

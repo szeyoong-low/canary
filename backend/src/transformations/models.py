@@ -1,16 +1,16 @@
 from datetime import date
 
-from ..validators.primitives import PositiveInt, QueryBaseModel
+from ..validators.primitives import PositiveInt, ParamBaseModel
 
 
-class WindowFunction(QueryBaseModel):
+class WindowFunction(ParamBaseModel):
     window: PositiveInt
 
 
-class TimeHorizon(QueryBaseModel):
+class TimeHorizon(ParamBaseModel):
     horizon: PositiveInt
 
 
-class DateIndex(QueryBaseModel):
+class DateIndex(ParamBaseModel):
     base: PositiveInt
     reference: date

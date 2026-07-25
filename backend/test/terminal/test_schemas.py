@@ -6,7 +6,7 @@ import pytest
 
 from src.global_types import Params
 from src.terminal.schemas import _optional_fields
-from src.validators.primitives import QueryBaseModel
+from src.validators.primitives import ParamBaseModel
 
 
 def _reject_non_positive(n: int) -> int:
@@ -24,15 +24,15 @@ type LocalPositiveInt = Annotated[int, AfterValidator(_reject_non_positive)]
 
 
 # Required fields become `T | None = None`.
-class RequiredParamModel(QueryBaseModel):
+class RequiredParamModel(ParamBaseModel):
     required_param: int
 
 
-class AfterValidatedModel(QueryBaseModel):
+class AfterValidatedModel(ParamBaseModel):
     after_validated_param: LocalPositiveInt
 
 
-DEFAULT_ADDED_MODELS: set[type[QueryBaseModel]] = {
+DEFAULT_ADDED_MODELS: set[type[ParamBaseModel]] = {
     RequiredParamModel,
     AfterValidatedModel,
 }
@@ -48,15 +48,15 @@ DEFAULT_ADDED_VALID_ARGS: Params = {
 
 
 # Non-required fields are passed through untouched
-class OptionalParamModel(QueryBaseModel):
+class OptionalParamModel(ParamBaseModel):
     optional_param: str = "default"
 
 
-class DefaultNoneModel(QueryBaseModel):
+class DefaultNoneModel(ParamBaseModel):
     default_none_param: bool | None = None
 
 
-UNCHANGED_MODELS: set[type[QueryBaseModel]] = {
+UNCHANGED_MODELS: set[type[ParamBaseModel]] = {
     OptionalParamModel,
     DefaultNoneModel,
 }
@@ -70,7 +70,7 @@ UNCHANGED_FIELD_DEFAULTS: Params = {
     "default_none_param": None,
 }
 
-LIFTED_MODELS: set[type[QueryBaseModel]] = DEFAULT_ADDED_MODELS | UNCHANGED_MODELS
+LIFTED_MODELS: set[type[ParamBaseModel]] = DEFAULT_ADDED_MODELS | UNCHANGED_MODELS
 
 LIFTED_FIELD_NAMES: set[str] = DEFAULT_ADDED_FIELD_NAMES | UNCHANGED_FIELD_NAMES
 
@@ -80,7 +80,7 @@ TOP_LEVEL_VALID_ARGS: Params = {"top_level": 0}
 
 DummyModel = create_model(
     "DummyModel",
-    __base__=QueryBaseModel,
+    __base__=ParamBaseModel,
     top_level=int,
     **_optional_fields(*LIFTED_MODELS),
 )
