@@ -113,3 +113,17 @@ class MarketCompositionParams(ParamBaseModel):
     drilldown: MarketDrilldownParam
     aggregate_col: Column
     colour_col: ColumnOptional = None
+
+
+# To support legacy REST endpoint
+MarketCompositionAPI = create_model(
+    "MarketCompositionAPI",
+    __base__=ParamBaseModel,
+)
+
+MarketCompositionSchema = create_model(
+    "MarketCompositionSchema",
+    __base__=ParamBaseModel,
+    # Args required for orchestration and seeding
+    **_required_fields(MarketCompositionParams),
+)
