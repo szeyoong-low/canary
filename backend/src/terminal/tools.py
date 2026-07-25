@@ -1,8 +1,9 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from functools import partial, reduce
 
 from asyncio import gather
 from httpx import AsyncClient
+from langchain_core.tools import BaseTool, tool
 from polars import col, concat, LazyFrame
 from polars.selectors import float as pl_float
 
@@ -15,7 +16,12 @@ from ..global_constants import (
 from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
-from .schemas import AssetPriceDailyParams, MarketCompositionParams
+from .schemas import (
+    AssetPriceDailyParams,
+    AssetPriceDailySchema,
+    MarketCompositionParams,
+    MarketCompositionSchema,
+)
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
@@ -23,7 +29,15 @@ from ..transformations.utility import (
 )
 
 
+@tool(args_schema=AssetPriceDailySchema)
 async def asset_price_daily(**kwargs) -> ChartConfigModel:
+    """
+    Fetch and analyse daily price time series for one or more assets
+    (stocks, indices) over a date range, returning a chart configuration.
+    Use for questions about how prices, returns, or derived indicators of
+    specific tickers evolve over time.
+    """
+
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
@@ -88,9 +102,15 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
     return DISPLAY_SERIES[params.display](data_output, keys, params.symbol)
 
 
-async def market_composition(
-    **kwargs,
-) -> ChartConfigModel:
+@tool(args_schema=MarketCompositionSchema)
+async def market_composition(**kwargs) -> ChartConfigModel:
+    """
+    Break a market or index into its constituents and aggregate a metric
+    across a chosen dimension, returning a hierarchical chart configuration.
+    Use for questions about composition, weightings, or the contribution of
+    parts to a whole at a point in time.
+    """
+
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
@@ -125,3 +145,12 @@ async def market_composition(
     return DISPLAY_HIERARCHY[params.display](
         data_output, params.drilldown, params.aggregate_col, params.colour_col
     )
+
+
+# Bound to the model in the planner node and executed by the LangGraph tool node.
+# The @tool decorator turns each function into a BaseTool. The description is
+# read from the docstring and the interface from `args_schema`.
+TERMINAL_TOOLS: Sequence[BaseTool] = [
+    asset_price_daily,
+    market_composition,
+]
