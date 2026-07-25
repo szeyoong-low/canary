@@ -80,6 +80,13 @@ Actual (strict) validation is done by analysis functions on the specific
 arguments they consume.
 """
 
+
+class AssetPriceDailyParams(ParamBaseModel):
+    display: DisplayFunctionName
+    analysis: set[str]
+    symbol: EntityParam
+
+
 # To support legacy REST endpoint
 AssetPriceDailyAPI = create_model(
     "AssetPriceDailyAPI",
@@ -93,12 +100,8 @@ AssetPriceDailyAPI = create_model(
 AssetPriceDailySchema = create_model(
     "AssetPriceDailySchema",
     __base__=ParamBaseModel,
-    # Args required for orchestration
-    display=DisplayFunctionName,
-    analysis=set[str],
-    symbol=EntityParam,
-    # Args required for seeding
-    **_required_fields(DateRangeModel),
+    # Args required for orchestration and seeding
+    **_required_fields(AssetPriceDailyParams, DateRangeModel),
     # Args consumed by analysis functions (with required ones made optional)
     **_optional_fields(DateIndex, TimeHorizon, WindowFunction),
 )

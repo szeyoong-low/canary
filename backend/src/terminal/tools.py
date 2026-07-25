@@ -15,10 +15,8 @@ from ..global_constants import (
 from ..global_types import as_awaitable, Column, Columns, ColumnOptional
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
-from .models import (
-    EntityParam,
-    MarketDrilldownParam,
-)
+from .models import MarketDrilldownParam
+from .schemas import AssetPriceDailyParams
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
@@ -26,17 +24,13 @@ from ..transformations.utility import (
 )
 
 
-async def asset_price_daily(
-    display: DisplayFunctionName,
-    analysis: set[str],
-    symbol: EntityParam,
-    **kwargs,
-) -> ChartConfigModel:
+async def asset_price_daily(**kwargs) -> ChartConfigModel:
+    params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
     collective_transforms: Iterable[str]
     indiv_transforms, collective_transforms = resolve_transformations(
-        analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
+        params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
     keys: Columns = METRIC_GROUP_KEYS["asset-price-daily"]
@@ -60,7 +54,7 @@ async def asset_price_daily(
                         keys,
                     )
                 )
-                for sym in symbol
+                for sym in params.symbol
             )
         )
 
@@ -82,14 +76,17 @@ async def asset_price_daily(
             .select(
                 col(keys),
                 col(
-                    map(individual_entity_regex, analysis - set(collective_transforms))
+                    map(
+                        individual_entity_regex,
+                        params.analysis - set(collective_transforms),
+                    )
                 ),
                 col(collective_transforms),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_SERIES[display](data_output, keys, symbol)
+    return DISPLAY_SERIES[params.display](data_output, keys, params.symbol)
 
 
 async def market_composition(

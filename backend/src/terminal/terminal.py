@@ -29,9 +29,9 @@ async def asset_price_daily_handler(
 
     try:
         return await asset_price_daily(
-            display,
-            analysis,
-            symbol,
+            display=display,
+            analysis=analysis,
+            symbol=symbol,
             **AssetPriceDailyAPI.validate_query_params(request.query_params).model_dump(
                 exclude_unset=True
             ),
