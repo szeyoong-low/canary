@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .src.agent import router as agent
 from .src.dependencies import Environment, get_environment
 from .src.terminal import terminal
 
@@ -22,6 +23,7 @@ app.add_middleware(
     # By default, only GET methods are allowed
 )
 
+app.include_router(agent.router)
 app.include_router(terminal.router)
 
 

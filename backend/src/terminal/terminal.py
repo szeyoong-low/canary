@@ -28,13 +28,15 @@ async def asset_price_daily_handler(
 ) -> ChartConfigModel:
 
     try:
-        return await asset_price_daily(
-            display=display,
-            analysis=analysis,
-            symbol=symbol,
-            **AssetPriceDailyAPI.validate_query_params(request.query_params).model_dump(
-                exclude_unset=True
-            ),
+        return await asset_price_daily.ainvoke(
+            {
+                "display": display,
+                "analysis": analysis,
+                "symbol": symbol,
+                **AssetPriceDailyAPI.validate_query_params(
+                    request.query_params
+                ).model_dump(exclude_unset=True),
+            }
         )
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
@@ -55,12 +57,14 @@ async def market_composition_handler(
 ) -> ChartConfigModel:
 
     try:
-        return await market_composition(
-            display=display,
-            analysis=analysis,
-            drilldown=drilldown,
-            aggregate_col=aggregate_col,
-            colour_col=colour_col,
+        return await market_composition.ainvoke(
+            {
+                "display": display,
+                "analysis": analysis,
+                "drilldown": drilldown,
+                "aggregate_col": aggregate_col,
+                "colour_col": colour_col,
+            }
         )
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)

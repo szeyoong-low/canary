@@ -17,13 +17,13 @@ async def as_awaitable(x: T) -> T:
 
 
 class DataProcessingError(Exception):
-    def __init__(self, message):
+    def __init__(self, message: str):
         super().__init__(message)
         self.message = message
 
 
 class ImplementationError(Exception):
-    def __init__(self, code, message):
+    def __init__(self, code: int, message: str):
         super().__init__(message)
         self.message = message
         self.code = code

@@ -19,6 +19,9 @@ class Environment(BaseSettings):
     allow_origin_regex: str
     fmp_api_key: str
     fmp_base_url: str
+    openrouter_api_key: str
+    planning_node_model: str
+    planning_node_provider: str
 
     model_config = SettingsConfigDict(env_file=DOTENV_FILE)
 

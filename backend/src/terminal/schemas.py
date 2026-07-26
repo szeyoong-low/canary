@@ -88,7 +88,7 @@ class AssetPriceDailyParams(ParamBaseModel):
 
 
 # To support legacy REST endpoint
-AssetPriceDailyAPI = create_model(
+AssetPriceDailyAPI: type[ParamBaseModel] = create_model(
     "AssetPriceDailyAPI",
     __base__=ParamBaseModel,
     # Args required for seeding
@@ -97,7 +97,7 @@ AssetPriceDailyAPI = create_model(
     **_optional_fields(DateIndex, TimeHorizon, WindowFunction),
 )
 
-AssetPriceDailySchema = create_model(
+AssetPriceDailySchema: type[ParamBaseModel] = create_model(
     "AssetPriceDailySchema",
     __base__=ParamBaseModel,
     # Args required for orchestration and seeding
@@ -113,3 +113,17 @@ class MarketCompositionParams(ParamBaseModel):
     drilldown: MarketDrilldownParam
     aggregate_col: Column
     colour_col: ColumnOptional = None
+
+
+# To support legacy REST endpoint
+MarketCompositionAPI: type[ParamBaseModel] = create_model(
+    "MarketCompositionAPI",
+    __base__=ParamBaseModel,
+)
+
+MarketCompositionSchema: type[ParamBaseModel] = create_model(
+    "MarketCompositionSchema",
+    __base__=ParamBaseModel,
+    # Args required for orchestration and seeding
+    **_required_fields(MarketCompositionParams),
+)

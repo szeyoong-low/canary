@@ -78,7 +78,7 @@ TOP_LEVEL_FIELD_NAMES: set[str] = {"top_level"}
 
 TOP_LEVEL_VALID_ARGS: Params = {"top_level": 0}
 
-DummyModel = create_model(
+DummyModel: type[ParamBaseModel] = create_model(
     "DummyModel",
     __base__=ParamBaseModel,
     top_level=int,

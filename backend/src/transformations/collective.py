@@ -12,7 +12,7 @@ from .steps import _apply_unary_function
 """Compute values for all entities"""
 
 # Column names
-GROUP_MEAN = "group-mean"
+GROUP_MEAN: Column = "group-mean"
 
 
 async def group_mean(
