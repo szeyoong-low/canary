@@ -1,5 +1,6 @@
 from collections.abc import Iterable, Sequence
 from functools import partial, reduce
+from typing import Mapping
 
 from asyncio import gather
 from httpx import AsyncClient
@@ -151,3 +152,7 @@ TERMINAL_TOOLS: Sequence[BaseTool] = [
     asset_price_daily,
     market_composition,
 ]
+
+TERMINAL_TOOLS_MAPPING: Mapping[str, BaseTool] = {
+    tool.name: tool for tool in TERMINAL_TOOLS
+}
