@@ -9,10 +9,7 @@ from polars.selectors import float as pl_float
 
 from ..display.charts import DISPLAY_SERIES, DISPLAY_HIERARCHY
 from ..display.output_models import ChartConfigModel
-from ..global_constants import (
-    DEC_PLACES_SHOWN,
-    individual_entity_regex,
-)
+from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
 from ..global_types import as_awaitable, Columns
 from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
 from ..loaders.load import load_asset_price_daily, load_market_composition
@@ -147,7 +144,7 @@ async def market_composition(**kwargs) -> ChartConfigModel:
     )
 
 
-# Bound to the model in the planner node and executed by the LangGraph tool node.
+# Bound to the model in the planning node and executed by the LangGraph tool node.
 # The @tool decorator turns each function into a BaseTool. The description is
 # read from the docstring and the interface from `args_schema`.
 TERMINAL_TOOLS: Sequence[BaseTool] = [

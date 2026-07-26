@@ -15,9 +15,9 @@ from .steps import _apply_unary_function
 """Compute values for a single entity"""
 
 # Column names
-VOLATILITY = "volatility"
-RETURNS = "returns"
-INDEX_TO_DATE = "index-to-date"
+VOLATILITY: Column = "volatility"
+RETURNS: Column = "returns"
+INDEX_TO_DATE: Column = "index-to-date"
 
 
 async def volatility(

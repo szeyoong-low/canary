@@ -54,12 +54,10 @@ async def _load_data(
     except HTTPStatusError:
         raise ImplementationError(
             codes.INTERNAL_SERVER_ERROR,
-            (
-                f"Error for at {response.url}:\n"
-                f"HTTP {response.status_code}: {response.text}\n"
-                f"Parameters: {query_params}\n"
-                f"Headers: {headers}",
-            ),
+            f"Error for at {response.url}:\n"
+            f"HTTP {response.status_code}: {response.text}\n"
+            f"Parameters: {query_params}\n"
+            f"Headers: {headers}",
         )
 
     # Use the Polars lazy API to allow for optimisations
