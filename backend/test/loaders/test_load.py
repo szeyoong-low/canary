@@ -1,7 +1,7 @@
-from json import load
-from typing import Any
+from json import loads
 from unittest.mock import AsyncMock, Mock, patch
 
+from anyio import open_file
 from httpx import codes
 from polars import DataFrame, read_json
 from polars.testing import assert_frame_equal
@@ -18,11 +18,11 @@ from .constants import BASE_URL_DISPATCH, FMP_API, NORMALISER_DISPATCH
 async def test_load_only_regular():
     """Loading a non-edge case without normalisation should return the original JSON"""
     data_file: str = dataset_path("fmp_prod_segment_raw")
-    with open(data_file, mode="r") as data:
-        original_json: Any = load(data)
+    async with await open_file(data_file, mode="r") as f:
+        data: str = await f.read()
 
     # Injected dependencies are mocked
-    response: Mock = Mock(status_code=codes.OK, **{"json.return_value": original_json})
+    response: Mock = Mock(status_code=codes.OK, **{"json.return_value": loads(data)})
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (
