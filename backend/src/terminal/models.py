@@ -6,7 +6,7 @@ from fastapi import Query
 from pydantic import AfterValidator, BeforeValidator
 
 from ..global_constants import INITIAL_METRIC_SEPARATOR
-from ..global_types import Column, Columns, ColumnOptional
+from ..global_types import Column, ColumnOptional, Columns
 
 
 def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:

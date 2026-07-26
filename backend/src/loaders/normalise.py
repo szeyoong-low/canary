@@ -1,10 +1,9 @@
 from collections.abc import Iterable
 from functools import reduce
 
-from polars import col, LazyFrame, Struct
+from polars import LazyFrame, Struct, col
 
 from ..global_constants import DATE_KEY
-
 
 """Normalise into a wide data shape, as explained in
 https://github.com/szeyoong-low/canary/wiki/Wide-data-shape-as-default"""

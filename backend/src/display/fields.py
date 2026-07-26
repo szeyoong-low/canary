@@ -37,7 +37,7 @@ def _validate_hex_string(string: str) -> str:
     if (
         (len(string) in (4, 7))
         and string[0] == HEX_PREFIX
-        and all((c.isalnum() for c in string[1:]))
+        and all(c.isalnum() for c in string[1:])
     ):
         return string
 

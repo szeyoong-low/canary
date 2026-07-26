@@ -1,9 +1,9 @@
-from httpx import AsyncClient, codes, HTTPStatusError, Response
+from httpx import AsyncClient, HTTPStatusError, Response, codes
 from polars import LazyFrame
 
+from ..global_types import ImplementationError, Params
 from .constants import ExternalAPI, ExternalEndpoint
 from .dispatch import BASE_URL, NORMALISER
-from ..global_types import ImplementationError, Params
 
 
 async def _load_data(

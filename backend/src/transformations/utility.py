@@ -1,17 +1,16 @@
-from collections.abc import Container, Iterable
-from typing import Awaitable
+from collections.abc import Awaitable, Container, Iterable
 
 from httpx import AsyncClient
-from polars import all, col, LazyFrame
+from polars import LazyFrame, all, col
 
-from .collective import COLLECTIVE_TRANSFORMATIONS
-from .exceptions import AnalysisError
 from ..global_constants import (
     EMPTY_STRING,
     INITIAL_METRIC_SEPARATOR,
     TRANSFORMATION_SEPARATOR,
 )
 from ..global_types import Columns, Params
+from .collective import COLLECTIVE_TRANSFORMATIONS
+from .exceptions import AnalysisError
 from .individual import INDIVIDUAL_TRANSFORMATIONS
 
 

@@ -6,9 +6,9 @@ from pydantic.fields import FieldInfo
 
 from ..display.charts import DisplayFunctionName
 from ..global_types import Column, ColumnOptional, Params
-from .models import EntityParam, MarketDrilldownParam
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
 from ..validators.primitives import DateRangeModel, ParamBaseModel
+from .models import EntityParam, MarketDrilldownParam
 
 
 def _optional_fields(*models: type[ParamBaseModel]) -> Params:

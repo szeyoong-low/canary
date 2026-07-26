@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from polars import col, Expr, LazyFrame
+from polars import Expr, LazyFrame, col
 
 from ..global_constants import individual_entity_regex
 from ..global_types import Column, ColumnOptional

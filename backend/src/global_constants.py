@@ -2,7 +2,6 @@ from typing import Literal
 
 from .global_types import Column
 
-
 type MetricGroup = Literal["asset-price-daily", "market-composition"]
 
 TRANSFORMATION_SEPARATOR: str = "/"

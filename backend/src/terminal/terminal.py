@@ -6,8 +6,8 @@ from ..display.charts import DisplayFunctionName
 from ..display.output_models import ChartConfigModel
 from ..global_types import DataProcessingError, ImplementationError
 from .models import (
-    ColumnQueryParam,
     ColumnOptionalQueryParam,
+    ColumnQueryParam,
     EntityQueryParam,
     MarketDrilldownQueryParam,
     SetQueryParam,

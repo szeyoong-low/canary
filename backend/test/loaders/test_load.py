@@ -6,9 +6,10 @@ from httpx import codes
 from polars import DataFrame, read_json
 from polars.testing import assert_frame_equal
 
-from .constants import FMP_API, BASE_URL_DISPATCH, NORMALISER_DISPATCH
-from ..datasets.paths import dataset_path
 from src.loaders.load import _load_data
+
+from ..datasets.paths import dataset_path
+from .constants import BASE_URL_DISPATCH, FMP_API, NORMALISER_DISPATCH
 
 
 # Internally-constructed dependencies are patched

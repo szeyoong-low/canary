@@ -3,13 +3,14 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 from httpx import codes
-from polars import col, DataFrame, read_json
+from polars import DataFrame, col, read_json
 from polars.testing import assert_frame_equal
 
-from .constants import BASE_URL_DISPATCH, FMP_API
-from ..datasets.paths import dataset_path
 from src.global_constants import DATE_KEY
 from src.loaders.load import _load_data
+
+from ..datasets.paths import dataset_path
+from .constants import BASE_URL_DISPATCH, FMP_API
 
 
 @patch.dict(BASE_URL_DISPATCH, {FMP_API: (lambda: "")})

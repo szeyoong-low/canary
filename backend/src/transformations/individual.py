@@ -1,15 +1,15 @@
+from collections.abc import Awaitable
 from functools import partial, reduce
 from math import sqrt
-from typing import Awaitable
 
 from httpx import AsyncClient
-from polars import col, Expr, LazyFrame
+from polars import Expr, LazyFrame, col
 
+from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
+from ..global_types import Column, Columns, Params
 from . import models
 from .constants import TransformationDispatch
 from .exceptions import AnalysisError
-from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns, Params
 from .steps import _apply_unary_function
 
 """Compute values for a single entity"""

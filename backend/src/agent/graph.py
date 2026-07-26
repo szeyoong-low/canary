@@ -1,6 +1,6 @@
 from functools import lru_cache
-from typing import Annotated, TypedDict
 from operator import add
+from typing import Annotated, TypedDict
 
 from langchain.messages import AIMessage, AnyMessage, ToolCall, ToolMessage
 from langchain_core.tools import BaseTool
@@ -9,9 +9,8 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import tools_condition
 
 from ..display.output_models import ChartConfigModel
-from .llm import planning_node_llm
 from ..terminal.tools import TERMINAL_TOOLS_MAPPING
-
+from .llm import planning_node_llm
 
 # Keys of the AgentState TypedDict
 MESSAGES: str = "messages"

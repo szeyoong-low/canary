@@ -1,12 +1,12 @@
-from typing import Awaitable
+from collections.abc import Awaitable
 
 from httpx import AsyncClient
 from polars import LazyFrame, mean_horizontal
 
-from .constants import TransformationDispatch
-from .exceptions import AnalysisError
 from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
+from .constants import TransformationDispatch
+from .exceptions import AnalysisError
 from .steps import _apply_unary_function
 
 """Compute values for all entities"""
