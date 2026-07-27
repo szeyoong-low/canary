@@ -7,8 +7,10 @@ from langchain_core.tools import BaseTool
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import tools_condition
+from pydantic import ValidationError
 
 from ..display.output_models import ChartConfigModel
+from ..global_types import DataProcessingError, ImplementationError
 from ..terminal.tools import TERMINAL_TOOLS_MAPPING
 from .llm import planning_node_llm
 
@@ -55,7 +57,7 @@ async def _tool_node(state: AgentState) -> dict:
         chart_config: ChartConfigModel = await tool_selected.ainvoke(
             tool_call[TOOL_ARGS]
         )
-    except Exception as e:
+    except (DataProcessingError, ImplementationError, ValidationError) as e:
         return {
             MESSAGES: [
                 ToolMessage(
