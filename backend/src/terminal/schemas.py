@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import Optional
 
 from pydantic import create_model
 from pydantic.fields import FieldInfo
@@ -40,8 +39,13 @@ def _optional_fields(*models: type[ParamBaseModel]) -> Params:
                 # actual value, not on the declared type.
                 field_copy: FieldInfo = deepcopy(field_info)
                 field_copy.default = None
+                
+                if field_copy.annotation is None:
+                    # Necessary as None has no __or__ method for union construction
+                    fields[field_name] = (None, field_copy)
+                else:
                 # Default values are not validated, so field validators can stay
-                fields[field_name] = (Optional[field_copy.annotation], field_copy)
+                    fields[field_name] = (field_copy.annotation | None, field_copy)
             else:
                 fields[field_name] = (field_info.annotation, field_info)
 
