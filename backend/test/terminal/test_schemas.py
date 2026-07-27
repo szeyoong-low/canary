@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
+import pytest
 from pydantic import AfterValidator, BaseModel, ValidationError, create_model
 from pydantic.fields import FieldInfo
-import pytest
 
 from src.global_types import Params
 from src.terminal.schemas import _optional_fields
@@ -137,7 +137,7 @@ def test_default_added_validator_preserved(invalid_value: int):
     """The rewrite deep-copies FieldInfo, so a field's own validators must still
     run: LocalPositiveInt keeps rejecting non-positive values."""
     with pytest.raises(ValidationError):
-        DummyModel(**TOP_LEVEL_VALID_ARGS, **{"after_validated_param": invalid_value})
+        DummyModel(**TOP_LEVEL_VALID_ARGS, after_validated_param=invalid_value)
 
 
 @pytest.mark.parametrize("field_name", UNCHANGED_FIELD_NAMES)

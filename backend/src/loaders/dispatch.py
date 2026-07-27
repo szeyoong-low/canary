@@ -1,12 +1,11 @@
-from typing import Callable
+from collections.abc import Callable
 
 from polars import LazyFrame
 
-from .constants import ExternalAPI
 from ..dependencies import get_environment
 from ..global_types import Params
 from ..loaders.normalise import _normalise_fmp
-
+from .constants import ExternalAPI
 
 # Kept as a callable to achieve pseudo-lazy evaluation so that there is no
 # coupling with the test suite, which must still evaluate it when importing.

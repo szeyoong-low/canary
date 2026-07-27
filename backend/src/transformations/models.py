@@ -1,6 +1,6 @@
 from datetime import date
 
-from ..validators.primitives import PositiveInt, ParamBaseModel
+from ..validators.primitives import ParamBaseModel, PositiveInt
 
 
 class WindowFunction(ParamBaseModel):

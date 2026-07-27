@@ -1,13 +1,12 @@
 from functools import lru_cache
 
-from langchain.messages import AIMessage
 from langchain.chat_models import init_chat_model
+from langchain.messages import AIMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
 
 from ..dependencies import Environment, get_environment
 from ..terminal.tools import TERMINAL_TOOLS
-
 
 type ModelWithTools = Runnable[LanguageModelInput, AIMessage]
 

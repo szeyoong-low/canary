@@ -1,8 +1,7 @@
 from collections.abc import Container
 from datetime import date
 from types import UnionType
-from typing import Annotated, Any, get_args, get_origin, Union
-from typing_extensions import Self
+from typing import Annotated, Any, Self, Union, get_args, get_origin
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, model_validator
 from pydantic.fields import FieldInfo

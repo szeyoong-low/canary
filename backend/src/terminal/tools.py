@@ -1,29 +1,28 @@
-from collections.abc import Iterable, Sequence
-from functools import partial, reduce
-from typing import Mapping
-
 from asyncio import gather
+from collections.abc import Iterable, Mapping, Sequence
+from functools import partial, reduce
+
 from httpx import AsyncClient
 from langchain_core.tools import BaseTool, tool
-from polars import col, concat, LazyFrame
+from polars import LazyFrame, col, concat
 from polars.selectors import float as pl_float
 
-from ..display.charts import DISPLAY_SERIES, DISPLAY_HIERARCHY
+from ..display.charts import DISPLAY_HIERARCHY, DISPLAY_SERIES
 from ..display.output_models import ChartConfigModel
 from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
-from ..global_types import as_awaitable, Columns
-from ..loaders.constants import METRIC_GROUP_KEYS, METRIC_GROUP_BASE_METRICS
+from ..global_types import Columns, as_awaitable
+from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
 from ..loaders.load import load_asset_price_daily, load_market_composition
+from ..transformations.utility import (
+    apply_analysis_function,
+    pivot_single_entity,
+    resolve_transformations,
+)
 from .schemas import (
     AssetPriceDailyParams,
     AssetPriceDailySchema,
     MarketCompositionParams,
     MarketCompositionSchema,
-)
-from ..transformations.utility import (
-    apply_analysis_function,
-    pivot_single_entity,
-    resolve_transformations,
 )
 
 

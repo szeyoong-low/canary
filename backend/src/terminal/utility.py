@@ -1,6 +1,5 @@
 from ..global_constants import MetricGroup
 
-
 DISPLAY_PATH_PARAM: str = "{display}"
 
 

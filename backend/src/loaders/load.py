@@ -1,12 +1,12 @@
 from httpx import AsyncClient
 from polars import LazyFrame
 
+from ..global_types import Params
+from ..validators.primitives import DateRangeModel
 from . import models
 from .constants import METRIC_GROUP_KEYS
 from .dispatch import REQUEST_HEADERS
-from ..global_types import Params
 from .utility import _load_data
-from ..validators.primitives import DateRangeModel
 
 """Data is left as-is in its long shape (yet to pivot on `symbol`)"""
 

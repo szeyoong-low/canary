@@ -1,5 +1,4 @@
-from collections.abc import Callable
-from typing import Awaitable
+from collections.abc import Awaitable, Callable
 
 from httpx import AsyncClient
 from polars import LazyFrame

@@ -1,14 +1,14 @@
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
 from polars import LazyFrame
 
-from .exceptions import DisplayError
 from ..global_constants import DATE_KEY
-from ..global_types import Column, Columns, ColumnOptional, Entities
+from ..global_types import Column, ColumnOptional, Columns, Entities
+from .exceptions import DisplayError
 from .output_models import Axis, ChartConfigModel
-from .serialise import _serialise_series, _serialise_hierarchy
+from .serialise import _serialise_hierarchy, _serialise_series
 from .style import _style_lines
-
 
 type DisplayFunctionName = Literal["time-series", "treemap"]
 

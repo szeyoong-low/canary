@@ -2,8 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from .fields import ByteField, HexColor, NonNegativeNumberField, NormalisedFloatField
 from ..global_types import Params
+from .fields import ByteField, HexColor, NonNegativeNumberField, NormalisedFloatField
 
 # Will not use generic types to enforce that lists are homogeneous:
 # 1. It doesn't matter for ECharts rendering
@@ -33,7 +33,7 @@ class Title(EChartsBaseModel):
 class Dataset(EChartsBaseModel):
     # Row-objects: to_dicts
     # Columnar: to_dict (preferred: no repeated key strings, easier CSV conversion)
-    source: list[Params] | dict[str, list] = dict()
+    source: list[Params] | dict[str, list] = {}
 
 
 class Tooltip(EChartsBaseModel):
