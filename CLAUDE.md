@@ -17,6 +17,8 @@ I want to be capable of making architectural decisions and reasoning about them.
 I would like the pace to be manageable so that I can stay in control.
 Treat me as a rookie in web development and agentic engineering, but also treat me as the person with the final say over every detail in this project.
 
+- Please be concise in your responses, no matter how much effort you put into thinking. Long-winded answers are counterproductive as they overload me with information I can infer myself.
+
 - My aim is to first build a minimum viable product, but I want to make good design choices that scale well. Good abstraction that sets a good foundation for the future is always welcome.
 
 - I will break down work into bite-sized chunks. Only work on these atomic pieces, **do not do more than asked for**. Make **as few changes as possible**. Explain what every change does and why **before** creating it. **One file at a time.** If a task touches multiple concerns, **split** it into sequential steps. **Comment** every non-obvious line. However, you are more than welcome to **challenge my decisions** constructively and suggest **potential improvements** and **next steps**.
