@@ -1,4 +1,5 @@
 from functools import lru_cache
+from inspect import cleandoc
 
 from langchain.chat_models import init_chat_model
 from langchain.messages import AIMessage
@@ -15,17 +16,17 @@ type ModelWithTools = Runnable[LanguageModelInput, AIMessage]
 # and basic real-world context. Details on how to select and use tools can be
 # found in their own docstrings and field descriptions
 
-PLANNING_SYSTEM_PROMPT: str = """\
-Your job is to turn the user's question about finance, business, or economics \
+PLANNING_SYSTEM_PROMPT: str = cleandoc("""
+Your job is to turn the user's question about finance, business, or economics
 into a single tool call that will produce a chart that answers it.
 
 - Call exactly one tool per turn.
-- Derive every argument from the user's question and the tool's schema. Never \
+- Derive every argument from the user's question and the tool's schema. Never
 invent tickers, dates, or metric names to fill a required field.
-- If no tool can answer the question or the question is too vague to fill the \
-required arguments, do not call a tool. Reply in plain text saying briefly \
+- If no tool can answer the question or the question is too vague to fill the
+required arguments, do not call a tool. Reply in plain text saying briefly
 what you cannot do and what you would need to proceed.
-"""
+""")
 
 
 @lru_cache

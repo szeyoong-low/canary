@@ -17,6 +17,7 @@ class ParamBaseModel(BaseModel):
         # Parameters will be passed around functions implementing transformations.
         # Each will extract and validate the fields they need independently.
         extra="ignore",
+        use_attribute_docstrings=True,
     )
 
     @staticmethod
