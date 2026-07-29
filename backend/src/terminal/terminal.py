@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request
 from httpx import codes
 from pydantic import ValidationError
 
-from ..display.charts import DisplayFunctionName
+from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..display.output_models import ChartConfigModel
 from ..global_types import DataProcessingError, ImplementationError
 from .models import (
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/terminal")
 
 @router.get(_get_terminal_path("asset-price-daily"))
 async def asset_price_daily_handler(
-    display: DisplayFunctionName,
+    display: SeriesDisplayName,
     analysis: SetQueryParam,
     symbol: EntityQueryParam,
     request: Request,
@@ -48,7 +48,7 @@ async def asset_price_daily_handler(
 
 @router.get(_get_terminal_path("market-composition"))
 async def market_composition_handler(
-    display: DisplayFunctionName,
+    display: HierarchyDisplayName,
     analysis: SetQueryParam,
     drilldown: MarketDrilldownQueryParam,
     request: Request,

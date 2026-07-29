@@ -4,7 +4,7 @@ from inspect import cleandoc
 from pydantic import create_model
 from pydantic.fields import FieldInfo
 
-from ..display.charts import DisplayFunctionName
+from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..global_types import Column, ColumnOptional, Params
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
 from ..validators.primitives import DateRangeModel, ParamBaseModel
@@ -105,7 +105,7 @@ arguments they consume.
 
 
 class AssetPriceDailyParams(ParamBaseModel):
-    display: DisplayFunctionName
+    display: SeriesDisplayName
     analysis: set[str]
     symbol: EntityParam
 
@@ -131,7 +131,7 @@ AssetPriceDailySchema: type[ParamBaseModel] = create_model(
 
 
 class MarketCompositionParams(ParamBaseModel):
-    display: DisplayFunctionName
+    display: HierarchyDisplayName
     analysis: set[str]
     drilldown: MarketDrilldownParam
     aggregate_col: Column

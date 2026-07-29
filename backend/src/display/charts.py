@@ -10,7 +10,8 @@ from .output_models import Axis, ChartConfigModel
 from .serialise import _serialise_hierarchy, _serialise_series
 from .style import _style_lines
 
-type DisplayFunctionName = Literal["time-series", "treemap"]
+type SeriesDisplayName = Literal["time-series"]
+type HierarchyDisplayName = Literal["treemap"]
 
 """
 Contract of display functions for Series charts
@@ -48,7 +49,7 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
     return _style_lines(chart_config, data_cols, entities, key)
 
 
-DISPLAY_SERIES: dict[DisplayFunctionName, DisplaySeries] = {
+DISPLAY_SERIES: dict[SeriesDisplayName, DisplaySeries] = {
     "time-series": time_series,
 }
 
@@ -92,6 +93,6 @@ def treemap(
     return chart
 
 
-DISPLAY_HIERARCHY: dict[DisplayFunctionName, DisplayHierarchy] = {
+DISPLAY_HIERARCHY: dict[HierarchyDisplayName, DisplayHierarchy] = {
     "treemap": treemap,
 }
