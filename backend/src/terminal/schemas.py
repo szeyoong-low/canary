@@ -1,14 +1,22 @@
 from copy import deepcopy
 from inspect import cleandoc
+from typing import Annotated
 
-from pydantic import create_model
+from pydantic import Field, create_model
 from pydantic.fields import FieldInfo
 
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
+from ..global_constants import DOCS_ITEM_SEPARATOR
 from ..global_types import Column, ColumnOptional, Params
+from ..loaders.constants import (
+    ASSET_PRICE_DAILY_BASE_METRICS,
+    MARKET_COMPOSITION_BASE_METRICS,
+)
+from ..transformations.collective import COLLECTIVE_TRANSFORMATIONS_DOCS
+from ..transformations.individual import INDIVIDUAL_TRANSFORMATIONS_DOCS
 from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
 from ..validators.primitives import DateRangeModel, ParamBaseModel
-from .models import EntityParam, MarketDrilldownParam
+from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
 
 
 def _contextualise_field(
@@ -17,7 +25,9 @@ def _contextualise_field(
     """Copy the field and append the docstring of its containing model."""
     field_copy: FieldInfo = deepcopy(field_info)  # Models are shared by tools
     field_copy.description = (
-        " ".join(filter(None, (field_copy.description, cleandoc(model.__doc__ or ""))))
+        DOCS_ITEM_SEPARATOR.join(
+            filter(None, (field_copy.description, cleandoc(model.__doc__ or "")))
+        )
         or None
     )
     return field_copy
@@ -106,8 +116,21 @@ arguments they consume.
 
 class AssetPriceDailyParams(ParamBaseModel):
     display: SeriesDisplayName
-    analysis: set[str]
+    analysis: Annotated[
+        set[str],
+        Field(
+            description=cleandoc(f"""
+                - Base metrics: {ASSET_PRICE_DAILY_BASE_METRICS},
+                  where `vwap` is the volume-weighted average price
+                - Analysis of individual entities (symbols): {INDIVIDUAL_TRANSFORMATIONS_DOCS}
+                - Analysis of all entities (symbols): {COLLECTIVE_TRANSFORMATIONS_DOCS}
+            """)
+        ),
+    ]
+
     symbol: EntityParam
+    """Ticker symbols of individual entites, e.g. AAPL for Apple inc., ^VIX for
+    the CBOE market volatility index"""
 
 
 # To support legacy REST endpoint
@@ -132,10 +155,31 @@ AssetPriceDailySchema: type[ParamBaseModel] = create_model(
 
 class MarketCompositionParams(ParamBaseModel):
     display: HierarchyDisplayName
-    analysis: set[str]
-    drilldown: MarketDrilldownParam
+    analysis: Annotated[
+        set[str],
+        Field(
+            description=cleandoc(f"""
+                - Base metrics: {MARKET_COMPOSITION_BASE_METRICS}
+                - Analysis functions: {INDIVIDUAL_TRANSFORMATIONS_DOCS}
+            """)
+        ),
+    ]
+
+    drilldown: Annotated[
+        MarketDrilldownParam,
+        Field(
+            description=cleandoc(f"""One or many of {MARKET_DRILLDOWN}, from most
+            high-level to most granular, e.g. [sector, industry, companyName]""")
+        ),
+    ]
     aggregate_col: Column
+    """Numeric metric (must be one of the analysis functions applied) that
+    drives the relative size of chart elements. No need to repeat in `analysis`"""
+
     colour_col: ColumnOptional = None
+    """Numeric metric (must be one of the analysis functions applied) that
+    drives the colouring according to a colour bar. If None, the highest level
+    drilldown determines the hue and the next drilldown determines the tint."""
 
 
 # To support legacy REST endpoint

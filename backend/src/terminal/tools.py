@@ -29,10 +29,33 @@ from .schemas import (
 @tool(args_schema=AssetPriceDailySchema)
 async def asset_price_daily(**kwargs) -> ChartConfigModel:
     """
-    Fetch and analyse daily price time series for one or more assets
-    (stocks, indices) over a date range, returning a chart configuration.
-    Use for questions about how prices, returns, or derived indicators of
-    specific tickers evolve over time.
+    Analyse daily price summary for one or more financial assets (stocks,
+    indices, forex, cryptocurrencies, commodities) over a date range.
+
+    Prompt: Compare the volume-weighted price movements of Apple, Google,
+        Microsoft, Nvidia, Tesla, JP Morgan, and Bank of America from January to
+        March 2026. I want to use an index that starts on the first day.
+
+    Call: `asset-price-daily` with
+    {
+        display: time-series,
+        analysis: [
+            vwap/index-to-date,
+        ],
+        symbol: [
+            aapl,
+            goog,
+            msft,
+            nvda,
+            tsla,
+            jpm,
+            bac,
+        ]
+        start_date=2026-01-01,
+        end_date=2026-03-31,
+        base=100,
+        reference=2026-01-02,
+    }
     """
 
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
@@ -102,10 +125,27 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 @tool(args_schema=MarketCompositionSchema)
 async def market_composition(**kwargs) -> ChartConfigModel:
     """
-    Break a market or index into its constituents and aggregate a metric
-    across a chosen dimension, returning a hierarchical chart configuration.
-    Use for questions about composition, weightings, or the contribution of
-    parts to a whole at a point in time.
+    Drill down a snapshot of public market (stocks, mutual funds,
+    exchange-traded funds) to aggregate a metric on multiple dimensions.
+
+    Prompt: Break down the market capitalisation of all public companies by
+        sector, industry, then company, and show it in a treemap. Also show the
+        share price of each company.
+
+    Call: `market-composition` with
+    {
+        display: treemap,
+        analysis: [
+            marketCap,
+        ],
+        drilldown: [
+            sector,
+            industry,
+            companyName,
+        ],
+        aggregate_col=marketCap,
+        analysis=price,
+    }
     """
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
