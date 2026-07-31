@@ -60,9 +60,9 @@ export default function Demo() {
   }, [theme]);
 
   return (
-    <div className="flex flex-col items-center page-title text-xl">
+    <div className="flex flex-col items-center">
       <div>
-        <h2>{demoTitles[demoID]}</h2>
+        <h2 className="page-title text-xl">{demoTitles[demoID]}</h2>
       </div>
       <div
         ref={containerRef}
