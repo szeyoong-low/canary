@@ -8,13 +8,13 @@ export default function Ask() {
 
   return (
     <div className="flex justify-center">
-      <div className="mx-10 md:mx-0 md:w-175 flex flex-col gap-4 text-justify">
+      <div className="mx-10 sm:w-150 md:w-175 flex flex-col gap-4 text-justify">
         <div>
           <h2 className="page-title text-xl">Ask Canary a question</h2>
         </div>
-        <div className="flex flex-col gap-y-5">
+        <div className="flex flex-col items-center gap-y-5">
           <p>
-            This preview version supports a limited selection of analysis. These
+            This preview supports a limited selection of analysis. These
             examples are representative of what the agent can handle:
           </p>
           <ul className="flex flex-col gap-y-2 list-disc">
