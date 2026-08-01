@@ -1,6 +1,11 @@
+import { type EChartsOption } from "echarts";
+import { type FetcherWithComponents, useFetcher } from "react-router";
 import { Prompt } from "@/components";
 
 export default function Ask() {
+  const fetcher: FetcherWithComponents<EChartsOption> =
+    useFetcher<EChartsOption>();
+
   return (
     <div className="flex justify-center">
       <div className="mx-10 md:mx-0 md:w-175 flex flex-col gap-4 text-justify">
@@ -9,8 +14,8 @@ export default function Ask() {
         </div>
         <div className="flex flex-col gap-y-5">
           <p>
-            This preview version supports a limited selection of analysis.
-            These examples are representative of what the agent can handle:
+            This preview version supports a limited selection of analysis. These
+            examples are representative of what the agent can handle:
           </p>
           <ul className="flex flex-col gap-y-2 list-disc">
             <li>
@@ -30,7 +35,7 @@ export default function Ask() {
               sector, industry, then company, and show it in a treemap."
             </li>
           </ul>
-          <Prompt />
+          <Prompt fetcher={fetcher} />
         </div>
       </div>
     </div>

@@ -1,15 +1,18 @@
 import { ArrowRight } from "lucide-react";
-import { useFetcher } from "react-router";
+import { type FetcherWithComponents } from "react-router";
 import { BounceLoader } from "react-spinners";
-import { canaryThemeColour } from "@/shared/constants";
+import { canaryThemeColour, PROMPT_FIELD } from "@/shared/constants";
 
-export default function Prompt() {
-  let fetcher = useFetcher();
+export default function Prompt({
+  fetcher,
+}: {
+  fetcher: FetcherWithComponents<any>;
+}) {
   return (
     <fetcher.Form method="POST" className="PromptBox">
       <textarea
         className="PromptTextarea"
-        name="prompt"
+        name={PROMPT_FIELD}
         placeholder="Ask a question here"
       />
       <div className="PromptSubmit">
