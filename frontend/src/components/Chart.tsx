@@ -1,6 +1,7 @@
 import { type ECharts, type EChartsOption, init } from "echarts";
 // Can't tree-shake bundle as backend can return any chart.
 import { type RefObject, useEffect, useRef } from "react";
+import { twMerge } from "tailwind-merge";
 import { type Theme, useTheme } from "@/lib/themeContext";
 
 // ECharts ships "default" (light) and "dark".
@@ -9,7 +10,7 @@ const echartsTheme: Record<Theme, string> = {
   dark: "dark",
 };
 
-export default function Chart({ config }: { config: EChartsOption }) {
+export default function Chart({ config, className = "" }: { config: EChartsOption, className?: string }) {
   const containerRef: RefObject<HTMLDivElement | null> =
     useRef<HTMLDivElement>(null);
 
@@ -48,6 +49,6 @@ export default function Chart({ config }: { config: EChartsOption }) {
   }, [theme]);
 
   return (
-    <div ref={containerRef} className="w-200 h-100 md:w-250 md:h-150"></div>
+    <div ref={containerRef} className={twMerge("w-200 h-100 md:w-250 md:h-150", className)}></div>
   );
 }
