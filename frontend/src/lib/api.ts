@@ -58,7 +58,7 @@ export async function getChartFromPrompt({
   const form_data: FormData = await request.formData();
 
   const response: Response = await fetch(
-    import.meta.env.VITE_AGENT_ENDPOINT,
+    String(import.meta.env.VITE_AGENT_ENDPOINT),
     {
       method: POST,
       body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),

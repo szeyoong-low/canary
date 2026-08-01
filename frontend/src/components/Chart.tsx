@@ -10,7 +10,13 @@ const echartsTheme: Record<Theme, string> = {
   dark: "dark",
 };
 
-export default function Chart({ config, className = "" }: { config: EChartsOption, className?: string }) {
+export default function Chart({
+  config,
+  className = "",
+}: {
+  config: EChartsOption;
+  className?: string;
+}) {
   const containerRef: RefObject<HTMLDivElement | null> =
     useRef<HTMLDivElement>(null);
 
@@ -49,6 +55,9 @@ export default function Chart({ config, className = "" }: { config: EChartsOptio
   }, [theme]);
 
   return (
-    <div ref={containerRef} className={twMerge("w-200 h-100 md:w-250 md:h-150", className)}></div>
+    <div
+      ref={containerRef}
+      className={twMerge("w-200 h-100 md:w-250 md:h-150", className)}
+    ></div>
   );
 }

@@ -1,3 +1,4 @@
+import { type EChartsOption } from "echarts";
 import { ArrowRight } from "lucide-react";
 import { type FetcherWithComponents } from "react-router";
 import { BounceLoader } from "react-spinners";
@@ -6,7 +7,7 @@ import { canaryThemeColour, PROMPT_FIELD } from "@/shared/constants";
 export default function Prompt({
   fetcher,
 }: {
-  fetcher: FetcherWithComponents<any>;
+  fetcher: FetcherWithComponents<EChartsOption>;
 }) {
   return (
     <fetcher.Form method="POST" className="PromptBox">

@@ -23,7 +23,7 @@ app.add_middleware(
     # Allow all Vercel previews.
     allow_origin_regex=env.allow_origin_regex,
     allow_headers=[CONTENT_TYPE_HEADER],
-    allow_methods=[HTTPMethod.GET, HTTPMethod.POST]
+    allow_methods=[HTTPMethod.GET, HTTPMethod.POST],
 )
 
 app.include_router(agent.router)
