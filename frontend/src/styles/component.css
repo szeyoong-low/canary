@@ -1,7 +1,3 @@
-button {
-  all: unset;
-}
-
 .SwitchRoot {
   --thumb-diameter: 20px;
   --root-border-width: 3px;
@@ -10,7 +6,7 @@ button {
   width: calc(2 * var(--thumb-diameter));
   background-color: var(--color-white);
   border-radius: var(--pill-border-radius);
-  border: var(--root-border-width) solid var(--canary-theme-color);
+  outline: var(--root-border-width) solid var(--canary-theme-color);
   position: relative;
   &[data-checked] {
     background-color: var(--canary-theme-color);
@@ -36,5 +32,28 @@ button {
   &[data-unchecked] {
     box-shadow: var(--shadow-offset-x) var(--shadow-offset-y)
       var(--shadow-blur-radius) var(--color-gray-300);
+  }
+}
+
+.PromptBox {
+  --box-border-radius: 10px;
+  --box-padding: 10px;
+
+  background-color: var(--background-color-secondary);
+  border-radius: var(--box-border-radius);
+  padding: var(--box-padding);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--box-padding);
+}
+
+.PromptTextarea {
+  width: 100%;
+  field-sizing: content;
+  resize: none;
+
+  &:focus {
+    outline: none;
   }
 }

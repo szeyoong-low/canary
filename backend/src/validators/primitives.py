@@ -1,8 +1,7 @@
 from collections.abc import Container
 from datetime import date
 from types import UnionType
-from typing import Annotated, Any, get_args, get_origin, Union
-from typing_extensions import Self
+from typing import Annotated, Any, Self, Union, get_args, get_origin
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, model_validator
 from pydantic.fields import FieldInfo
@@ -10,14 +9,15 @@ from starlette.datastructures import QueryParams
 
 from ..global_types import Params
 
-"""Modular Pydantic models to be composed or used as-is for validating simple query parameters"""
+"""Modular Pydantic models to be composed or used as-is for validating simple parameters"""
 
 
-class QueryBaseModel(BaseModel):
+class ParamBaseModel(BaseModel):
     model_config = ConfigDict(
-        # Query parameters will be passed around functions implementing transformations.
+        # Parameters will be passed around functions implementing transformations.
         # Each will extract and validate the fields they need independently.
         extra="ignore",
+        use_attribute_docstrings=True,
     )
 
     @staticmethod
@@ -32,7 +32,7 @@ class QueryBaseModel(BaseModel):
 
         if origin in (Union, UnionType):
             return any(
-                QueryBaseModel._is_collection_type(arg) for arg in get_args(annotation)
+                ParamBaseModel._is_collection_type(arg) for arg in get_args(annotation)
             )
 
         return isinstance(origin, type) and issubclass(origin, Container)
@@ -55,7 +55,7 @@ class QueryBaseModel(BaseModel):
             if name not in raw_params:
                 continue
 
-            if QueryBaseModel._is_collection_type(field.annotation):
+            if ParamBaseModel._is_collection_type(field.annotation):
                 shaped_params[name] = raw_params.getlist(name)
             else:
                 shaped_params[name] = raw_params[name]
@@ -73,7 +73,9 @@ def _check_positive_int(n: int) -> int:
 type PositiveInt = Annotated[int, AfterValidator(_check_positive_int)]
 
 
-class DateRangeModel(QueryBaseModel):
+class DateRangeModel(ParamBaseModel):
+    """start_date must be on or before end_date (both must be supplied together)"""
+
     start_date: date
     end_date: date
 

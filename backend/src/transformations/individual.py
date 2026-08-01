@@ -1,31 +1,30 @@
+from collections.abc import Awaitable
 from functools import partial, reduce
 from math import sqrt
-from typing import Awaitable
 
-from fastapi import HTTPException
-from httpx import AsyncClient, codes
-from polars import col, Expr, LazyFrame
-from starlette.datastructures import QueryParams
+from httpx import AsyncClient
+from polars import Expr, LazyFrame, col
 
+from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR, collect_documentation
+from ..global_types import Column, Columns, Params
 from . import models
 from .constants import TransformationDispatch
-from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns
+from .exceptions import AnalysisError
 from .steps import _apply_unary_function
 
 """Compute values for a single entity"""
 
 # Column names
-VOLATILITY = "volatility"
-RETURNS = "returns"
-INDEX_TO_DATE = "index-to-date"
+VOLATILITY: Column = "volatility"
+RETURNS: Column = "returns"
+INDEX_TO_DATE: Column = "index-to-date"
 
 
 async def volatility(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -33,7 +32,7 @@ async def volatility(
     instrument over time).
 
     Volatility is the standard deviation of observations multiplied by the
-    square root of the number of observations in a rolling window
+    square root of the number of observations in a rolling window.
 
     Source: https://www.investopedia.com/terms/v/volatility.asp#toc-how-to-calculate-volatility
 
@@ -43,11 +42,9 @@ async def volatility(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{VOLATILITY} must be applied to a metric"
-        )
+        raise AnalysisError(f"{VOLATILITY} must be applied to a metric")
 
-    window: int = models.WindowFunction.model_validate(query_params).window
+    window: int = models.WindowFunction.model_validate(params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
@@ -74,7 +71,7 @@ async def returns(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -87,11 +84,9 @@ async def returns(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
-        )
+        raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
-    horizon: int = models.TimeHorizon.model_validate(query_params).horizon
+    horizon: int = models.TimeHorizon.model_validate(params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
@@ -118,7 +113,7 @@ async def index_to_date(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: str | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -130,14 +125,12 @@ async def index_to_date(
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{RETURNS} must be applied to a metric"
-        )
+        raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
     if DATE_KEY not in keys:
-        raise HTTPException(codes.UNPROCESSABLE_ENTITY, f"{DATE_KEY} must be a key")
+        raise AnalysisError(f"{DATE_KEY} must be a key")
 
-    model: models.DateIndex = models.DateIndex.model_validate(query_params)
+    model: models.DateIndex = models.DateIndex.model_validate(params)
 
     return _apply_unary_function(
         data=await data,
@@ -159,3 +152,5 @@ INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
     RETURNS: returns,
     INDEX_TO_DATE: index_to_date,
 }
+
+INDIVIDUAL_TRANSFORMATIONS_DOCS: str = collect_documentation(INDIVIDUAL_TRANSFORMATIONS)

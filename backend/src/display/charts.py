@@ -1,17 +1,17 @@
-from typing import Callable, Literal
+from collections.abc import Callable
+from typing import Literal
 
-from fastapi import HTTPException
-from httpx import codes
 from polars import LazyFrame
 
 from ..global_constants import DATE_KEY
-from ..global_types import Column, Columns, ColumnOptional, Entities
+from ..global_types import Column, ColumnOptional, Columns, Entities
+from .exceptions import DisplayError
 from .output_models import Axis, ChartConfigModel
-from .serialise import _serialise_series, _serialise_hierarchy
+from .serialise import _serialise_hierarchy, _serialise_series
 from .style import _style_lines
 
-
-type DisplayFunctionName = Literal["time-series", "treemap"]
+type SeriesDisplayName = Literal["time-series"]
+type HierarchyDisplayName = Literal["treemap"]
 
 """
 Contract of display functions for Series charts
@@ -37,21 +37,19 @@ def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConf
 
     key_list: list[Column] = list(keys)
     if len(keys) != 1 or key_list[0] not in TIME_SERIES_ALLOWED_KEYS:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, "The data cannot be displayed as a time series"
-        )
+        raise DisplayError("The data cannot be displayed as a time series")
 
     chart_config.xAxis = [Axis(type="time")]
     chart_config.yAxis = [Axis(type="value")]
 
-    data_cols: list[Column] = data.schema.names()
+    data_cols: list[Column] = data.collect_schema().names()
     key: Column = key_list.pop()
     data_cols.remove(key)
 
     return _style_lines(chart_config, data_cols, entities, key)
 
 
-DISPLAY_SERIES: dict[DisplayFunctionName, DisplaySeries] = {
+DISPLAY_SERIES: dict[SeriesDisplayName, DisplaySeries] = {
     "time-series": time_series,
 }
 
@@ -95,6 +93,6 @@ def treemap(
     return chart
 
 
-DISPLAY_HIERARCHY: dict[DisplayFunctionName, DisplayHierarchy] = {
+DISPLAY_HIERARCHY: dict[HierarchyDisplayName, DisplayHierarchy] = {
     "treemap": treemap,
 }

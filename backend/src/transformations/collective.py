@@ -1,26 +1,25 @@
-from typing import Awaitable
+from collections.abc import Awaitable
 
-from fastapi import HTTPException
-from httpx import AsyncClient, codes
+from httpx import AsyncClient
 from polars import LazyFrame, mean_horizontal
-from starlette.datastructures import QueryParams
 
+from ..global_constants import TRANSFORMATION_SEPARATOR, collect_documentation
+from ..global_types import Column, Columns, Params
 from .constants import TransformationDispatch
-from ..global_constants import TRANSFORMATION_SEPARATOR
-from ..global_types import Column, Columns
+from .exceptions import AnalysisError
 from .steps import _apply_unary_function
 
 """Compute values for all entities"""
 
 # Column names
-GROUP_MEAN = "group-mean"
+GROUP_MEAN: Column = "group-mean"
 
 
 async def group_mean(
     data: Awaitable[LazyFrame],
     keys: Columns,
     depends: Column | None,
-    query_params: QueryParams,
+    params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     """
@@ -28,13 +27,11 @@ async def group_mean(
 
     args:
         - depends: cannot be None
-        - keys, query_params, http_client: unused but required to accept as part of contract
+        - keys, params, http_client: unused but required to accept as part of contract
     """
 
     if depends is None:
-        raise HTTPException(
-            codes.UNPROCESSABLE_ENTITY, f"{GROUP_MEAN} must be applied to a metric"
-        )
+        raise AnalysisError(f"{GROUP_MEAN} must be applied to a metric")
 
     return _apply_unary_function(
         data=await data,
@@ -50,3 +47,5 @@ async def group_mean(
 COLLECTIVE_TRANSFORMATIONS: TransformationDispatch = {
     GROUP_MEAN: group_mean,
 }
+
+COLLECTIVE_TRANSFORMATIONS_DOCS: str = collect_documentation(COLLECTIVE_TRANSFORMATIONS)

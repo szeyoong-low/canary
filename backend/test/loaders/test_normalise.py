@@ -1,25 +1,26 @@
-from json import load
-from typing import Any
+from json import loads
 from unittest.mock import AsyncMock, Mock, patch
 
+from anyio import open_file
 from httpx import codes
-from polars import col, DataFrame, read_json
+from polars import DataFrame, col, read_json
 from polars.testing import assert_frame_equal
 
-from .constants import BASE_URL_DISPATCH, FMP_API
-from ..datasets.paths import dataset_path
 from src.global_constants import DATE_KEY
 from src.loaders.load import _load_data
+
+from ..datasets.paths import dataset_path
+from .constants import BASE_URL_DISPATCH, FMP_API
 
 
 @patch.dict(BASE_URL_DISPATCH, {FMP_API: (lambda: "")})
 async def test_normalise_nested():
     """A dataset with nested JSON objects is normalised to a wide dataset"""
     input_file: str = dataset_path("fmp_prod_segment_raw")
-    with open(input_file, mode="r") as data:
-        input_json: Any = load(data)
+    async with await open_file(input_file, mode="r") as f:
+        data: str = await f.read()
 
-    response: Mock = Mock(status_code=codes.OK, **{"json.return_value": input_json})
+    response: Mock = Mock(status_code=codes.OK, **{"json.return_value": loads(data)})
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (

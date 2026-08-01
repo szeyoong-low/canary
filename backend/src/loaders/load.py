@@ -1,12 +1,12 @@
 from httpx import AsyncClient
 from polars import LazyFrame
-from starlette.datastructures import QueryParams
 
+from ..global_types import Params
+from ..validators.primitives import DateRangeModel
 from . import models
 from .constants import METRIC_GROUP_KEYS
 from .dispatch import REQUEST_HEADERS
 from .utility import _load_data
-from ..validators.primitives import DateRangeModel
 
 """Data is left as-is in its long shape (yet to pivot on `symbol`)"""
 
@@ -16,11 +16,11 @@ LIMIT_NUM_ENTRIES: int = 200
 async def load_asset_price_daily(
     http_client: AsyncClient,
     symbol: str,
-    query_params: QueryParams,
+    params: Params,
 ) -> LazyFrame:
     """Data is sorted earliest to latest"""
 
-    validated_params: DateRangeModel = DateRangeModel.model_validate(query_params)
+    validated_params: DateRangeModel = DateRangeModel.model_validate(params)
 
     return (
         await _load_data(
@@ -39,12 +39,12 @@ async def load_asset_price_daily(
 
 async def load_market_composition(
     http_client: AsyncClient,
-    query_params: QueryParams,
+    params: Params,
 ) -> LazyFrame:
     """Data is sorted in descending order of market capitalisation"""
 
     validated_params: models.MarketComposition = (
-        models.MarketComposition.validate_query_params(query_params)
+        models.MarketComposition.model_validate(params)
     )
 
     return await _load_data(
