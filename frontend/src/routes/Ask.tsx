@@ -1,0 +1,47 @@
+import { type EChartsOption } from "echarts";
+import { type FetcherWithComponents, useFetcher } from "react-router";
+import { Chart, Prompt } from "@/components";
+
+export default function Ask() {
+  const fetcher: FetcherWithComponents<EChartsOption> =
+    useFetcher<EChartsOption>();
+
+  return (
+    <div className="flex justify-center">
+      <div className="mx-10 sm:w-150 md:w-175 flex flex-col gap-4 text-justify">
+        <div>
+          <h2 className="page-title text-xl">Ask Canary a question</h2>
+        </div>
+        <div className="flex flex-col items-center gap-y-5">
+          <p>
+            This preview supports a limited selection of analysis. These
+            examples are representative of what the agent can handle:
+          </p>
+          <ul className="flex flex-col gap-y-2 list-disc">
+            <li>
+              "Give me Apple's closing share price from January to March 2026."
+            </li>
+            <li>
+              "Show me the daily returns on Apple's stock price as well as the
+              volatility of this over a 5-day window in January 2026."
+            </li>
+            <li>
+              "Compare the opening prices of Apple, Google, Microsoft, Nvidia,
+              Tesla, JP Morgan, and Bank of America from January to March 2026.
+              I want to use an index from the first trading day."
+            </li>
+            <li>
+              "Break down the market capitalisation of all public companies by
+              sector, industry, then company, and show it in a treemap."
+            </li>
+          </ul>
+          {fetcher.data === undefined ? (
+            <Prompt fetcher={fetcher} />
+          ) : (
+            <Chart config={fetcher.data} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

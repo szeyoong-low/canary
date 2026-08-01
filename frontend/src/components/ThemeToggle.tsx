@@ -1,5 +1,4 @@
 import { Switch } from "@base-ui/react/switch";
-import { clsx } from "clsx";
 import { type ClassNameProps } from "@/shared/types";
 import {
   dark,
@@ -13,7 +12,7 @@ export default function ThemeToggle({ className }: ClassNameProps) {
   const themeContext: ThemeContextValue = useTheme();
 
   return (
-    <form className={clsx(className)}>
+    <form className={className}>
       <div className="flex items-center gap-x-2">
         <label id="theme-toggle-label" htmlFor="theme-toggle">
           {themeContext.theme === dark ? "Dark" : "Light"}

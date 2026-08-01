@@ -6,3 +6,7 @@ export const demoTitles: string[] = [
 ];
 
 export const canaryThemeColour: string = "#ffc856";
+
+export const POST: string = "POST";
+
+export const PROMPT_FIELD: string = "prompt";

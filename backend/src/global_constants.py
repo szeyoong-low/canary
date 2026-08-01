@@ -14,6 +14,8 @@ EMPTY_STRING: str = ""
 
 DEC_PLACES_SHOWN: int = 3
 
+CONTENT_TYPE_HEADER: str = "Content-Type"
+
 
 # Polars takes regular expressions as strings
 # Prepend this to `foo/bar/baz` to match `AAPL/foo/bar/baz`

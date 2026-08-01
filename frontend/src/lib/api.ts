@@ -1,11 +1,16 @@
 import { type EChartsOption } from "echarts";
 import { type Params } from "react-router";
+import { POST, PROMPT_FIELD } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
 const requestLookup: string[] = [
   "asset-price-daily/time-series?analysis=vwap/index-to-date&symbol=aapl&symbol=goog&symbol=msft&symbol=nvda&symbol=tsla&symbol=jpm&symbol=bac&start_date=2026-01-01&end_date=2026-03-31&base=100&reference=2026-01-02",
   "market-composition/treemap?analysis=marketCap&drilldown=sector,industry,companyName&aggregate_col=marketCap&analysis=price",
 ];
+
+const agentHeaders: Headers = new Headers({
+  "Content-Type": "application/json",
+});
 
 export async function loadChartConfig({
   params,
@@ -37,6 +42,33 @@ export async function loadChartConfig({
   if (!response.ok) {
     throw new Error(
       `Server error at ${response.url}: ${String(response.status)}: ${response.statusText}`,
+    );
+  }
+
+  // No validation will be done on the client's side. The backend is my own,
+  // and output validation using Pydantic was already done there.
+  return (await response.json()) as EChartsOption;
+}
+
+export async function getChartFromPrompt({
+  request,
+}: {
+  request: Request;
+}): Promise<EChartsOption> {
+  const form_data: FormData = await request.formData();
+
+  const response: Response = await fetch(
+    String(import.meta.env.VITE_AGENT_ENDPOINT),
+    {
+      method: POST,
+      body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),
+      headers: agentHeaders,
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Server error: ${String(response.status)}: ${response.statusText}`,
     );
   }
 
