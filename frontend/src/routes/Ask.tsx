@@ -1,6 +1,6 @@
 import { type EChartsOption } from "echarts";
 import { type FetcherWithComponents, useFetcher } from "react-router";
-import { Prompt } from "@/components";
+import { Chart, Prompt } from "@/components";
 
 export default function Ask() {
   const fetcher: FetcherWithComponents<EChartsOption> =
@@ -28,14 +28,18 @@ export default function Ask() {
             <li>
               "Compare the opening prices of Apple, Google, Microsoft, Nvidia,
               Tesla, JP Morgan, and Bank of America from January to March 2026.
-              I want to use an index from the beginning."
+              I want to use an index from the first trading day."
             </li>
             <li>
               "Break down the market capitalisation of all public companies by
               sector, industry, then company, and show it in a treemap."
             </li>
           </ul>
-          <Prompt fetcher={fetcher} />
+          {fetcher.data === undefined ? (
+            <Prompt fetcher={fetcher} />
+          ) : (
+            <Chart config={fetcher.data} />
+          )}
         </div>
       </div>
     </div>

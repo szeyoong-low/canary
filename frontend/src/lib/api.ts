@@ -1,6 +1,6 @@
 import { type EChartsOption } from "echarts";
 import { type Params } from "react-router";
-import { POST } from "@/shared/constants";
+import { POST, PROMPT_FIELD } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
 const requestLookup: string[] = [
@@ -9,7 +9,7 @@ const requestLookup: string[] = [
 ];
 
 const agentHeaders: Headers = new Headers({
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
 });
 
 export async function loadChartConfig({
@@ -50,14 +50,18 @@ export async function loadChartConfig({
   return (await response.json()) as EChartsOption;
 }
 
-export async function getChartFromPrompt(
-  prompt: string,
-): Promise<EChartsOption> {
+export async function getChartFromPrompt({
+  request,
+}: {
+  request: Request;
+}): Promise<EChartsOption> {
+  const form_data: FormData = await request.formData();
+
   const response: Response = await fetch(
-    import.meta.env.VITE_TERMINAL_ENDPOINT,
+    import.meta.env.VITE_AGENT_ENDPOINT,
     {
       method: POST,
-      body: JSON.stringify({ text: prompt }),
+      body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),
       headers: agentHeaders,
     },
   );

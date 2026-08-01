@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router";
-import { loadChartConfig } from "@/lib/api";
+import { getChartFromPrompt, loadChartConfig } from "@/lib/api";
 import { Ask, Demo, Error, Home, Layout } from "@/routes";
 
 export default createBrowserRouter([
@@ -8,7 +8,7 @@ export default createBrowserRouter([
     ErrorBoundary: Error,
     children: [
       { index: true, Component: Home },
-      { path: "demo/ask", Component: Ask },
+      { path: "demo/ask", Component: Ask, action: getChartFromPrompt },
       {
         path: "demo/:demoID",
         Component: Demo,
