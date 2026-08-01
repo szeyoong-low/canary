@@ -1,3 +1,5 @@
+import { Prompt } from "@/components";
+
 export default function Ask() {
   return (
     <div className="flex justify-center">
@@ -29,6 +31,7 @@ export default function Ask() {
               show the share price of each company.
             </li>
           </ul>
+          <Prompt />
         </div>
       </div>
     </div>

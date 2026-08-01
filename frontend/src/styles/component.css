@@ -38,3 +38,14 @@ button {
       var(--shadow-blur-radius) var(--color-gray-300);
   }
 }
+
+.PromptBox {
+  --box-border-radius: 5px;
+  --box-padding: 5px;
+
+  background-color: var(--background-color-secondary);
+  field-sizing: content;
+  border-radius: var(--box-border-radius);
+  padding: var(--box-padding);
+  resize: none;
+}
