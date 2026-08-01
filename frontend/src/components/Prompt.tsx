@@ -15,7 +15,7 @@ export default function Prompt({
         name={PROMPT_FIELD}
         placeholder="Ask a question here"
       />
-      <div className="PromptSubmit">
+      <div className="self-end">
         {fetcher.state === "idle" ? (
           <button className="cursor-pointer" type="submit">
             <ArrowRight />
