@@ -8,6 +8,10 @@ const requestLookup: string[] = [
   "market-composition/treemap?analysis=marketCap&drilldown=sector,industry,companyName&aggregate_col=marketCap&analysis=price",
 ];
 
+const agentHeaders: Headers = new Headers({
+  "Content-Type": "application/json"
+});
+
 export async function loadChartConfig({
   params,
 }: {
@@ -54,6 +58,7 @@ export async function getChartFromPrompt(
     {
       method: POST,
       body: JSON.stringify({ text: prompt }),
+      headers: agentHeaders,
     },
   );
 
