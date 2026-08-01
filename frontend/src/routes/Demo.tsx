@@ -1,26 +1,10 @@
-import { type ECharts, type EChartsOption } from "echarts";
-import { type RefObject, useEffect, useRef } from "react";
+import { type EChartsOption } from "echarts";
 import { type Params, useLoaderData, useParams } from "react-router";
-import { chartContainerID, renderChart } from "@/lib/renderChart";
-import { type Theme, useTheme } from "@/lib/themeContext";
+import { Chart } from "@/components";
 import { demoTitles } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
-// ECharts ships "default" (light) and "dark".
-const echartsTheme: Record<Theme, string> = {
-  light: "default",
-  dark: "dark",
-};
-
 export default function Demo() {
-  const chartConfig: EChartsOption = useLoaderData<EChartsOption>();
-  const containerRef: RefObject<HTMLDivElement | null> =
-    useRef<HTMLDivElement>(null);
-
-  const { theme }: { theme: Theme } = useTheme(); // Only reactive elements can be deps
-  const themeRef: RefObject<Theme> = useRef<Theme>(theme); // Needed: react hooks need exhaustive deps
-  const chartRef: RefObject<ECharts | undefined> = useRef<ECharts>(undefined);
-
   const params: Params = useParams();
   if (!isDemoParams(params)) {
     throw new Error("Can't parse demo ID");
@@ -30,45 +14,12 @@ export default function Demo() {
     throw new Error("Demo ID is an integer");
   }
 
-  useEffect(() => {
-    const chart: ECharts = renderChart(
-      chartConfig,
-      echartsTheme[themeRef.current],
-    );
-    chartRef.current = chart;
-
-    // ECharts doesn't auto-resize with its container, so watch the
-    // container element and tell the chart to resize when it does.
-    const resizeObserver: ResizeObserver = new ResizeObserver(() => {
-      chart.resize();
-    });
-    // Will have been set as effects run after mount
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      resizeObserver.disconnect();
-      chart.dispose();
-      chartRef.current = undefined;
-    };
-  }, [chartConfig]);
-
-  useEffect(() => {
-    chartRef.current?.setTheme(echartsTheme[theme]);
-    themeRef.current = theme;
-  }, [theme]);
-
   return (
     <div className="flex flex-col items-center">
       <div>
         <h2 className="page-title text-xl">{demoTitles[demoID]}</h2>
       </div>
-      <div
-        ref={containerRef}
-        id={chartContainerID}
-        className="w-200 h-100 md:w-250 md:h-150"
-      ></div>
+      <Chart config={useLoaderData<EChartsOption>()} />
     </div>
   );
 }
