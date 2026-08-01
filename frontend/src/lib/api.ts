@@ -1,5 +1,6 @@
 import { type EChartsOption } from "echarts";
 import { type Params } from "react-router";
+import { POST } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
 const requestLookup: string[] = [
@@ -37,6 +38,28 @@ export async function loadChartConfig({
   if (!response.ok) {
     throw new Error(
       `Server error at ${response.url}: ${String(response.status)}: ${response.statusText}`,
+    );
+  }
+
+  // No validation will be done on the client's side. The backend is my own,
+  // and output validation using Pydantic was already done there.
+  return (await response.json()) as EChartsOption;
+}
+
+export async function getChartFromPrompt(
+  prompt: string,
+): Promise<EChartsOption> {
+  const response: Response = await fetch(
+    import.meta.env.VITE_TERMINAL_ENDPOINT,
+    {
+      method: POST,
+      body: JSON.stringify({ text: prompt }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Server error: ${String(response.status)}: ${response.statusText}`,
     );
   }
 
