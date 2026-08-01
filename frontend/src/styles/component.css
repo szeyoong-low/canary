@@ -41,11 +41,28 @@ button {
 
 .PromptBox {
   --box-border-radius: 5px;
-  --box-padding: 5px;
+  --box-padding: 10px;
 
   background-color: var(--background-color-secondary);
-  field-sizing: content;
   border-radius: var(--box-border-radius);
   padding: var(--box-padding);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--box-padding);
+}
+
+.PromptTextarea {
+  width: 100%;
+  field-sizing: content;
   resize: none;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.PromptSubmit {
+  align-self: flex-end;
+  cursor: pointer;
 }
