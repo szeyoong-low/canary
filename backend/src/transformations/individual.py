@@ -5,7 +5,7 @@ from math import sqrt
 from httpx import AsyncClient
 from polars import Expr, LazyFrame, col
 
-from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
+from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR, collect_documentation
 from ..global_types import Column, Columns, Params
 from . import models
 from .constants import TransformationDispatch
@@ -32,7 +32,7 @@ async def volatility(
     instrument over time).
 
     Volatility is the standard deviation of observations multiplied by the
-    square root of the number of observations in a rolling window
+    square root of the number of observations in a rolling window.
 
     Source: https://www.investopedia.com/terms/v/volatility.asp#toc-how-to-calculate-volatility
 
@@ -152,3 +152,5 @@ INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
     RETURNS: returns,
     INDEX_TO_DATE: index_to_date,
 }
+
+INDIVIDUAL_TRANSFORMATIONS_DOCS: str = collect_documentation(INDIVIDUAL_TRANSFORMATIONS)

@@ -3,7 +3,7 @@ from collections.abc import Awaitable
 from httpx import AsyncClient
 from polars import LazyFrame, mean_horizontal
 
-from ..global_constants import TRANSFORMATION_SEPARATOR
+from ..global_constants import TRANSFORMATION_SEPARATOR, collect_documentation
 from ..global_types import Column, Columns, Params
 from .constants import TransformationDispatch
 from .exceptions import AnalysisError
@@ -47,3 +47,5 @@ async def group_mean(
 COLLECTIVE_TRANSFORMATIONS: TransformationDispatch = {
     GROUP_MEAN: group_mean,
 }
+
+COLLECTIVE_TRANSFORMATIONS_DOCS: str = collect_documentation(COLLECTIVE_TRANSFORMATIONS)

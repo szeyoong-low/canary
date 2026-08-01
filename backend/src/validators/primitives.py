@@ -17,6 +17,7 @@ class ParamBaseModel(BaseModel):
         # Parameters will be passed around functions implementing transformations.
         # Each will extract and validate the fields they need independently.
         extra="ignore",
+        use_attribute_docstrings=True,
     )
 
     @staticmethod
@@ -73,6 +74,8 @@ type PositiveInt = Annotated[int, AfterValidator(_check_positive_int)]
 
 
 class DateRangeModel(ParamBaseModel):
+    """start_date must be on or before end_date (both must be supplied together)"""
+
     start_date: date
     end_date: date
 

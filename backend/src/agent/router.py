@@ -24,6 +24,9 @@ router = APIRouter(prefix="/agent")
 #    data to be processed.
 # 3. Since charts will be saved to a user's account, the request changes server
 #    state.
+# This is idiomatic: Cloudflare (https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/)
+# and AWS (https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html)
+# do this.
 
 
 @router.post("/")
