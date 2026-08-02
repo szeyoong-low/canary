@@ -8,6 +8,13 @@ from src.global_types import Params
 from src.terminal.schemas import _optional_fields
 from src.validators.primitives import ParamBaseModel
 
+FIELD_NAME_PARAM: str = "field_name"
+INVALID_VALUE_PARAM: str = "invalid_value"
+REQUIRED_PARAM_FIELD: str = "required_param"
+AFTER_VALIDATED_PARAM_FIELD: str = "after_validated_param"
+OPTIONAL_PARAM_FIELD: str = "optional_param"
+DEFAULT_NONE_PARAM_FIELD: str = "default_none_param"
+
 
 def _reject_non_positive(n: int) -> int:
     if n > 0:
@@ -42,8 +49,8 @@ DEFAULT_ADDED_FIELD_NAMES: set[str] = {
 }
 
 DEFAULT_ADDED_VALID_ARGS: Params = {
-    "required_param": 0,
-    "after_validated_param": 1,
+    REQUIRED_PARAM_FIELD: 0,
+    AFTER_VALIDATED_PARAM_FIELD: 1,
 }
 
 
@@ -66,7 +73,7 @@ UNCHANGED_FIELD_NAMES: set[str] = {
 }
 
 UNCHANGED_FIELD_DEFAULTS: Params = {
-    "optional_param": "default",
+    OPTIONAL_PARAM_FIELD: "default",
     "default_none_param": None,
 }
 
@@ -97,19 +104,19 @@ def test_schema_flat_and_complete():
         assert not (isinstance(annotation, type) and issubclass(annotation, BaseModel))
 
 
-@pytest.mark.parametrize("field_name", LIFTED_FIELD_NAMES)
+@pytest.mark.parametrize(FIELD_NAME_PARAM, LIFTED_FIELD_NAMES)
 def test_no_lifted_args_required(field_name: str):
     """Fields consumed only by analysis functions are never required at the top level."""
     assert not DummyModel.model_fields[field_name].is_required()
 
 
-@pytest.mark.parametrize("field_name", DEFAULT_ADDED_FIELD_NAMES)
+@pytest.mark.parametrize(FIELD_NAME_PARAM, DEFAULT_ADDED_FIELD_NAMES)
 def test_default_added_implicit_none(field_name: str):
     """Omitting a field with no defaults leaves it as None."""
     assert getattr(DummyModel(**TOP_LEVEL_VALID_ARGS), field_name) is None
 
 
-@pytest.mark.parametrize("field_name", DEFAULT_ADDED_FIELD_NAMES)
+@pytest.mark.parametrize(FIELD_NAME_PARAM, DEFAULT_ADDED_FIELD_NAMES)
 def test_default_added_explicit_none(field_name: str):
     """Passing an explicit None into field with no defaults is allowed.
     Explicitly-supplied values are validated, only omitted ones are skipped."""
@@ -119,7 +126,7 @@ def test_default_added_explicit_none(field_name: str):
     )
 
 
-@pytest.mark.parametrize("field_name", DEFAULT_ADDED_FIELD_NAMES)
+@pytest.mark.parametrize(FIELD_NAME_PARAM, DEFAULT_ADDED_FIELD_NAMES)
 def test_default_added_valid_value(field_name: str):
     """A legitimate value for the field's own type is accepted and stored."""
     valid_value: Any = DEFAULT_ADDED_VALID_ARGS[field_name]
@@ -132,15 +139,16 @@ def test_default_added_valid_value(field_name: str):
     )
 
 
-@pytest.mark.parametrize("invalid_value", [0, -1])
-def test_default_added_validator_preserved(invalid_value: int):
+@pytest.mark.parametrize(FIELD_NAME_PARAM, [AFTER_VALIDATED_PARAM_FIELD])
+@pytest.mark.parametrize(INVALID_VALUE_PARAM, [0, -1])
+def test_default_added_validator_preserved(field_name: str, invalid_value: int):
     """The rewrite deep-copies FieldInfo, so a field's own validators must still
     run: LocalPositiveInt keeps rejecting non-positive values."""
     with pytest.raises(ValidationError):
-        DummyModel(**TOP_LEVEL_VALID_ARGS, after_validated_param=invalid_value)
+        DummyModel(**TOP_LEVEL_VALID_ARGS, **{field_name: invalid_value})
 
 
-@pytest.mark.parametrize("field_name", UNCHANGED_FIELD_NAMES)
+@pytest.mark.parametrize(FIELD_NAME_PARAM, UNCHANGED_FIELD_NAMES)
 def test_unchanged_default_preserved(field_name: str):
     """A field that already had a default keeps that default unchanged, rather
     than being forced to None."""
