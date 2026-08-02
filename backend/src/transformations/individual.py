@@ -7,7 +7,7 @@ from polars import Expr, LazyFrame, col
 
 from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR, collect_documentation
 from ..global_types import Column, Columns, Params
-from . import models
+from ..validators.primitives import DateIndex, TimeHorizon, WindowFunction
 from .constants import TransformationDispatch
 from .exceptions import AnalysisError
 from .steps import _apply_unary_function
@@ -44,7 +44,7 @@ async def volatility(
     if depends is None:
         raise AnalysisError(f"{VOLATILITY} must be applied to a metric")
 
-    window: int = models.WindowFunction.model_validate(params).window
+    window: int = WindowFunction.model_validate(params).window
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
 
     return reduce(
@@ -86,7 +86,7 @@ async def returns(
     if depends is None:
         raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
-    horizon: int = models.TimeHorizon.model_validate(params).horizon
+    horizon: int = TimeHorizon.model_validate(params).horizon
     dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
 
     return reduce(
@@ -130,7 +130,7 @@ async def index_to_date(
     if DATE_KEY not in keys:
         raise AnalysisError(f"{DATE_KEY} must be a key")
 
-    model: models.DateIndex = models.DateIndex.model_validate(params)
+    model: DateIndex = DateIndex.model_validate(params)
 
     return _apply_unary_function(
         data=await data,

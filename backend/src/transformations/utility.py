@@ -157,5 +157,5 @@ async def pivot_single_entity(
     data: Awaitable[LazyFrame], symbol: str, keys: Columns
 ) -> LazyFrame:
     return (await data).select(
-        col(keys), all().name.prefix(symbol + TRANSFORMATION_SEPARATOR)
+        col(keys), all().exclude(keys).name.prefix(symbol + TRANSFORMATION_SEPARATOR)
     )
