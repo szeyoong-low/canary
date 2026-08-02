@@ -14,8 +14,13 @@ from ..loaders.constants import (
 )
 from ..transformations.collective import COLLECTIVE_TRANSFORMATIONS_DOCS
 from ..transformations.individual import INDIVIDUAL_TRANSFORMATIONS_DOCS
-from ..transformations.models import DateIndex, TimeHorizon, WindowFunction
-from ..validators.primitives import DateRangeModel, ParamBaseModel
+from ..validators.primitives import (
+    DateIndex,
+    DateRangeModel,
+    ParamBaseModel,
+    TimeHorizon,
+    WindowFunction,
+)
 from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
 
 
