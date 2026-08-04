@@ -73,11 +73,22 @@ def _check_positive_int(n: int) -> int:
 type PositiveInt = Annotated[int, AfterValidator(_check_positive_int)]
 
 
-class DateRangeModel(ParamBaseModel):
-    """start_date must be on or before end_date (both must be supplied together)"""
+def _check_nonempty_string(s: str) -> str:
+    if s.strip():
+        return s
 
+    raise ValueError(f"{s} cannot be empty")
+
+
+type NonEmptyString = Annotated[str, AfterValidator(_check_nonempty_string)]
+
+
+class DateRangeModel(ParamBaseModel):
     start_date: date
+    """Must be on or before end_date"""
+
     end_date: date
+    """Must be on or after start_date"""
 
     @model_validator(mode="after")
     def _start_before_end(self) -> Self:
@@ -90,16 +101,12 @@ class DateRangeModel(ParamBaseModel):
 
 
 class WindowFunction(ParamBaseModel):
-    """Required if these analysis functions are applied: volatility"""
-
     window: PositiveInt
     """Sliding window used for calculations (e.g. the last 20 entries are used
     to calculate a simple moving average)"""
 
 
 class TimeHorizon(ParamBaseModel):
-    """Required if these analysis functions are applied: returns"""
-
     horizon: PositiveInt
     """How many units of time define a period of analysis (e.g. returns over a
     month/20 trading days). This can be inferred implicitly, e.g. daily returns
@@ -107,8 +114,6 @@ class TimeHorizon(ParamBaseModel):
 
 
 class DateIndex(ParamBaseModel):
-    """Required if these analysis functions are applied: index_to_date"""
-
     base: PositiveInt = 100
     """The quantity that represents the indexed metric on the reference date"""
 
