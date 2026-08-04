@@ -43,9 +43,9 @@ async def group_mean(
 
 
 # Invariant: Transformations must be registered in exactly one of
-# INDIVIDUAL_TRANSFORMATIONS or COLLECTIVE_TRANSFORMATIONS
-COLLECTIVE_TRANSFORMATIONS: TransformationDispatch = {
+# INDIVIDUAL_TRANSFORMATIONS or AGGREGATE_TRANSFORMATIONS
+AGGREGATE_TRANSFORMATIONS: TransformationDispatch = {
     GROUP_MEAN: group_mean,
 }
 
-COLLECTIVE_TRANSFORMATIONS_DOCS: str = collect_documentation(COLLECTIVE_TRANSFORMATIONS)
+AGGREGATE_TRANSFORMATIONS_DOCS: str = collect_documentation(AGGREGATE_TRANSFORMATIONS)

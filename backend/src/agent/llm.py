@@ -33,11 +33,11 @@ transformations that operate on:
 
 - **Individual entities:** base metrics or calculations involving a single entity,
 e.g. percentage change, rolling average, normalise (all tools accept these)
-- **Collective (all entities):** calculations involving all individual entities,
+- **Aggregate (all entities):** calculations involving all individual entities,
 e.g. index to peer, rank, benchmark (not all tools accept these)
 
 An entity is an individual stock, commodity, etc.
-For now, collective transformations cannot be composed further.
+For now, aggregate transformations cannot be composed further.
 
 Specify each analysis function as `<foo>/<bar>/<baz>`, where `bar` is applied on
 `foo` and `baz` is applied on `bar`. Each transformation depends on its immediate
@@ -62,7 +62,7 @@ Examples:
 If the first transformation is a list (e.g. `bid,ask/spread`), the next
 transformation must take this number of arguments and fuse them into a single metric.
 
-Collective transformations must come after individual transformations.
+Aggregate transformations must come after individual transformations.
 - `vwap/returns/rank`: Always depends on an individual transformation or base metric.
 """)
 

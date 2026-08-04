@@ -9,7 +9,7 @@ from ..global_constants import (
     TRANSFORMATION_SEPARATOR,
 )
 from ..global_types import Columns, Params
-from .collective import COLLECTIVE_TRANSFORMATIONS
+from .aggregate import AGGREGATE_TRANSFORMATIONS
 from .exceptions import AnalysisError
 from .individual import INDIVIDUAL_TRANSFORMATIONS
 
@@ -19,7 +19,7 @@ def resolve_transformations(
 ) -> tuple[Iterable[str], Iterable[str]]:
     """
     Generate a topological sort of individual transformations that are not no-ops
-    and a set of collective transformations from a list of analysis functions.
+    and a set of aggregate transformations from a list of analysis functions.
 
     Args:
         - analysis: list of strings encoding analysis functions in the form
@@ -36,7 +36,7 @@ def resolve_transformations(
             is an individual transformation) will be resolved into `foo/bar`
             and `foo/bar/baz` (in this order). If `foo/bar` is encountered later,
             it will be ignored.
-        - Second: Set of strings encoding collective transformations
+        - Second: Set of strings encoding aggregate transformations
             with duplicates removed
 
     Raises:
@@ -44,7 +44,7 @@ def resolve_transformations(
     """
 
     individual: set[str] = set()
-    collective: set[str] = set()
+    aggregate: set[str] = set()
     base_metric_count: int = 0
 
     for analysis in analysis_list:
@@ -66,7 +66,7 @@ def resolve_transformations(
             elif metric in INDIVIDUAL_TRANSFORMATIONS:
                 individual.add(metric)
             else:
-                # Collective transformation or unrecognised specification
+                # Aggregate transformation or unrecognised specification
                 raise AnalysisError(
                     f"{metric} must be a base metric or an individual transformation",
                 )
@@ -86,14 +86,14 @@ def resolve_transformations(
 
             if last_transformation in INDIVIDUAL_TRANSFORMATIONS:
                 individual.add(analysis)
-            elif last_transformation in COLLECTIVE_TRANSFORMATIONS:
-                collective.add(analysis)
+            elif last_transformation in AGGREGATE_TRANSFORMATIONS:
+                aggregate.add(analysis)
             else:
                 raise AnalysisError(
                     f"{last_transformation} in {analysis} must be a transformation",
                 )
 
-    if (len(individual) + len(collective) + base_metric_count) == 0:
+    if (len(individual) + len(aggregate) + base_metric_count) == 0:
         raise AnalysisError(
             "Analysis functions must be specified, e.g. analysis=[foo/bar/baz]",
         )
@@ -106,7 +106,7 @@ def resolve_transformations(
     # where n is the total number of transformations (e.g. `foo/bar/baz` has 3)
     return (
         sorted(individual, key=lambda s: s.count(TRANSFORMATION_SEPARATOR)),
-        collective,
+        aggregate,
     )
 
 
@@ -125,7 +125,7 @@ async def apply_analysis_function(
     try:
         # This is a constant time hashmap lookup, so we don't need to burden the
         # caller with specifying whether a transformation is individual or
-        # collective.
+        # aggregate.
         return await INDIVIDUAL_TRANSFORMATIONS[transformation](
             data, keys, depends, params, http_client
         )
@@ -137,14 +137,14 @@ async def apply_analysis_function(
                     data, keys, None, params, http_client
                 )
             except KeyError:
-                # Collective transformations must be applied on another metric
+                # Aggregate transformations must be applied on another metric
                 raise AnalysisError(
                     f"Only individual transformations may have no dependencies {transformation}",
                 )
         else:
             try:
-                # Must be a collective transformation
-                return await COLLECTIVE_TRANSFORMATIONS[transformation](
+                # Must be a aggregate transformation
+                return await AGGREGATE_TRANSFORMATIONS[transformation](
                     data, keys, depends, params, http_client
                 )
             except KeyError:

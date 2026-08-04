@@ -61,8 +61,8 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
-    collective_transforms: Iterable[str]
-    indiv_transforms, collective_transforms = resolve_transformations(
+    aggregate_transforms: Iterable[str]
+    indiv_transforms, aggregate_transforms = resolve_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
@@ -102,7 +102,7 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                         params=kwargs,
                         http_client=client,
                     ),
-                    collective_transforms,
+                    aggregate_transforms,
                     as_awaitable(merged_entities),
                 )
             )
@@ -111,10 +111,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                 col(
                     map(
                         individual_entity_regex,
-                        params.analysis - set(collective_transforms),
+                        params.analysis - set(aggregate_transforms),
                     )
                 ),
-                col(collective_transforms),
+                col(aggregate_transforms),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
@@ -151,7 +151,7 @@ async def market_composition(**kwargs) -> ChartConfigModel:
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
     indiv_transforms: Iterable[str]
-    # Collective transformations are meaningless here as all entities are
+    # Aggregate transformations are meaningless here as all entities are
     # already in a single table
     indiv_transforms, _ = resolve_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]

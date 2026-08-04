@@ -12,7 +12,7 @@ from ..loaders.constants import (
     ASSET_PRICE_DAILY_BASE_METRICS,
     MARKET_COMPOSITION_BASE_METRICS,
 )
-from ..transformations.collective import COLLECTIVE_TRANSFORMATIONS_DOCS
+from ..transformations.aggregate import AGGREGATE_TRANSFORMATIONS_DOCS
 from ..transformations.individual import INDIVIDUAL_TRANSFORMATIONS_DOCS
 from ..validators.primitives import (
     DateIndex,
@@ -128,7 +128,7 @@ class AssetPriceDailyParams(ParamBaseModel):
                 - Base metrics: {ASSET_PRICE_DAILY_BASE_METRICS},
                   where `vwap` is the volume-weighted average price
                 - Analysis of individual entities (symbols): {INDIVIDUAL_TRANSFORMATIONS_DOCS}
-                - Analysis of all entities (symbols): {COLLECTIVE_TRANSFORMATIONS_DOCS}
+                - Analysis of all entities (symbols): {AGGREGATE_TRANSFORMATIONS_DOCS}
             """)
         ),
     ]

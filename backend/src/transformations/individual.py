@@ -146,7 +146,7 @@ async def index_to_date(
 
 
 # Invariant: Transformations must be registered in exactly one of
-# INDIVIDUAL_TRANSFORMATIONS or COLLECTIVE_TRANSFORMATIONS
+# INDIVIDUAL_TRANSFORMATIONS or AGGREGATE_TRANSFORMATIONS
 INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
     VOLATILITY: volatility,
     RETURNS: returns,
