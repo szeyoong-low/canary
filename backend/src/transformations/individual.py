@@ -16,9 +16,21 @@ from .steps import _apply_unary_function
 """Compute values for a single entity"""
 
 # Column names
+BASE_METRIC: Column = ""
 VOLATILITY: Column = "volatility"
 RETURNS: Column = "returns"
 INDEX_TO_DATE: Column = "index-to-date"
+
+
+async def base_metric(
+    data: Awaitable[LazyFrame],
+    keys: Columns,
+    depends: Column | None,
+    params: Params,
+    http_client: AsyncClient,
+) -> LazyFrame:
+    # Placeholder
+    return await data
 
 
 async def volatility(
@@ -149,6 +161,7 @@ async def index_to_date(
 # Invariant: Transformations must be registered in exactly one of
 # INDIVIDUAL_TRANSFORMATIONS or AGGREGATE_TRANSFORMATIONS
 INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
+    BASE_METRIC: base_metric,
     VOLATILITY: volatility,
     RETURNS: returns,
     INDEX_TO_DATE: index_to_date,
