@@ -12,8 +12,9 @@ from ..loaders.constants import (
     ASSET_PRICE_DAILY_BASE_METRICS,
     MARKET_COMPOSITION_BASE_METRICS,
 )
-from ..transformations.aggregate import AGGREGATE_TRANSFORMATIONS_DOCS
-from ..transformations.individual import INDIVIDUAL_TRANSFORMATIONS_DOCS
+from ..transformations.aggregate import AggregateTransformation
+from ..transformations.individual import IndividualTransformation
+from ..transformations.models import UNION_DISCRIMINATOR, BaseMetric
 from ..validators.primitives import (
     DateIndex,
     DateRangeModel,
@@ -121,16 +122,17 @@ arguments they consume.
 
 class AssetPriceDailyParams(ParamBaseModel):
     display: SeriesDisplayName
-    analysis: Annotated[
-        set[str],
-        Field(
-            description=cleandoc(f"""
-                - Base metrics: {ASSET_PRICE_DAILY_BASE_METRICS},
-                  where `vwap` is the volume-weighted average price
-                - Analysis of individual entities (symbols): {INDIVIDUAL_TRANSFORMATIONS_DOCS}
-                - Analysis of all entities (symbols): {AGGREGATE_TRANSFORMATIONS_DOCS}
-            """)
-        ),
+    analysis: set[
+        Annotated[
+            BaseMetric | IndividualTransformation | AggregateTransformation,
+            Field(
+                discriminator=UNION_DISCRIMINATOR,
+                description=cleandoc(f"""
+                    Base metrics available: {ASSET_PRICE_DAILY_BASE_METRICS},
+                    where `vwap` is the volume-weighted average price
+                """),
+            ),
+        ]
     ]
 
     symbol: EntityParam
@@ -160,14 +162,16 @@ AssetPriceDailySchema: type[ParamBaseModel] = create_model(
 
 class MarketCompositionParams(ParamBaseModel):
     display: HierarchyDisplayName
-    analysis: Annotated[
-        set[str],
-        Field(
-            description=cleandoc(f"""
-                - Base metrics: {MARKET_COMPOSITION_BASE_METRICS}
-                - Analysis functions: {INDIVIDUAL_TRANSFORMATIONS_DOCS}
-            """)
-        ),
+    analysis: set[
+        Annotated[
+            BaseMetric | IndividualTransformation,
+            Field(
+                discriminator=UNION_DISCRIMINATOR,
+                description=cleandoc(f"""
+                    Base metrics available: {MARKET_COMPOSITION_BASE_METRICS}
+                """),
+            ),
+        ]
     ]
 
     drilldown: Annotated[

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from .global_types import Column, Params
+from .global_types import Column
 
 type MetricGroup = Literal["asset-price-daily", "market-composition"]
 
@@ -21,12 +21,6 @@ CONTENT_TYPE_HEADER: str = "Content-Type"
 # Prepend this to `foo/bar/baz` to match `AAPL/foo/bar/baz`
 def individual_entity_regex(column_name: str) -> str:
     return f"^[^{TRANSFORMATION_SEPARATOR}]+/{column_name}$"
-
-
-def collect_documentation(dispatch_table: Params):
-    return DOCS_ITEM_SEPARATOR.join(
-        f"{name}: {function.__doc__}" for name, function in dispatch_table.items()
-    )
 
 
 # Allowed key columns

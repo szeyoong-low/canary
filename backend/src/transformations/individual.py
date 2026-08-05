@@ -5,9 +5,10 @@ from math import sqrt
 from httpx import AsyncClient
 from polars import Expr, LazyFrame, col
 
-from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR, collect_documentation
+from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from ..validators.primitives import DateIndex, TimeHorizon, WindowFunction
+from . import models
 from .constants import TransformationDispatch
 from .exceptions import AnalysisError
 from .steps import _apply_unary_function
@@ -153,4 +154,6 @@ INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
     INDEX_TO_DATE: index_to_date,
 }
 
-INDIVIDUAL_TRANSFORMATIONS_DOCS: str = collect_documentation(INDIVIDUAL_TRANSFORMATIONS)
+type IndividualTransformation = (
+    models.VolatilityModel | models.IndexToDateModel | models.ReturnsModel
+)
