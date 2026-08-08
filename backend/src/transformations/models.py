@@ -1,17 +1,27 @@
+from abc import ABC
 from enum import Enum, auto
 from typing import Annotated, Literal
 
 from ..validators import primitives as models
 
 
-class AnalysisBaseModel(models.ParamBaseModel):
+class Transformation(ABC, models.ParamBaseModel):
     # Docstrings are hoisted into the system prompt as they are shared by every
     # analysis function's model.
     name: models.NonEmptyString
     show: bool = True
 
+    def __eq__(self, value: object) -> bool:
+        return isinstance(value, Transformation) and self.name.__eq__(value.name)
 
-class AnalysisScope(Enum):
+    def __hash__(self) -> int:
+        return self.name.__hash__()
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Scope(Enum):
     """Describes whether a metric/column describes a single entity or is an
     aggregate over all entities."""
 
@@ -33,23 +43,23 @@ class AnalysisScope(Enum):
 
 """Used as metadata tags on fields of analysis functions that name dependencies."""
 
-type RefBase = Annotated[models.NonEmptyString, AnalysisScope.BASE]
-type RefIndividual = Annotated[models.NonEmptyString, AnalysisScope.INDIVIDUAL]
-type RefAggregate = Annotated[models.NonEmptyString, AnalysisScope.AGGREGATE]
-type RefAny = Annotated[models.NonEmptyString, AnalysisScope.ANY]
+type RefBase = Annotated[models.NonEmptyString, Scope.BASE]
+type RefIndividual = Annotated[models.NonEmptyString, Scope.INDIVIDUAL]
+type RefAggregate = Annotated[models.NonEmptyString, Scope.AGGREGATE]
+type RefAny = Annotated[models.NonEmptyString, Scope.ANY]
 
 
 UNION_DISCRIMINATOR: str = "analysis"
 
 
-class BaseMetric(AnalysisBaseModel):
+class BaseMetric(Transformation):
     """A column from raw data (`metric`) renamed as `name`"""
 
     analysis: Literal[""]
     metric: RefBase
 
 
-class VolatilityModel(AnalysisBaseModel, models.WindowFunction):
+class VolatilityModel(Transformation, models.WindowFunction):
     """
     Calculate volatility of a metric (usually returns on a financial instrument
     over time).
@@ -65,7 +75,7 @@ class VolatilityModel(AnalysisBaseModel, models.WindowFunction):
     metric: RefAny
 
 
-class ReturnsModel(AnalysisBaseModel, models.TimeHorizon):
+class ReturnsModel(Transformation, models.TimeHorizon):
     """Calculate the percentage change of a metric over a given horizon (number
     of observations)."""
 
@@ -74,7 +84,7 @@ class ReturnsModel(AnalysisBaseModel, models.TimeHorizon):
     metric: RefAny
 
 
-class IndexToDateModel(AnalysisBaseModel, models.DateIndex):
+class IndexToDateModel(Transformation, models.DateIndex):
     """Create an index based on `reference`, which is assigned a value of `base`."""
 
     analysis: Literal["index-to-date"]  # Must match Column name in individual.py
@@ -82,7 +92,7 @@ class IndexToDateModel(AnalysisBaseModel, models.DateIndex):
     metric: RefAny
 
 
-class GroupMeanModel(AnalysisBaseModel):
+class GroupMeanModel(Transformation):
     """Calculate the average of `depends` over all individual entities."""
 
     analysis: Literal["group-mean"]  # Must match Column name in aggregate.py
