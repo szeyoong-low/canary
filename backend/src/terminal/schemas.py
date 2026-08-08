@@ -122,7 +122,7 @@ arguments they consume.
 
 class AssetPriceDailyParams(ParamBaseModel):
     display: SeriesDisplayName
-    analysis: set[
+    analysis: list[
         Annotated[
             BaseMetric | IndividualTransformation | AggregateTransformation,
             Field(
@@ -162,7 +162,7 @@ AssetPriceDailySchema: type[ParamBaseModel] = create_model(
 
 class MarketCompositionParams(ParamBaseModel):
     display: HierarchyDisplayName
-    analysis: set[
+    analysis: list[
         Annotated[
             BaseMetric | IndividualTransformation,
             Field(

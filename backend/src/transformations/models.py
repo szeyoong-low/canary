@@ -1,29 +1,16 @@
 from abc import ABC
+from collections.abc import Iterable
 from enum import Enum, auto
+from functools import cache
 from typing import Annotated, Literal
 
+from ..global_types import Columns
 from ..validators import primitives as models
-
-
-class Transformation(ABC, models.ParamBaseModel):
-    # Docstrings are hoisted into the system prompt as they are shared by every
-    # analysis function's model.
-    name: models.NonEmptyString
-    show: bool = True
-
-    def __eq__(self, value: object) -> bool:
-        return isinstance(value, Transformation) and self.name.__eq__(value.name)
-
-    def __hash__(self) -> int:
-        return self.name.__hash__()
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class Scope(Enum):
     """Describes whether a metric/column describes a single entity or is an
-    aggregate over all entities."""
+    aggregate over all entities. Used to annotate fields naming dependencies."""
 
     BASE = auto()
     """A base metric (column in raw data). Used to describe a column's
@@ -41,12 +28,47 @@ class Scope(Enum):
     INDIVIDUAL or AGGREGATE)."""
 
 
-"""Used as metadata tags on fields of analysis functions that name dependencies."""
+class Transformation(ABC, models.ParamBaseModel):
+    # Docstrings are hoisted into the system prompt as they are shared by every
+    # analysis function's model.
+    name: models.NonEmptyString
+    show: bool = True
 
-type RefBase = Annotated[models.NonEmptyString, Scope.BASE]
-type RefIndividual = Annotated[models.NonEmptyString, Scope.INDIVIDUAL]
-type RefAggregate = Annotated[models.NonEmptyString, Scope.AGGREGATE]
-type RefAny = Annotated[models.NonEmptyString, Scope.ANY]
+    def __eq__(self, value: object) -> bool:
+        return isinstance(value, Transformation) and self.name.__eq__(value.name)
+
+    def __hash__(self) -> int:
+        return self.name.__hash__()
+
+    def __str__(self) -> str:
+        return self.name
+
+    @classmethod
+    @cache
+    def _dependency_fields(cls) -> Iterable[str]:
+        """
+        Returns: Every field that names another transformation. This is fixed
+        when the class is defined so the reflection is cacheable.
+
+        Precondition: Every field has at most one Scope tag.
+        """
+
+        return {
+            field_name
+            for field_name, field_info in cls.model_fields.items()
+            for meta in field_info.metadata
+            if isinstance(meta, Scope)
+        }
+
+    def dependencies(self) -> Columns:
+        """Returns: The name of each analysis function this one depends on."""
+
+        dependencies: set[str] = set()
+        for field in self._dependency_fields():
+            dependency: str | None = getattr(self, field)
+            if dependency is not None:
+                dependencies.add(dependency)
+        return dependencies
 
 
 UNION_DISCRIMINATOR: str = "analysis"
@@ -56,7 +78,7 @@ class BaseMetric(Transformation):
     """A column from raw data (`metric`) renamed as `name`"""
 
     analysis: Literal[""]
-    metric: RefBase
+    metric: Annotated[models.NonEmptyString, Scope.BASE]
 
 
 class VolatilityModel(Transformation, models.WindowFunction):
@@ -72,7 +94,7 @@ class VolatilityModel(Transformation, models.WindowFunction):
 
     analysis: Literal["volatility"]  # Must match Column name in individual.py
 
-    metric: RefAny
+    metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
 class ReturnsModel(Transformation, models.TimeHorizon):
@@ -81,7 +103,7 @@ class ReturnsModel(Transformation, models.TimeHorizon):
 
     analysis: Literal["returns"]  # Must match Column name in individual.py
 
-    metric: RefAny
+    metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
 class IndexToDateModel(Transformation, models.DateIndex):
@@ -89,7 +111,7 @@ class IndexToDateModel(Transformation, models.DateIndex):
 
     analysis: Literal["index-to-date"]  # Must match Column name in individual.py
 
-    metric: RefAny
+    metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
 class GroupMeanModel(Transformation):
@@ -97,4 +119,4 @@ class GroupMeanModel(Transformation):
 
     analysis: Literal["group-mean"]  # Must match Column name in aggregate.py
 
-    metric: RefIndividual
+    metric: Annotated[models.NonEmptyString, Scope.INDIVIDUAL]

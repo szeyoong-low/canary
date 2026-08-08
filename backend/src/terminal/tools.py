@@ -13,10 +13,11 @@ from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
 from ..global_types import Columns, as_awaitable
 from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
 from ..loaders.load import load_asset_price_daily, load_market_composition
+from ..transformations.models import Transformation
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
-    resolve_transformations,
+    validate_and_sort_transformations,
 )
 from .schemas import (
     AssetPriceDailyParams,
@@ -60,9 +61,7 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
-    indiv_transforms: Iterable[str]
-    aggregate_transforms: Iterable[str]
-    indiv_transforms, aggregate_transforms = resolve_transformations(
+    transformations: Iterable[Transformation] = validate_and_sort_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
@@ -150,11 +149,8 @@ async def market_composition(**kwargs) -> ChartConfigModel:
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
-    indiv_transforms: Iterable[str]
-    # Aggregate transformations are meaningless here as all entities are
-    # already in a single table
-    indiv_transforms, _ = resolve_transformations(
-        params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
+    transformations: Iterable[Transformation] = validate_and_sort_transformations(
+        params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
     async with AsyncClient(follow_redirects=True) as client:
