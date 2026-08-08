@@ -12,8 +12,8 @@ from ..loaders.constants import (
     ASSET_PRICE_DAILY_BASE_METRICS,
     MARKET_COMPOSITION_BASE_METRICS,
 )
-from ..transformations.aggregate import AggregateTransformation
-from ..transformations.individual import IndividualTransformation
+from ..transformations.aggregate import AnyAggregateTransformation
+from ..transformations.individual import AnyIndividualTransformation
 from ..transformations.models import UNION_DISCRIMINATOR, BaseMetric
 from ..validators.primitives import (
     DateIndex,
@@ -124,7 +124,7 @@ class AssetPriceDailyParams(ParamBaseModel):
     display: SeriesDisplayName
     analysis: list[
         Annotated[
-            BaseMetric | IndividualTransformation | AggregateTransformation,
+            BaseMetric | AnyIndividualTransformation | AnyAggregateTransformation,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""
@@ -164,7 +164,7 @@ class MarketCompositionParams(ParamBaseModel):
     display: HierarchyDisplayName
     analysis: list[
         Annotated[
-            BaseMetric | IndividualTransformation,
+            BaseMetric | AnyIndividualTransformation,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""

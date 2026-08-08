@@ -1,4 +1,3 @@
-from abc import ABC
 from collections.abc import Iterable
 from enum import Enum, auto
 from functools import cache
@@ -28,7 +27,7 @@ class Scope(Enum):
     INDIVIDUAL or AGGREGATE)."""
 
 
-class Transformation(ABC, models.ParamBaseModel):
+class Transformation(models.ParamBaseModel):
     # Docstrings are hoisted into the system prompt as they are shared by every
     # analysis function's model.
     name: models.NonEmptyString
@@ -81,7 +80,11 @@ class BaseMetric(Transformation):
     metric: Annotated[models.NonEmptyString, Scope.BASE]
 
 
-class VolatilityModel(Transformation, models.WindowFunction):
+class SingularTransformation(Transformation):
+    pass
+
+
+class VolatilityModel(SingularTransformation, models.WindowFunction):
     """
     Calculate volatility of a metric (usually returns on a financial instrument
     over time).
@@ -97,7 +100,7 @@ class VolatilityModel(Transformation, models.WindowFunction):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class ReturnsModel(Transformation, models.TimeHorizon):
+class ReturnsModel(SingularTransformation, models.TimeHorizon):
     """Calculate the percentage change of a metric over a given horizon (number
     of observations)."""
 
@@ -106,7 +109,7 @@ class ReturnsModel(Transformation, models.TimeHorizon):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class IndexToDateModel(Transformation, models.DateIndex):
+class IndexToDateModel(SingularTransformation, models.DateIndex):
     """Create an index based on `reference`, which is assigned a value of `base`."""
 
     analysis: Literal["index-to-date"]  # Must match Column name in individual.py
@@ -114,7 +117,11 @@ class IndexToDateModel(Transformation, models.DateIndex):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class GroupMeanModel(Transformation):
+class AggregateTransformation(Transformation):
+    pass
+
+
+class GroupMeanModel(AggregateTransformation):
     """Calculate the average of `depends` over all individual entities."""
 
     analysis: Literal["group-mean"]  # Must match Column name in aggregate.py
