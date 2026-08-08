@@ -9,7 +9,6 @@ from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from ..validators.primitives import DateIndex, TimeHorizon, WindowFunction
 from . import models
-from .constants import TransformationDispatch
 from .exceptions import AnalysisError
 from .steps import _apply_unary_function
 
@@ -157,15 +156,6 @@ async def index_to_date(
         ),
     )
 
-
-# Invariant: Transformations must be registered in exactly one of
-# INDIVIDUAL_TRANSFORMATIONS or AGGREGATE_TRANSFORMATIONS
-INDIVIDUAL_TRANSFORMATIONS: TransformationDispatch = {
-    BASE_METRIC: base_metric,
-    VOLATILITY: volatility,
-    RETURNS: returns,
-    INDEX_TO_DATE: index_to_date,
-}
 
 type IndividualTransformation = (
     models.VolatilityModel | models.IndexToDateModel | models.ReturnsModel

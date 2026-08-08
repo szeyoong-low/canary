@@ -6,7 +6,6 @@ from polars import LazyFrame, mean_horizontal
 from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from . import models
-from .constants import TransformationDispatch
 from .exceptions import AnalysisError
 from .steps import _apply_unary_function
 
@@ -42,11 +41,5 @@ async def group_mean(
         aggregate=True,
     )
 
-
-# Invariant: Transformations must be registered in exactly one of
-# INDIVIDUAL_TRANSFORMATIONS or AGGREGATE_TRANSFORMATIONS
-AGGREGATE_TRANSFORMATIONS: TransformationDispatch = {
-    GROUP_MEAN: group_mean,
-}
 
 type AggregateTransformation = models.GroupMeanModel

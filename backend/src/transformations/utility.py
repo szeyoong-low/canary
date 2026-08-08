@@ -1,4 +1,4 @@
-from collections.abc import Awaitable, Collection, Container, Iterable
+from collections.abc import Awaitable, Collection, Iterable
 from graphlib import CycleError, TopologicalSorter
 
 from httpx import AsyncClient
@@ -9,9 +9,8 @@ from ..global_constants import (
     TRANSFORMATION_SEPARATOR,
 )
 from ..global_types import Columns, Params
-from .aggregate import AGGREGATE_TRANSFORMATIONS
+from .dispatch import TRANSFORMATION_DISPATCH
 from .exceptions import AnalysisError
-from .individual import INDIVIDUAL_TRANSFORMATIONS
 from .models import BaseMetric, Transformation
 
 
@@ -64,8 +63,8 @@ def validate_and_sort_transformations(
 
     Throws: AnalysisError
         - Column names are not unique
-        - Base metrics are invalid
-        - Predecessor references are invalid
+        - Base metrics referenced are invalid
+        - References to non-existent columns
         - No columns are displayed (and by extension, no analysis functions were specified)
         - Reference graph has cycles
     """
@@ -117,14 +116,15 @@ async def apply_analysis_function(
         # This is a constant time hashmap lookup, so we don't need to burden the
         # caller with specifying whether a transformation is individual or
         # aggregate.
-        return await INDIVIDUAL_TRANSFORMATIONS[transformation](
+        return await TRANSFORMATION_DISPATCH[transformation](
             data, keys, depends, params, http_client
         )
     except KeyError:
+        # Implementation error
         if transformation == EMPTY_STRING:
             # Must be an individual transformation with no dependencies
             try:
-                return await INDIVIDUAL_TRANSFORMATIONS[depends](
+                return await TRANSFORMATION_DISPATCH[depends](
                     data, keys, None, params, http_client
                 )
             except KeyError:
@@ -135,7 +135,7 @@ async def apply_analysis_function(
         else:
             try:
                 # Must be a aggregate transformation
-                return await AGGREGATE_TRANSFORMATIONS[transformation](
+                return await TRANSFORMATION_DISPATCH[transformation](
                     data, keys, depends, params, http_client
                 )
             except KeyError:
