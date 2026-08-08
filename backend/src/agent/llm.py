@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 from inspect import cleandoc
 
 from langchain.chat_models import init_chat_model
@@ -67,7 +67,7 @@ Aggregate transformations must come after individual transformations.
 """)
 
 
-@lru_cache
+@cache
 def planning_node_llm() -> ModelWithTools:
     """Build an LLM client for the planning node."""
 
