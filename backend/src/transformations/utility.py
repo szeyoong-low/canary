@@ -6,12 +6,9 @@ from httpx import AsyncClient
 from polars import LazyFrame, col
 from polars import all as pl_all
 
-from ..global_constants import (
-    EMPTY_STRING,
-    TRANSFORMATION_SEPARATOR,
-)
+from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Columns, ImplementationError, Params
-from ..transformations.models import Scope
+from ..transformations.models import UNION_DISCRIMINATOR, Scope
 from .dispatch import TRANSFORMATION_DISPATCH
 from .exceptions import AnalysisError
 from .models import (
@@ -190,46 +187,19 @@ def validate_and_sort_transformations(
 
 async def apply_analysis_function(
     data: Awaitable[LazyFrame],
-    analysis: str,
+    transformation: Transformation,
     keys: Columns,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-
-    depends: str
-    transformation: str
-    depends, _, transformation = analysis.rpartition(TRANSFORMATION_SEPARATOR)
-
     try:
-        # This is a constant time hashmap lookup, so we don't need to burden the
-        # caller with specifying whether a transformation is individual or
-        # aggregate.
-        return await TRANSFORMATION_DISPATCH[transformation](
-            data, keys, depends, params, http_client
-        )
+        return await TRANSFORMATION_DISPATCH[
+            getattr(transformation, UNION_DISCRIMINATOR)
+        ](data, transformation, keys, shared_params, http_client)
     except KeyError:
-        # Implementation error
-        if transformation == EMPTY_STRING:
-            # Must be an individual transformation with no dependencies
-            try:
-                return await TRANSFORMATION_DISPATCH[depends](
-                    data, keys, None, params, http_client
-                )
-            except KeyError:
-                # Aggregate transformations must be applied on another metric
-                raise AnalysisError(
-                    f"Only individual transformations may have no dependencies {transformation}",
-                )
-        else:
-            try:
-                # Must be a aggregate transformation
-                return await TRANSFORMATION_DISPATCH[transformation](
-                    data, keys, depends, params, http_client
-                )
-            except KeyError:
-                raise AnalysisError(
-                    f"Only individual transformations may have no dependencies {transformation}",
-                )
+        raise ImplementationError(
+            500, f"{type(transformation)} must have a {UNION_DISCRIMINATOR} attribute"
+        )
 
 
 async def pivot_single_entity(

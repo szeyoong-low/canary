@@ -70,21 +70,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
     async with AsyncClient(follow_redirects=True) as client:
         indiv_entities: Iterable[LazyFrame] = await gather(
             *(
-                (
-                    pivot_single_entity(
-                        reduce(
-                            partial(
-                                apply_analysis_function,
-                                keys=keys,
-                                params=kwargs,
-                                http_client=client,
-                            ),
-                            indiv_transforms,
-                            load_asset_price_daily(client, sym, kwargs),
-                        ),
-                        sym,
-                        keys,
-                    )
+                pivot_single_entity(
+                    load_asset_price_daily(client, sym, kwargs),
+                    sym,
+                    keys,
                 )
                 for sym in params.symbol
             )
@@ -98,10 +87,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                     partial(
                         apply_analysis_function,
                         keys=keys,
-                        params=kwargs,
+                        shared_params=kwargs,
                         http_client=client,
                     ),
-                    aggregate_transforms,
+                    transformations,
                     as_awaitable(merged_entities),
                 )
             )
@@ -160,10 +149,10 @@ async def market_composition(**kwargs) -> ChartConfigModel:
                     partial(
                         apply_analysis_function,
                         keys=[],
-                        params=kwargs,
+                        shared_params=kwargs,
                         http_client=client,
                     ),
-                    indiv_transforms,
+                    transformations,
                     load_market_composition(client, kwargs),
                 )
             )
