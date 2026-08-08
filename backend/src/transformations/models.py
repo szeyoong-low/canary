@@ -1,9 +1,8 @@
-from collections.abc import Iterable
+from collections.abc import Mapping
 from enum import Enum, auto
 from functools import cache
 from typing import Annotated, Literal
 
-from ..global_types import Columns
 from ..validators import primitives as models
 
 
@@ -27,6 +26,9 @@ class Scope(Enum):
     INDIVIDUAL or AGGREGATE)."""
 
 
+type ScopeMapping = Mapping[str, Scope]
+
+
 class Transformation(models.ParamBaseModel):
     # Docstrings are hoisted into the system prompt as they are shared by every
     # analysis function's model.
@@ -44,7 +46,7 @@ class Transformation(models.ParamBaseModel):
 
     @classmethod
     @cache
-    def _dependency_fields(cls) -> Iterable[str]:
+    def _dependency_fields(cls) -> ScopeMapping:
         """
         Returns: Every field that names another transformation. This is fixed
         when the class is defined so the reflection is cacheable.
@@ -53,20 +55,26 @@ class Transformation(models.ParamBaseModel):
         """
 
         return {
-            field_name
+            field_name: meta
             for field_name, field_info in cls.model_fields.items()
             for meta in field_info.metadata
             if isinstance(meta, Scope)
         }
 
-    def dependencies(self) -> Columns:
+    # Not suitable for global caching with @functools.cache:
+    # 1. https://docs.astral.sh/ruff/rules/cached-instance-method/
+    # 2.__hash__ has been overridden, so column name will determine dependencies
+    # even though this varies per instance
+    def dependencies(self) -> ScopeMapping:
         """Returns: The name of each analysis function this one depends on."""
 
-        dependencies: set[str] = set()
-        for field in self._dependency_fields():
-            dependency: str | None = getattr(self, field)
+        dependencies: ScopeMapping = {}
+        field_name: str
+        scope: Scope
+        for field_name, scope in self._dependency_fields().items():
+            dependency: str | None = getattr(self, field_name)
             if dependency is not None:
-                dependencies.add(dependency)
+                dependencies[dependency] = scope
         return dependencies
 
 
