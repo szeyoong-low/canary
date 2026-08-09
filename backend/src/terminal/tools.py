@@ -40,23 +40,34 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
     Call: `asset-price-daily` with
     {
-        display: time-series,
-        analysis: [
-            vwap/index-to-date,
+        "display": "time-series",
+        "analysis": [
+            {
+                "name": "Volume-weighted average price",
+                "show": false,
+                "analysis": "",
+                "metric": "vwap"
+            },
+            {
+                "name": "Indexed price",
+                "show": true,
+                "analysis": "index-to-date",
+                "metric": "Volume-weighted average price",
+                "base": 100,
+                "reference": "2026-01-02"
+            }
         ],
-        symbol: [
-            aapl,
-            goog,
-            msft,
-            nvda,
-            tsla,
-            jpm,
-            bac,
-        ]
-        start_date=2026-01-01,
-        end_date=2026-03-31,
-        base=100,
-        reference=2026-01-02,
+        "symbol": [
+            "aapl",
+            "goog",
+            "msft",
+            "nvda",
+            "tsla",
+            "jpm",
+            "bac"
+        ],
+        "start_date": "2026-01-01",
+        "end_date": "2026-03-31"
     }
     """
 
@@ -125,24 +136,34 @@ async def market_composition(**kwargs) -> ChartConfigModel:
 
     Call: `market-composition` with
     {
-        display: treemap,
-        analysis: [
-            marketCap,
+        "display": "treemap",
+        "analysis": [
+            {
+                "name": "Market capitalisation",
+                "show": true,
+                "analysis": "",
+                "metric": "marketCap"
+            },
+            {
+                "name": "Share price",
+                "show": true,
+                "analysis": "",
+                "metric": "price"
+            }
         ],
-        drilldown: [
-            sector,
-            industry,
-            companyName,
+        "drilldown": [
+            "sector",
+            "industry",
+            "companyName"
         ],
-        aggregate_col=marketCap,
-        analysis=price,
+        "aggregate_col": "marketCap"
     }
     """
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
     transformations: Iterable[Transformation] = validate_and_sort_transformations(
-        params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
+        params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
     )
 
     async with AsyncClient(follow_redirects=True) as client:
