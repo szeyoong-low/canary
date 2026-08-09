@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import Field
 
 from ..analysis.aggregate import AnyAggregateFunction
-from ..analysis.individual import AnyLinearFunction
+from ..analysis.linear import AnyLinearFunction
 from ..analysis.models import UNION_DISCRIMINATOR, BaseMetric
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..global_types import Column, ColumnOptional

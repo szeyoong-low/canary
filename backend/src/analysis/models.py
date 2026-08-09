@@ -103,7 +103,7 @@ class VolatilityModel(LinearFunction, models.WindowFunction):
 
     # Source: https://www.investopedia.com/terms/v/volatility.asp#toc-how-to-calculate-volatility
 
-    analysis: Literal["volatility"]  # Must match Column name in individual.py
+    analysis: Literal["volatility"]  # Must match Column name in linear.py
 
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
@@ -112,7 +112,7 @@ class ReturnsModel(LinearFunction, models.TimeHorizon):
     """Calculate the percentage change of a metric over a given horizon (number
     of observations)."""
 
-    analysis: Literal["returns"]  # Must match Column name in individual.py
+    analysis: Literal["returns"]  # Must match Column name in linear.py
 
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
@@ -120,7 +120,7 @@ class ReturnsModel(LinearFunction, models.TimeHorizon):
 class IndexToDateModel(LinearFunction, models.DateIndex):
     """Create an index based on `reference`, which is assigned a value of `base`."""
 
-    analysis: Literal["index-to-date"]  # Must match Column name in individual.py
+    analysis: Literal["index-to-date"]  # Must match Column name in linear.py
 
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 

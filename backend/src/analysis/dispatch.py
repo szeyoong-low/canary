@@ -1,6 +1,6 @@
 from ..analysis.aggregate import GROUP_MEAN, group_mean
 from ..analysis.constants import AnalysisFunctionDispatch
-from ..analysis.individual import (
+from .linear import (
     BASE_METRIC,
     INDEX_TO_DATE,
     RETURNS,
