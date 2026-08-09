@@ -46,7 +46,7 @@ def _get_dependencies(
 
         if (match := next(matches, None)) is None:
             raise AnalysisError(
-                f"{dependency_name} refers to an unknown column. Must be one of {transformations}"
+                f"{dependency_name} refers to an unknown column. Must be one of {[t.name for t in transformations]}"
             )
 
         if next(matches, None) is not None:
