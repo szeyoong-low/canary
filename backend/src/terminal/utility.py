@@ -1,7 +1,8 @@
-from ..global_constants import MetricGroup
+from collections.abc import Iterable
 
-DISPLAY_PATH_PARAM: str = "{display}"
+from ..analysis.models import AnalysisFunction
+from ..global_types import Columns
 
 
-def _get_terminal_path(metric_group: MetricGroup) -> str:
-    return f"/{metric_group}/{DISPLAY_PATH_PARAM}"
+def _get_shown_columns(analysis: Iterable[AnalysisFunction]) -> Columns:
+    return [column.name for column in analysis if column.show]

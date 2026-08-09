@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 from operator import add
 from typing import Annotated, TypedDict
 
@@ -83,7 +83,7 @@ PLANNING: str = "planning"
 TOOLS: str = "tools"
 
 
-@lru_cache
+@cache
 def build_graph() -> CompiledStateGraph:
     """Build and compile the agent workflow graph."""
 
