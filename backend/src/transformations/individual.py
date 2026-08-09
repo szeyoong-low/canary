@@ -5,9 +5,8 @@ from math import sqrt
 from httpx import AsyncClient
 from polars import Expr, LazyFrame, col
 
-from ..global_constants import DATE_KEY, TRANSFORMATION_SEPARATOR
+from ..global_constants import DATE_KEY
 from ..global_types import Column, Columns, Params
-from ..validators.primitives import DateIndex, TimeHorizon, WindowFunction
 from . import models
 from .exceptions import AnalysisError
 from .steps import _apply_unary_function
@@ -23,56 +22,42 @@ INDEX_TO_DATE: Column = "index-to-date"
 
 async def base_metric(
     data: Awaitable[LazyFrame],
+    transformation: models.BaseMetric,
     keys: Columns,
-    depends: Column | None,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-    # Placeholder
-    return await data
+    return _apply_unary_function(
+        await data,
+        transformation.metric,
+        transformation.name,
+        lambda x: x,
+    )
 
 
 async def volatility(
     data: Awaitable[LazyFrame],
+    transformation: models.VolatilityModel,
     keys: Columns,
-    depends: Column | None,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-    """
-    Calculate the volatility of a metric (usually returns on a financial
-    instrument over time).
-
-    Volatility is the standard deviation of observations multiplied by the
-    square root of the number of observations in a rolling window.
-
-    Source: https://www.investopedia.com/terms/v/volatility.asp#toc-how-to-calculate-volatility
-
-    args:
-        - depends: cannot be None
-        - keys, http_client: unused but required to accept as part of contract
-    """
-
-    if depends is None:
-        raise AnalysisError(f"{VOLATILITY} must be applied to a metric")
-
-    window: int = WindowFunction.model_validate(params).window
-    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + VOLATILITY
-
     return reduce(
         lambda lf, step: lf.pipe(step),
         [
             partial(
                 _apply_unary_function,
-                source_col=depends,
-                dest_col=dest_col,
-                function=(lambda x: Expr.rolling_std(x, window_size=window)),
+                source_col=transformation.metric,
+                dest_col=transformation.name,
+                function=(
+                    lambda x: Expr.rolling_std(x, window_size=transformation.window)
+                ),
             ),
             partial(
                 _apply_unary_function,
-                source_col=dest_col,
-                dest_col=dest_col,
-                function=(lambda x: x * sqrt(window)),
+                source_col=transformation.name,
+                dest_col=transformation.name,
+                function=(lambda x: x * sqrt(transformation.window)),
             ),
         ],
         await data,
@@ -81,39 +66,24 @@ async def volatility(
 
 async def returns(
     data: Awaitable[LazyFrame],
+    transformation: models.ReturnsModel,
     keys: Columns,
-    depends: Column | None,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-    """
-    Calculate the percentage change of a metric over a given horizon
-    (number of observations).
-
-    args:
-        - depends: cannot be None
-        - keys, http_client: unused but required to accept as part of contract
-    """
-
-    if depends is None:
-        raise AnalysisError(f"{RETURNS} must be applied to a metric")
-
-    horizon: int = TimeHorizon.model_validate(params).horizon
-    dest_col: Column = depends + TRANSFORMATION_SEPARATOR + RETURNS
-
     return reduce(
         lambda lf, step: lf.pipe(step),
         [
             partial(
                 _apply_unary_function,
-                source_col=depends,
-                dest_col=dest_col,
-                function=(lambda x: Expr.pct_change(x, n=horizon)),
+                source_col=transformation.metric,
+                dest_col=transformation.name,
+                function=(lambda x: Expr.pct_change(x, n=transformation.horizon)),
             ),
             partial(
                 _apply_unary_function,
-                source_col=dest_col,
-                dest_col=dest_col,
+                source_col=transformation.name,
+                dest_col=transformation.name,
                 function=(lambda x: x * 100),
             ),
         ],
@@ -123,35 +93,28 @@ async def returns(
 
 async def index_to_date(
     data: Awaitable[LazyFrame],
+    transformation: models.IndexToDateModel,
     keys: Columns,
-    depends: str | None,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-    """
-    Create an index based on `reference`, which is assigned a value of `base`.
-
-    args:
-        - depends: cannot be None
-        - http_client: unused but required to accept as part of contract
-    """
-
-    if depends is None:
-        raise AnalysisError(f"{RETURNS} must be applied to a metric")
 
     if DATE_KEY not in keys:
         raise AnalysisError(f"{DATE_KEY} must be a key")
 
-    model: DateIndex = DateIndex.model_validate(params)
-
     return _apply_unary_function(
         data=await data,
-        source_col=depends,
-        dest_col=depends + TRANSFORMATION_SEPARATOR + INDEX_TO_DATE,
+        source_col=transformation.metric,
+        dest_col=transformation.name,
         function=(
             lambda x: (
-                (x / col(depends).filter(col(DATE_KEY) == model.reference).first())
-                * model.base
+                (
+                    x
+                    / col(transformation.metric)
+                    .filter(col(DATE_KEY) == transformation.reference)
+                    .first()
+                )
+                * transformation.base
             )
         ),
     )

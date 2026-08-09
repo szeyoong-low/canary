@@ -3,11 +3,9 @@ from collections.abc import Awaitable
 from httpx import AsyncClient
 from polars import LazyFrame, mean_horizontal
 
-from ..global_constants import TRANSFORMATION_SEPARATOR
 from ..global_types import Column, Columns, Params
 from . import models
-from .exceptions import AnalysisError
-from .steps import _apply_unary_function
+from .steps import _apply_unary_aggregation
 
 """Compute values for all entities"""
 
@@ -17,28 +15,16 @@ GROUP_MEAN: Column = "group-mean"
 
 async def group_mean(
     data: Awaitable[LazyFrame],
+    transformation: models.GroupMeanModel,
     keys: Columns,
-    depends: Column | None,
-    params: Params,
+    shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
-    """
-    Calculate the average of `depends` over all individual entities.
-
-    args:
-        - depends: cannot be None
-        - keys, params, http_client: unused but required to accept as part of contract
-    """
-
-    if depends is None:
-        raise AnalysisError(f"{GROUP_MEAN} must be applied to a metric")
-
-    return _apply_unary_function(
+    return _apply_unary_aggregation(
         data=await data,
-        source_col=depends,
-        dest_col=depends + TRANSFORMATION_SEPARATOR + GROUP_MEAN,
+        source_col=transformation.metric,
+        dest_col=transformation.name,
         function=mean_horizontal,
-        aggregate=True,
     )
 
 
