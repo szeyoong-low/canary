@@ -7,7 +7,7 @@ from langchain_core.tools import BaseTool, tool
 from polars import LazyFrame, col, concat
 from polars.selectors import float as pl_float
 
-from ..analysis.models import Transformation
+from ..analysis.models import AnalysisFunction
 from ..analysis.utility import (
     apply_analysis_function,
     pivot_single_entity,
@@ -73,7 +73,7 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
-    transformations: Iterable[Transformation] = validate_and_sort_transformations(
+    transformations: Iterable[AnalysisFunction] = validate_and_sort_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
@@ -162,7 +162,7 @@ async def market_composition(**kwargs) -> ChartConfigModel:
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
-    transformations: Iterable[Transformation] = validate_and_sort_transformations(
+    transformations: Iterable[AnalysisFunction] = validate_and_sort_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
     )
 

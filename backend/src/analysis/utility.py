@@ -9,21 +9,21 @@ from polars import all as pl_all
 from ..analysis.models import UNION_DISCRIMINATOR, Scope
 from ..global_constants import ENTITY_TAG_SEPARATOR
 from ..global_types import Columns, ImplementationError, Params
-from .dispatch import TRANSFORMATION_DISPATCH
+from .dispatch import ANALYSIS_FUNCTION_DISPATCH
 from .exceptions import AnalysisError
 from .models import (
-    AggregateTransformation,
+    AggregateFunction,
     BaseMetric,
     ScopeMapping,
-    SingularTransformation,
-    Transformation,
+    LinearFunction,
+    AnalysisFunction,
 )
 
 
 def _get_dependencies(
-    node: Transformation,
-    transformations: Collection[Transformation],
-) -> Iterable[Transformation]:
+    node: AnalysisFunction,
+    transformations: Collection[AnalysisFunction],
+) -> Iterable[AnalysisFunction]:
     """
     Args:
         node: a single transformation
@@ -36,11 +36,11 @@ def _get_dependencies(
         - Column names are not unique
     """
 
-    predecessor_nodes: set[Transformation] = set()
+    predecessor_nodes: set[AnalysisFunction] = set()
 
     dependency_name: str
     for dependency_name in node.dependencies():
-        matches: Iterable[Transformation] = filter(
+        matches: Iterable[AnalysisFunction] = filter(
             lambda x: x.name == dependency_name, transformations
         )
 
@@ -59,7 +59,7 @@ def _get_dependencies(
 
 def _resolve_column_scope(
     resolved_scopes: ScopeMapping,
-    transformation: Transformation,
+    transformation: AnalysisFunction,
 ) -> ScopeMapping:
     """
     Checks that all dependencies of `transformation` are of the correct `Scope`.
@@ -77,7 +77,7 @@ def _resolve_column_scope(
         - AnalysisError: a dependency resolved to the wrong `Scope`
         - ImplementationError:
             - A non-BaseMetric expects a dependency of Scope.BASE
-            - An unknown Transformation type is encountered
+            - An unknown AnalysisFunction type is encountered
     """
 
     updated_resolved_scopes: dict[str, Scope] = dict(resolved_scopes)
@@ -107,9 +107,9 @@ def _resolve_column_scope(
                 case Scope.ANY:
                     pass  # No validation needed by definition
 
-        if isinstance(transformation, AggregateTransformation):
+        if isinstance(transformation, AggregateFunction):
             output_scope = Scope.AGGREGATE
-        elif isinstance(transformation, SingularTransformation):
+        elif isinstance(transformation, LinearFunction):
             if all(v is Scope.AGGREGATE for v in dependency_scopes.values()):
                 output_scope = Scope.AGGREGATE
             else:
@@ -117,7 +117,7 @@ def _resolve_column_scope(
         else:
             raise ImplementationError(
                 500,
-                "Only allow BaseMetric, AggregateTransformation, or SingularTransformation",
+                "Only allow BaseMetric, AggregateFunction, or LinearFunction",
             )
 
     updated_resolved_scopes[transformation.name] = output_scope
@@ -125,9 +125,9 @@ def _resolve_column_scope(
 
 
 def validate_and_sort_transformations(
-    transformations: Collection[Transformation],
+    transformations: Collection[AnalysisFunction],
     base_metrics: Columns,
-) -> Iterable[Transformation]:
+) -> Iterable[AnalysisFunction]:
     """
     Args:
         transformations: passed by the user
@@ -143,7 +143,7 @@ def validate_and_sort_transformations(
         - Reference graph has cycles
     """
 
-    dependency_adjacency_list: dict[Transformation, Iterable[Transformation]] = {}
+    dependency_adjacency_list: dict[AnalysisFunction, Iterable[AnalysisFunction]] = {}
     all_hidden: bool = True
 
     for node in transformations:
@@ -169,7 +169,7 @@ def validate_and_sort_transformations(
         raise AnalysisError("At least one column must be shown.")
 
     try:
-        sorted_transformations: Iterable[Transformation] = [
+        sorted_transformations: Iterable[AnalysisFunction] = [
             *TopologicalSorter(dependency_adjacency_list).static_order()
         ]
     except CycleError as e:
@@ -187,13 +187,13 @@ def validate_and_sort_transformations(
 
 async def apply_analysis_function(
     data: Awaitable[LazyFrame],
-    transformation: Transformation,
+    transformation: AnalysisFunction,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     try:
-        return await TRANSFORMATION_DISPATCH[
+        return await ANALYSIS_FUNCTION_DISPATCH[
             getattr(transformation, UNION_DISCRIMINATOR)
         ](data, transformation, keys, shared_params, http_client)
     except KeyError:

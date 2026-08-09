@@ -3,8 +3,8 @@ from typing import Annotated
 
 from pydantic import Field
 
-from ..analysis.aggregate import AnyAggregateTransformation
-from ..analysis.individual import AnyIndividualTransformation
+from ..analysis.aggregate import AnyAggregateFunction
+from ..analysis.individual import AnyLinearFunction
 from ..analysis.models import UNION_DISCRIMINATOR, BaseMetric
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..global_types import Column, ColumnOptional
@@ -24,7 +24,7 @@ class AssetPriceDailyParams(ParamBaseModel):
 
     analysis: list[
         Annotated[
-            BaseMetric | AnyIndividualTransformation | AnyAggregateTransformation,
+            BaseMetric | AnyLinearFunction | AnyAggregateFunction,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""
@@ -49,7 +49,7 @@ class MarketCompositionParams(ParamBaseModel):
 
     analysis: list[
         Annotated[
-            BaseMetric | AnyIndividualTransformation,
+            BaseMetric | AnyLinearFunction,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""

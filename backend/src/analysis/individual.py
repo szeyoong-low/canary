@@ -115,6 +115,6 @@ async def index_to_date(
     )
 
 
-type AnyIndividualTransformation = (
+type AnyLinearFunction = (
     models.VolatilityModel | models.IndexToDateModel | models.ReturnsModel
 )

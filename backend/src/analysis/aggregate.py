@@ -28,4 +28,4 @@ async def group_mean(
     )
 
 
-type AnyAggregateTransformation = models.GroupMeanModel
+type AnyAggregateFunction = models.GroupMeanModel

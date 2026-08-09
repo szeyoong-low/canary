@@ -29,14 +29,14 @@ class Scope(Enum):
 type ScopeMapping = Mapping[str, Scope]
 
 
-class Transformation(models.ParamBaseModel):
+class AnalysisFunction(models.ParamBaseModel):
     # Docstrings are hoisted into the system prompt as they are shared by every
     # analysis function's model.
     name: models.NonEmptyString
     show: bool = True
 
     def __eq__(self, value: object) -> bool:
-        return isinstance(value, Transformation) and self.name.__eq__(value.name)
+        return isinstance(value, AnalysisFunction) and self.name.__eq__(value.name)
 
     def __hash__(self) -> int:
         return self.name.__hash__()
@@ -81,18 +81,18 @@ class Transformation(models.ParamBaseModel):
 UNION_DISCRIMINATOR: str = "analysis"
 
 
-class BaseMetric(Transformation):
+class BaseMetric(AnalysisFunction):
     """A column from raw data (`metric`) renamed as `name`"""
 
     analysis: Literal[""]
     metric: Annotated[models.NonEmptyString, Scope.BASE]
 
 
-class SingularTransformation(Transformation):
+class LinearFunction(AnalysisFunction):
     pass
 
 
-class VolatilityModel(SingularTransformation, models.WindowFunction):
+class VolatilityModel(LinearFunction, models.WindowFunction):
     """
     Calculate volatility of a metric (usually returns on a financial instrument
     over time).
@@ -108,7 +108,7 @@ class VolatilityModel(SingularTransformation, models.WindowFunction):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class ReturnsModel(SingularTransformation, models.TimeHorizon):
+class ReturnsModel(LinearFunction, models.TimeHorizon):
     """Calculate the percentage change of a metric over a given horizon (number
     of observations)."""
 
@@ -117,7 +117,7 @@ class ReturnsModel(SingularTransformation, models.TimeHorizon):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class IndexToDateModel(SingularTransformation, models.DateIndex):
+class IndexToDateModel(LinearFunction, models.DateIndex):
     """Create an index based on `reference`, which is assigned a value of `base`."""
 
     analysis: Literal["index-to-date"]  # Must match Column name in individual.py
@@ -125,11 +125,11 @@ class IndexToDateModel(SingularTransformation, models.DateIndex):
     metric: Annotated[models.NonEmptyString, Scope.ANY]
 
 
-class AggregateTransformation(Transformation):
+class AggregateFunction(AnalysisFunction):
     pass
 
 
-class GroupMeanModel(AggregateTransformation):
+class GroupMeanModel(AggregateFunction):
     """Calculate the average of `depends` over all individual entities."""
 
     analysis: Literal["group-mean"]  # Must match Column name in aggregate.py

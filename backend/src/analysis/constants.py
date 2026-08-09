@@ -3,7 +3,7 @@ from collections.abc import Awaitable, Callable
 from httpx import AsyncClient
 from polars import LazyFrame
 
-from ..analysis.models import Transformation
+from ..analysis.models import AnalysisFunction
 from ..global_types import Columns, Params
 
 """
@@ -24,9 +24,9 @@ Returns: Awaitable LazyFrame with the transformation and all its dependencies
         Must be defined with the async keyword.
 """
 
-type TransformationFunction[T: Transformation] = Callable[
+type AnalysisFunctionExecuter[T: AnalysisFunction] = Callable[
     [Awaitable[LazyFrame], T, Columns, Params, AsyncClient],
     Awaitable[LazyFrame],
 ]
 
-type TransformationDispatch = dict[str, TransformationFunction]
+type AnalysisFunctionDispatch = dict[str, AnalysisFunctionExecuter]
