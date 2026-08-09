@@ -13,7 +13,7 @@ from ..loaders.models import MarketCompositionFilters
 from ..transformations.aggregate import AnyAggregateTransformation
 from ..transformations.individual import AnyIndividualTransformation
 from ..transformations.models import UNION_DISCRIMINATOR, BaseMetric
-from ..validators.primitives import DateRangeModel, ParamBaseModel
+from ..validators.primitives import DateRange, ParamBaseModel
 from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
 
 """Pydantic models that form schemas for terminal functions used as agent tools."""
@@ -40,7 +40,7 @@ class AssetPriceDailyParams(ParamBaseModel):
     the CBOE market volatility index"""
 
 
-class AssetPriceDailySchema(AssetPriceDailyParams, DateRangeModel):
+class AssetPriceDailySchema(AssetPriceDailyParams, DateRange):
     pass
 
 

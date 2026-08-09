@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from polars import LazyFrame
 
 from ..global_types import Params
-from ..validators.primitives import DateRangeModel
+from ..validators.primitives import DateRange
 from . import models
 from .constants import METRIC_GROUP_KEYS
 from .dispatch import REQUEST_HEADERS
@@ -20,7 +20,7 @@ async def load_asset_price_daily(
 ) -> LazyFrame:
     """Data is sorted earliest to latest"""
 
-    date_range: DateRangeModel = DateRangeModel.model_validate(params)
+    date_range: DateRange = DateRange.model_validate(params)
 
     return (
         await _load_data(

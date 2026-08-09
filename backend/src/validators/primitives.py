@@ -35,7 +35,7 @@ def _check_nonempty_string(s: str) -> str:
 type NonEmptyString = Annotated[str, AfterValidator(_check_nonempty_string)]
 
 
-class DateRangeModel(ParamBaseModel):
+class DateRange(ParamBaseModel):
     start_date: date
     """Must be on or before end_date"""
 
