@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from polars import LazyFrame, col
 from polars import all as pl_all
 
-from ..global_constants import TRANSFORMATION_SEPARATOR
+from ..global_constants import ENTITY_TAG_SEPARATOR
 from ..global_types import Columns, ImplementationError, Params
 from ..transformations.models import UNION_DISCRIMINATOR, Scope
 from .dispatch import TRANSFORMATION_DISPATCH
@@ -206,5 +206,5 @@ async def pivot_single_entity(
     data: Awaitable[LazyFrame], symbol: str, keys: Columns
 ) -> LazyFrame:
     return (await data).select(
-        col(keys), pl_all().exclude(keys).name.prefix(symbol + TRANSFORMATION_SEPARATOR)
+        col(keys), pl_all().exclude(keys).name.prefix(symbol + ENTITY_TAG_SEPARATOR)
     )

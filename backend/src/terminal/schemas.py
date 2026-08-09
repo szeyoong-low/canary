@@ -6,7 +6,6 @@ from pydantic import Field, create_model
 from pydantic.fields import FieldInfo
 
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
-from ..global_constants import DOCS_ITEM_SEPARATOR
 from ..global_types import Column, ColumnOptional, Params
 from ..loaders.constants import (
     ASSET_PRICE_DAILY_BASE_METRICS,
@@ -23,6 +22,8 @@ from ..validators.primitives import (
     WindowFunction,
 )
 from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
+
+DOCS_ITEM_SEPARATOR: str = ", "
 
 
 def _contextualise_field(

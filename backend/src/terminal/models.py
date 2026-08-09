@@ -5,7 +5,6 @@ from typing import Annotated
 from fastapi import Query
 from pydantic import AfterValidator, BeforeValidator
 
-from ..global_constants import INITIAL_METRIC_SEPARATOR
 from ..global_types import Column, ColumnOptional, Columns
 
 
@@ -52,17 +51,19 @@ MARKET_DRILLDOWN: Columns = {
     "companyName",
 }
 
+DRILLDOWN_SEPARATOR: str = ","
+
 
 type MarketDrilldownParam = Annotated[
     list[str],
-    BeforeValidator(partial(_split_on_separator, sep=INITIAL_METRIC_SEPARATOR)),
+    BeforeValidator(partial(_split_on_separator, sep=DRILLDOWN_SEPARATOR)),
     AfterValidator(partial(_all_valid_columns, columns=MARKET_DRILLDOWN)),
 ]
 
 type MarketDrilldownQueryParam = Annotated[
     list[str],
     Query(),
-    BeforeValidator(partial(_split_on_separator, sep=INITIAL_METRIC_SEPARATOR)),
+    BeforeValidator(partial(_split_on_separator, sep=DRILLDOWN_SEPARATOR)),
     AfterValidator(partial(_all_valid_columns, columns=MARKET_DRILLDOWN)),
 ]
 

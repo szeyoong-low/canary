@@ -9,7 +9,7 @@ from polars.selectors import float as pl_float
 
 from ..display.charts import DISPLAY_HIERARCHY, DISPLAY_SERIES
 from ..display.output_models import ChartConfigModel
-from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
+from ..global_constants import DEC_PLACES_SHOWN, column_selection_regex
 from ..global_types import Columns, as_awaitable
 from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
 from ..loaders.load import load_asset_price_daily, load_market_composition
@@ -25,6 +25,7 @@ from .schemas import (
     MarketCompositionParams,
     MarketCompositionSchema,
 )
+from .utility import _get_shown_columns
 
 
 @tool(args_schema=AssetPriceDailySchema)
@@ -98,11 +99,13 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                 col(keys),
                 col(
                     map(
-                        individual_entity_regex,
-                        params.analysis - set(aggregate_transforms),
+                        partial(
+                            column_selection_regex,
+                            tagged="any",
+                        ),
+                        _get_shown_columns(params.analysis),
                     )
                 ),
-                col(aggregate_transforms),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
@@ -159,7 +162,9 @@ async def market_composition(**kwargs) -> ChartConfigModel:
             .group_by(params.drilldown)
             .agg(
                 col(params.aggregate_col).first(),
-                col(params.analysis).exclude(params.aggregate_col).first(),
+                col(_get_shown_columns(params.analysis))
+                .exclude(params.aggregate_col)
+                .first(),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
