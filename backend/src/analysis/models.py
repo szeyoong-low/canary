@@ -17,13 +17,13 @@ class Scope(Enum):
     INDIVIDUAL = auto()
     """Belongs to a single entity, e.g. revenue of AAPL."""
 
-    AGGREGATE = auto()
+    COLLECTIVE = auto()
     """Aggregate over multiple entities, e.g. mean revenue of the Magnificent Seven."""
 
     ANY = auto()
-    """Both INDIVIDUAL and AGGREGATE are accepted, but will lead to different
+    """Both INDIVIDUAL and COLLECTIVE are accepted, but will lead to different
     behaviour. Used to describe a column's dependencies but not itself (use
-    INDIVIDUAL or AGGREGATE)."""
+    INDIVIDUAL or COLLECTIVE)."""
 
 
 type ScopeMapping = Mapping[str, Scope]
@@ -48,7 +48,7 @@ class AnalysisFunction(models.ParamBaseModel):
     @cache
     def _dependency_fields(cls) -> ScopeMapping:
         """
-        Returns: Every field that names another transformation. This is fixed
+        Returns: Every field that names another analysis function. This is fixed
         when the class is defined so the reflection is cacheable.
 
         Precondition: Every field has at most one Scope tag.

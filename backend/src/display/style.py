@@ -45,12 +45,12 @@ def _style_lines(
 ) -> ChartConfigModel:
 
     # Order of appearance decides the slot (the columns are already ordered
-    # individual first by entity name, then aggregate).
+    # individual first by entity name, then collective).
     hue_mapping: ColorMapping = {}
     tint_mapping: ColorMapping = {}
 
     for line in lines:
-        # `<entity>/<value>` for individual metrics, `<value>` for aggregate
+        # `<entity>/<value>` for individual metrics, `<value>` for collective
         entity: str
         analysis: str
         entity, _, analysis = line.partition(ENTITY_TAG_SEPARATOR)
@@ -58,10 +58,10 @@ def _style_lines(
         hue_key: ColorKey
         tint_key: ColorKey | None
         if entity in entities:
-            # Individual: hue = entity, tint = transformation
+            # Individual: hue = entity, tint = analysis function
             hue_key, tint_key = entity, analysis
         else:
-            # Aggregate: one hue
+            # Collective: one hue
             hue_key, tint_key = line, None
 
         hue_slot: ColorSlot = hue_mapping.setdefault(

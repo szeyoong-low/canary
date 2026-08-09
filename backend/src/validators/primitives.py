@@ -8,7 +8,7 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, model_validator
 
 class ParamBaseModel(BaseModel):
     model_config = ConfigDict(
-        # Parameters will be passed around functions implementing transformations.
+        # Parameters will be passed around functions implementing analysis functions.
         # Each will extract and validate the fields they need independently.
         extra="ignore",
         use_attribute_docstrings=True,

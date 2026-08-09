@@ -13,23 +13,23 @@ from .dispatch import ANALYSIS_FUNCTION_DISPATCH
 from .exceptions import AnalysisError
 from .models import (
     AggregateFunction,
-    BaseMetric,
-    ScopeMapping,
-    LinearFunction,
     AnalysisFunction,
+    BaseMetric,
+    LinearFunction,
+    ScopeMapping,
 )
 
 
 def _get_dependencies(
     node: AnalysisFunction,
-    transformations: Collection[AnalysisFunction],
+    all_nodes: Collection[AnalysisFunction],
 ) -> Iterable[AnalysisFunction]:
     """
     Args:
-        node: a single transformation
-        transformations: all transformation passed by the user
+        node: a single analysis function
+        all_nodes: all analysis functions passed by the user
 
-    Returns: those in `transformations` that `node` depends on
+    Returns: those in `all_nodes` that `node` depends on
 
     Throws: AnalysisError
         - Predecessor references are invalid
@@ -41,12 +41,12 @@ def _get_dependencies(
     dependency_name: str
     for dependency_name in node.dependencies():
         matches: Iterable[AnalysisFunction] = filter(
-            lambda x: x.name == dependency_name, transformations
+            lambda x: x.name == dependency_name, all_nodes
         )
 
         if (match := next(matches, None)) is None:
             raise AnalysisError(
-                f"{dependency_name} refers to an unknown column. Must be one of {[t.name for t in transformations]}"
+                f"{dependency_name} refers to an unknown column. Must be one of {[t.name for t in all_nodes]}"
             )
 
         if next(matches, None) is not None:
@@ -59,19 +59,19 @@ def _get_dependencies(
 
 def _resolve_column_scope(
     resolved_scopes: ScopeMapping,
-    transformation: AnalysisFunction,
+    analysis_function: AnalysisFunction,
 ) -> ScopeMapping:
     """
-    Checks that all dependencies of `transformation` are of the correct `Scope`.
+    Checks that all dependencies of `analysis_function` are of the correct `Scope`.
 
     Args:
-        - resolved_scopes: The resolved scopes (Scope.INDIVIDUAL or Scope.AGGREGATE)
-            of all transformations that come before `transformation` in the
+        - resolved_scopes: The resolved scopes (Scope.INDIVIDUAL or Scope.COLLECTIVE)
+            of all analysis functions that come before `analysis_function` in the
             topological sort
-        - transformation: The current transformation checked
+        - analysis_function: The current analysis function checked
 
     Returns:
-        Mapping updated with the transformation's output column's `Scope`.
+        Mapping updated with the analysis function's output column's `Scope`.
 
     Throws:
         - AnalysisError: a dependency resolved to the wrong `Scope`
@@ -83,35 +83,35 @@ def _resolve_column_scope(
     updated_resolved_scopes: dict[str, Scope] = dict(resolved_scopes)
     output_scope: Scope
 
-    if isinstance(transformation, BaseMetric):
+    if isinstance(analysis_function, BaseMetric):
         # Dependencies already checked
         output_scope = Scope.INDIVIDUAL
     else:
-        # Invariant: only maps to Scope.INDIVIDUAL or Scope.AGGREGATE
-        dependency_scopes: ScopeMapping = transformation.dependencies()
+        # Invariant: only maps to Scope.INDIVIDUAL or Scope.COLLECTIVE
+        dependency_scopes: ScopeMapping = analysis_function.dependencies()
 
         dependency: str
         required_scope: Scope
         for dependency, required_scope in dependency_scopes.items():
             match required_scope:
-                case Scope.AGGREGATE | Scope.INDIVIDUAL:
+                case Scope.COLLECTIVE | Scope.INDIVIDUAL:
                     if required_scope != resolved_scopes[dependency]:
                         raise AnalysisError(
-                            f"{transformation} expects {dependency} to be {required_scope}, but received {resolved_scopes[dependency]}"
+                            f"{analysis_function} expects {dependency} to be {required_scope}, but received {resolved_scopes[dependency]}"
                         )
                 case Scope.BASE:
                     raise ImplementationError(
                         500,
-                        f"Only base metrics can have a dependency of Scope.BASE, but {transformation} is a {type(transformation)}",
+                        f"Only base metrics can have a dependency of Scope.BASE, but {analysis_function} is a {type(analysis_function)}",
                     )
                 case Scope.ANY:
                     pass  # No validation needed by definition
 
-        if isinstance(transformation, AggregateFunction):
-            output_scope = Scope.AGGREGATE
-        elif isinstance(transformation, LinearFunction):
-            if all(v is Scope.AGGREGATE for v in dependency_scopes.values()):
-                output_scope = Scope.AGGREGATE
+        if isinstance(analysis_function, AggregateFunction):
+            output_scope = Scope.COLLECTIVE
+        elif isinstance(analysis_function, LinearFunction):
+            if all(v is Scope.COLLECTIVE for v in dependency_scopes.values()):
+                output_scope = Scope.COLLECTIVE
             else:
                 output_scope = Scope.INDIVIDUAL
         else:
@@ -120,20 +120,20 @@ def _resolve_column_scope(
                 "Only allow BaseMetric, AggregateFunction, or LinearFunction",
             )
 
-    updated_resolved_scopes[transformation.name] = output_scope
+    updated_resolved_scopes[analysis_function.name] = output_scope
     return updated_resolved_scopes
 
 
-def validate_and_sort_transformations(
-    transformations: Collection[AnalysisFunction],
+def validate_and_sort_analysis_functions(
+    analysis_functions: Collection[AnalysisFunction],
     base_metrics: Columns,
 ) -> Iterable[AnalysisFunction]:
     """
     Args:
-        transformations: passed by the user
+        analysis_functions: passed by the user
         base_metrics: columns in raw data
 
-    Returns: Topological sort of `transformations` based on dependency structure
+    Returns: Topological sort of `analysis_functions` based on dependency structure
 
     Throws: AnalysisError
         - Column names are not unique
@@ -146,7 +146,7 @@ def validate_and_sort_transformations(
     dependency_adjacency_list: dict[AnalysisFunction, Iterable[AnalysisFunction]] = {}
     all_hidden: bool = True
 
-    for node in transformations:
+    for node in analysis_functions:
         if node in dependency_adjacency_list:
             raise AnalysisError(f"{node} is a duplicated column name")
 
@@ -160,7 +160,9 @@ def validate_and_sort_transformations(
                     f"{node} is not a base metric (one of {base_metrics})"
                 )
         else:
-            dependency_adjacency_list[node] = _get_dependencies(node, transformations)
+            dependency_adjacency_list[node] = _get_dependencies(
+                node, analysis_functions
+            )
 
         if node.show:
             all_hidden = False
@@ -169,7 +171,7 @@ def validate_and_sort_transformations(
         raise AnalysisError("At least one column must be shown.")
 
     try:
-        sorted_transformations: Iterable[AnalysisFunction] = [
+        sorted_analysis_functions: Iterable[AnalysisFunction] = [
             *TopologicalSorter(dependency_adjacency_list).static_order()
         ]
     except CycleError as e:
@@ -178,27 +180,27 @@ def validate_and_sort_transformations(
     # Return value discarded, just for resolving and checking column scopes
     reduce(
         _resolve_column_scope,
-        sorted_transformations,
+        sorted_analysis_functions,
         {},
     )
 
-    return sorted_transformations
+    return sorted_analysis_functions
 
 
 async def apply_analysis_function(
     data: Awaitable[LazyFrame],
-    transformation: AnalysisFunction,
+    function: AnalysisFunction,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     try:
-        return await ANALYSIS_FUNCTION_DISPATCH[
-            getattr(transformation, UNION_DISCRIMINATOR)
-        ](data, transformation, keys, shared_params, http_client)
+        return await ANALYSIS_FUNCTION_DISPATCH[getattr(function, UNION_DISCRIMINATOR)](
+            data, function, keys, shared_params, http_client
+        )
     except KeyError:
         raise ImplementationError(
-            500, f"{type(transformation)} must have a {UNION_DISCRIMINATOR} attribute"
+            500, f"{type(function)} must have a {UNION_DISCRIMINATOR} attribute"
         )
 
 

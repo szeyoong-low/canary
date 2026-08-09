@@ -15,15 +15,15 @@ GROUP_MEAN: Column = "group-mean"
 
 async def group_mean(
     data: Awaitable[LazyFrame],
-    transformation: models.GroupMeanModel,
+    analysis_function: models.GroupMeanModel,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     return _apply_unary_aggregation(
         data=await data,
-        source_col=transformation.metric,
-        dest_col=transformation.name,
+        source_col=analysis_function.metric,
+        dest_col=analysis_function.name,
         function=mean_horizontal,
     )
 

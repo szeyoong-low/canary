@@ -24,7 +24,7 @@ def _apply_unary_function(
     function: Callable[[Expr], Expr],
 ) -> LazyFrame:
     """
-    Apply a singular transformation or base metric aliasing. Same number of
+    Apply a linear function or base metric aliasing. Same number of
     output columns as number of input columns.
 
     args:
@@ -32,8 +32,8 @@ def _apply_unary_function(
             untagged (e.g. `foo`).
         dest_col: Write the results to a new column of name `dest_col`, overwrite
             `source_col` if None, keeping the corresponding original tag.
-        function: A unary function on a Polars expression implementing a singular
-            transformation
+        function: A unary function on a Polars expression implementing a linear
+            function
 
     Precondition: All dependencies are present (guaranteed by topological sorting)
     """
@@ -56,13 +56,13 @@ def _apply_unary_aggregation(
     function: Callable[[Expr], Expr],
 ) -> LazyFrame:
     """
-    Apply an aggregate transformation. Exactly one output column.
+    Apply an aggregate function. Exactly one output column.
 
     args:
         source_col: Target column(s). Must be tagged (e.g. `AAPL/foo`).
         dest_col: Write the results to a new column of name `dest_col`.
         function: A unary function on a Polars expression implementing an
-            aggregate transformation.
+            aggregate function.
     """
 
     return data.with_columns(
