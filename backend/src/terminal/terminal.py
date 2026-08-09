@@ -1,43 +1,19 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from httpx import codes
 from pydantic import ValidationError
 
-from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..display.output_models import ChartConfigModel
 from ..global_types import DataProcessingError, ImplementationError
-from ..validators.primitives import DateRangeModel
-from .models import (
-    ColumnOptionalQueryParam,
-    ColumnQueryParam,
-    EntityQueryParam,
-    MarketDrilldownQueryParam,
-    SetQueryParam,
-)
+from .schemas import AssetPriceDailySchema, MarketCompositionSchema
 from .tools import asset_price_daily, market_composition
-from .utility import _get_terminal_path
 
 router = APIRouter(prefix="/terminal")
 
 
-@router.get(_get_terminal_path("asset-price-daily"))
-async def asset_price_daily_handler(
-    display: SeriesDisplayName,
-    analysis: SetQueryParam,
-    symbol: EntityQueryParam,
-    request: Request,
-) -> ChartConfigModel:
-
+@router.post("/asset-price-daily")
+async def asset_price_daily_handler(args: AssetPriceDailySchema) -> ChartConfigModel:
     try:
-        return await asset_price_daily.ainvoke(
-            {
-                "display": display,
-                "analysis": analysis,
-                "symbol": symbol,
-                **DateRangeModel.validate_query_params(request.query_params).model_dump(
-                    exclude_unset=True
-                ),
-            }
-        )
+        return await asset_price_daily.ainvoke(args.model_dump())
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
     except ImplementationError as e:
@@ -46,26 +22,10 @@ async def asset_price_daily_handler(
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, str(e))
 
 
-@router.get(_get_terminal_path("market-composition"))
-async def market_composition_handler(
-    display: HierarchyDisplayName,
-    analysis: SetQueryParam,
-    drilldown: MarketDrilldownQueryParam,
-    request: Request,
-    aggregate_col: ColumnQueryParam,
-    colour_col: ColumnOptionalQueryParam = None,
-) -> ChartConfigModel:
-
+@router.post("/market-composition")
+async def market_composition_handler(args: MarketCompositionSchema) -> ChartConfigModel:
     try:
-        return await market_composition.ainvoke(
-            {
-                "display": display,
-                "analysis": analysis,
-                "drilldown": drilldown,
-                "aggregate_col": aggregate_col,
-                "colour_col": colour_col,
-            }
-        )
+        return await market_composition.ainvoke(args.model_dump())
     except DataProcessingError as e:
         raise HTTPException(codes.UNPROCESSABLE_ENTITY, e.message)
     except ImplementationError as e:

@@ -2,10 +2,9 @@ from collections.abc import Iterable
 from functools import partial
 from typing import Annotated
 
-from fastapi import Query
 from pydantic import AfterValidator, BeforeValidator
 
-from ..global_types import Column, ColumnOptional, Columns
+from ..global_types import Columns
 
 
 def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:
@@ -18,12 +17,6 @@ def _uppercasify_sort_strings(strings: Iterable[str]) -> list[str]:
 
 
 type EntityParam = Annotated[list[str], AfterValidator(_uppercasify_sort_strings)]
-
-type EntityQueryParam = Annotated[
-    list[str], Query(), AfterValidator(_uppercasify_sort_strings)
-]
-
-type SetQueryParam = Annotated[set[str], Query()]
 
 
 def _all_valid_columns(strings: list[str], columns: Columns) -> list[str]:
@@ -59,14 +52,3 @@ type MarketDrilldownParam = Annotated[
     BeforeValidator(partial(_split_on_separator, sep=DRILLDOWN_SEPARATOR)),
     AfterValidator(partial(_all_valid_columns, columns=MARKET_DRILLDOWN)),
 ]
-
-type MarketDrilldownQueryParam = Annotated[
-    list[str],
-    Query(),
-    BeforeValidator(partial(_split_on_separator, sep=DRILLDOWN_SEPARATOR)),
-    AfterValidator(partial(_all_valid_columns, columns=MARKET_DRILLDOWN)),
-]
-
-type ColumnQueryParam = Annotated[Column, Query()]
-
-type ColumnOptionalQueryParam = Annotated[ColumnOptional, Query()]
