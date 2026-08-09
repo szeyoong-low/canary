@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .src.agent import router as agent
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import CONTENT_TYPE_HEADER
-from .src.terminal import terminal
+from .src.terminal import router as terminal
 
 app: FastAPI = FastAPI()
 
