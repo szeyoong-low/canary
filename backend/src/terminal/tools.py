@@ -9,14 +9,15 @@ from polars.selectors import float as pl_float
 
 from ..display.charts import DISPLAY_HIERARCHY, DISPLAY_SERIES
 from ..display.output_models import ChartConfigModel
-from ..global_constants import DEC_PLACES_SHOWN, individual_entity_regex
+from ..global_constants import DEC_PLACES_SHOWN, column_selection_regex
 from ..global_types import Columns, as_awaitable
 from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
 from ..loaders.load import load_asset_price_daily, load_market_composition
+from ..transformations.models import Transformation
 from ..transformations.utility import (
     apply_analysis_function,
     pivot_single_entity,
-    resolve_transformations,
+    validate_and_sort_transformations,
 )
 from .schemas import (
     AssetPriceDailyParams,
@@ -24,6 +25,7 @@ from .schemas import (
     MarketCompositionParams,
     MarketCompositionSchema,
 )
+from .utility import _get_shown_columns
 
 
 @tool(args_schema=AssetPriceDailySchema)
@@ -38,31 +40,40 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
     Call: `asset-price-daily` with
     {
-        display: time-series,
-        analysis: [
-            vwap/index-to-date,
+        "display": "time-series",
+        "analysis": [
+            {
+                "name": "Volume-weighted average price",
+                "show": false,
+                "analysis": "",
+                "metric": "vwap"
+            },
+            {
+                "name": "Indexed price",
+                "show": true,
+                "analysis": "index-to-date",
+                "metric": "Volume-weighted average price",
+                "base": 100,
+                "reference": "2026-01-02"
+            }
         ],
-        symbol: [
-            aapl,
-            goog,
-            msft,
-            nvda,
-            tsla,
-            jpm,
-            bac,
-        ]
-        start_date=2026-01-01,
-        end_date=2026-03-31,
-        base=100,
-        reference=2026-01-02,
+        "symbol": [
+            "aapl",
+            "goog",
+            "msft",
+            "nvda",
+            "tsla",
+            "jpm",
+            "bac"
+        ],
+        "start_date": "2026-01-01",
+        "end_date": "2026-03-31"
     }
     """
 
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
-    indiv_transforms: Iterable[str]
-    collective_transforms: Iterable[str]
-    indiv_transforms, collective_transforms = resolve_transformations(
+    transformations: Iterable[Transformation] = validate_and_sort_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
     )
 
@@ -71,21 +82,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
     async with AsyncClient(follow_redirects=True) as client:
         indiv_entities: Iterable[LazyFrame] = await gather(
             *(
-                (
-                    pivot_single_entity(
-                        reduce(
-                            partial(
-                                apply_analysis_function,
-                                keys=keys,
-                                params=kwargs,
-                                http_client=client,
-                            ),
-                            indiv_transforms,
-                            load_asset_price_daily(client, sym, kwargs),
-                        ),
-                        sym,
-                        keys,
-                    )
+                pivot_single_entity(
+                    load_asset_price_daily(client, sym, kwargs),
+                    sym,
+                    keys,
                 )
                 for sym in params.symbol
             )
@@ -99,10 +99,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                     partial(
                         apply_analysis_function,
                         keys=keys,
-                        params=kwargs,
+                        shared_params=kwargs,
                         http_client=client,
                     ),
-                    collective_transforms,
+                    transformations,
                     as_awaitable(merged_entities),
                 )
             )
@@ -110,11 +110,13 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                 col(keys),
                 col(
                     map(
-                        individual_entity_regex,
-                        params.analysis - set(collective_transforms),
+                        partial(
+                            column_selection_regex,
+                            tagged="any",
+                        ),
+                        _get_shown_columns(params.analysis),
                     )
                 ),
-                col(collective_transforms),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
@@ -134,26 +136,33 @@ async def market_composition(**kwargs) -> ChartConfigModel:
 
     Call: `market-composition` with
     {
-        display: treemap,
-        analysis: [
-            marketCap,
+        "display": "treemap",
+        "analysis": [
+            {
+                "name": "Market capitalisation",
+                "show": true,
+                "analysis": "",
+                "metric": "marketCap"
+            },
+            {
+                "name": "Share price",
+                "show": true,
+                "analysis": "",
+                "metric": "price"
+            }
         ],
-        drilldown: [
-            sector,
-            industry,
-            companyName,
+        "drilldown": [
+            "sector",
+            "industry",
+            "companyName"
         ],
-        aggregate_col=marketCap,
-        analysis=price,
+        "aggregate_col": "marketCap"
     }
     """
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
-    indiv_transforms: Iterable[str]
-    # Collective transformations are meaningless here as all entities are
-    # already in a single table
-    indiv_transforms, _ = resolve_transformations(
+    transformations: Iterable[Transformation] = validate_and_sort_transformations(
         params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
     )
 
@@ -164,17 +173,19 @@ async def market_composition(**kwargs) -> ChartConfigModel:
                     partial(
                         apply_analysis_function,
                         keys=[],
-                        params=kwargs,
+                        shared_params=kwargs,
                         http_client=client,
                     ),
-                    indiv_transforms,
+                    transformations,
                     load_market_composition(client, kwargs),
                 )
             )
             .group_by(params.drilldown)
             .agg(
                 col(params.aggregate_col).first(),
-                col(params.analysis).exclude(params.aggregate_col).first(),
+                col(_get_shown_columns(params.analysis))
+                .exclude(params.aggregate_col)
+                .first(),
             )
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
