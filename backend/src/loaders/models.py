@@ -5,7 +5,7 @@ from pydantic import Field
 from ..validators.primitives import ParamBaseModel
 
 
-class MarketComposition(ParamBaseModel):
+class MarketCompositionFilters(ParamBaseModel):
     category: Literal["company", "etf", "fund"] = "company"
     industry: list[str] = Field(default=[])
     sector: list[str] = Field(default=[])

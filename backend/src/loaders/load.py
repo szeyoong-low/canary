@@ -20,7 +20,7 @@ async def load_asset_price_daily(
 ) -> LazyFrame:
     """Data is sorted earliest to latest"""
 
-    validated_params: DateRangeModel = DateRangeModel.model_validate(params)
+    date_range: DateRangeModel = DateRangeModel.model_validate(params)
 
     return (
         await _load_data(
@@ -29,8 +29,8 @@ async def load_asset_price_daily(
             endpoint="historical-price-eod/full",
             query_params={
                 "symbol": symbol,
-                "from": validated_params.start_date,
-                "to": validated_params.end_date,
+                "from": date_range.start_date,
+                "to": date_range.end_date,
             },
             headers=REQUEST_HEADERS["FMP"](),
         )
@@ -43,8 +43,8 @@ async def load_market_composition(
 ) -> LazyFrame:
     """Data is sorted in descending order of market capitalisation"""
 
-    validated_params: models.MarketComposition = (
-        models.MarketComposition.model_validate(params)
+    filters: models.MarketCompositionFilters = (
+        models.MarketCompositionFilters.model_validate(params)
     )
 
     return await _load_data(
@@ -52,12 +52,12 @@ async def load_market_composition(
         external_api="FMP",
         endpoint="company-screener",
         query_params={
-            "country": validated_params.country,
-            "industry": validated_params.industry,
-            "sector": validated_params.sector,
-            "exchange": validated_params.exchange,
-            "isEtf": validated_params.category == "etf",
-            "isFund": validated_params.category == "fund",
+            "country": filters.country,
+            "industry": filters.industry,
+            "sector": filters.sector,
+            "exchange": filters.exchange,
+            "isEtf": filters.category == "etf",
+            "isFund": filters.category == "fund",
             "isActivelyTrading": True,
             "limit": LIMIT_NUM_ENTRIES,
             "includeAllShareClasses": False,

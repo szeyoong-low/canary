@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..display.output_models import ChartConfigModel
 from ..global_types import DataProcessingError, ImplementationError
+from ..validators.primitives import DateRangeModel
 from .models import (
     ColumnOptionalQueryParam,
     ColumnQueryParam,
@@ -12,7 +13,6 @@ from .models import (
     MarketDrilldownQueryParam,
     SetQueryParam,
 )
-from .schemas import AssetPriceDailyAPI
 from .tools import asset_price_daily, market_composition
 from .utility import _get_terminal_path
 
@@ -33,9 +33,9 @@ async def asset_price_daily_handler(
                 "display": display,
                 "analysis": analysis,
                 "symbol": symbol,
-                **AssetPriceDailyAPI.validate_query_params(
-                    request.query_params
-                ).model_dump(exclude_unset=True),
+                **DateRangeModel.validate_query_params(request.query_params).model_dump(
+                    exclude_unset=True
+                ),
             }
         )
     except DataProcessingError as e:
