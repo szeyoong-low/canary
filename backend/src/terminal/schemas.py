@@ -3,6 +3,9 @@ from typing import Annotated
 
 from pydantic import Field
 
+from ..analysis.aggregate import AnyAggregateFunction
+from ..analysis.linear import AnyLinearFunction
+from ..analysis.models import UNION_DISCRIMINATOR, BaseMetric
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..global_types import Column, ColumnOptional
 from ..loaders.constants import (
@@ -10,10 +13,7 @@ from ..loaders.constants import (
     MARKET_COMPOSITION_BASE_METRICS,
 )
 from ..loaders.models import MarketCompositionFilters
-from ..transformations.aggregate import AnyAggregateTransformation
-from ..transformations.individual import AnyIndividualTransformation
-from ..transformations.models import UNION_DISCRIMINATOR, BaseMetric
-from ..validators.primitives import DateRangeModel, ParamBaseModel
+from ..validators.primitives import DateRange, ParamBaseModel
 from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
 
 """Pydantic models that form schemas for terminal functions used as agent tools."""
@@ -24,7 +24,7 @@ class AssetPriceDailyParams(ParamBaseModel):
 
     analysis: list[
         Annotated[
-            BaseMetric | AnyIndividualTransformation | AnyAggregateTransformation,
+            BaseMetric | AnyLinearFunction | AnyAggregateFunction,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""
@@ -40,7 +40,7 @@ class AssetPriceDailyParams(ParamBaseModel):
     the CBOE market volatility index"""
 
 
-class AssetPriceDailySchema(AssetPriceDailyParams, DateRangeModel):
+class AssetPriceDailySchema(AssetPriceDailyParams, DateRange):
     pass
 
 
@@ -49,7 +49,7 @@ class MarketCompositionParams(ParamBaseModel):
 
     analysis: list[
         Annotated[
-            BaseMetric | AnyIndividualTransformation,
+            BaseMetric | AnyLinearFunction,
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""

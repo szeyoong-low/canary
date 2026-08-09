@@ -7,18 +7,18 @@ from langchain_core.tools import BaseTool, tool
 from polars import LazyFrame, col, concat
 from polars.selectors import float as pl_float
 
+from ..analysis.models import AnalysisFunction
+from ..analysis.utility import (
+    apply_analysis_function,
+    pivot_single_entity,
+    validate_and_sort_analysis_functions,
+)
 from ..display.charts import DISPLAY_HIERARCHY, DISPLAY_SERIES
 from ..display.output_models import ChartConfigModel
 from ..global_constants import DEC_PLACES_SHOWN, column_selection_regex
 from ..global_types import Columns, as_awaitable
 from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
 from ..loaders.load import load_asset_price_daily, load_market_composition
-from ..transformations.models import Transformation
-from ..transformations.utility import (
-    apply_analysis_function,
-    pivot_single_entity,
-    validate_and_sort_transformations,
-)
 from .schemas import (
     AssetPriceDailyParams,
     AssetPriceDailySchema,
@@ -73,8 +73,10 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
 
     params: AssetPriceDailyParams = AssetPriceDailyParams.model_validate(kwargs)
 
-    transformations: Iterable[Transformation] = validate_and_sort_transformations(
-        params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
+    analysis_functions: Iterable[AnalysisFunction] = (
+        validate_and_sort_analysis_functions(
+            params.analysis, METRIC_GROUP_BASE_METRICS["asset-price-daily"]
+        )
     )
 
     keys: Columns = METRIC_GROUP_KEYS["asset-price-daily"]
@@ -102,7 +104,7 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
                         shared_params=kwargs,
                         http_client=client,
                     ),
-                    transformations,
+                    analysis_functions,
                     as_awaitable(merged_entities),
                 )
             )
@@ -162,8 +164,10 @@ async def market_composition(**kwargs) -> ChartConfigModel:
 
     params: MarketCompositionParams = MarketCompositionParams.model_validate(kwargs)
 
-    transformations: Iterable[Transformation] = validate_and_sort_transformations(
-        params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
+    analysis_functions: Iterable[AnalysisFunction] = (
+        validate_and_sort_analysis_functions(
+            params.analysis, METRIC_GROUP_BASE_METRICS["market-composition"]
+        )
     )
 
     async with AsyncClient(follow_redirects=True) as client:
@@ -176,7 +180,7 @@ async def market_composition(**kwargs) -> ChartConfigModel:
                         shared_params=kwargs,
                         http_client=client,
                     ),
-                    transformations,
+                    analysis_functions,
                     load_market_composition(client, kwargs),
                 )
             )

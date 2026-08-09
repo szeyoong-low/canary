@@ -1,6 +1,6 @@
-from ..transformations.aggregate import GROUP_MEAN, group_mean
-from ..transformations.constants import TransformationDispatch
-from ..transformations.individual import (
+from ..analysis.aggregate import GROUP_MEAN, group_mean
+from ..analysis.constants import AnalysisFunctionDispatch
+from .linear import (
     BASE_METRIC,
     INDEX_TO_DATE,
     RETURNS,
@@ -11,7 +11,7 @@ from ..transformations.individual import (
     volatility,
 )
 
-TRANSFORMATION_DISPATCH: TransformationDispatch = {
+ANALYSIS_FUNCTION_DISPATCH: AnalysisFunctionDispatch = {
     BASE_METRIC: base_metric,
     VOLATILITY: volatility,
     RETURNS: returns,

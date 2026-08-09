@@ -42,12 +42,12 @@ Nodes also take custom arguments and their dependencies (fields that contain a
 `Scope` enum in their metadata). Dependencies are referenced by name. Take care
 not to produce cyclic references.
 
-`Scope` describes the inputs and outputs of a transformation. An entity is an
+`Scope` describes the inputs and outputs of an analysis function. An entity is an
 individual stock, commodity, etc.
 - BASE: is used by BaseMetric to reference a base metric
 - INDIVIDUAL: applies to a single entity
-- AGGREGATE: applies to all entities
-- ANY: either INDIVIDUAL or AGGREGATE
+- COLLECTIVE: applies to all entities
+- ANY: either INDIVIDUAL or COLLECTIVE
 
 Dependencies referenced must match the `Scope` required by the field.
 
@@ -63,16 +63,16 @@ There are three types of analysis functions:
     - Not supported by all tools, and the supported set varies (listed in the
         field description).
 
-- Singular
+- Linear
     - Calculations involving a single entity that produce one output column per
         entity, e.g. percentage change, rolling average, normalise. This is of
-        `Scope.AGGREGATE` if all inputs resolve to `Scope.AGGREGATE`, else
+        `Scope.COLLECTIVE` if all inputs resolve to `Scope.COLLECTIVE`, else
         `Scope.INDIVIDUAL`.
     - Supported by all tools, though the supported set varies.
 
 - Aggregate
     - Calculations involving all individual entities that produce exactly one
-        output column of `Scope.AGGREGATE`, e.g. index to peer, rank, benchmark.
+        output column of `Scope.COLLECTIVE`, e.g. index to peer, rank, benchmark.
     - Not supported by all tools, and the supported set varies.
 """)
 

@@ -22,22 +22,22 @@ INDEX_TO_DATE: Column = "index-to-date"
 
 async def base_metric(
     data: Awaitable[LazyFrame],
-    transformation: models.BaseMetric,
+    analysis_function: models.BaseMetric,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
 ) -> LazyFrame:
     return _apply_unary_function(
         await data,
-        transformation.metric,
-        transformation.name,
+        analysis_function.metric,
+        analysis_function.name,
         lambda x: x,
     )
 
 
 async def volatility(
     data: Awaitable[LazyFrame],
-    transformation: models.VolatilityModel,
+    analysis_function: models.VolatilityModel,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
@@ -47,17 +47,17 @@ async def volatility(
         [
             partial(
                 _apply_unary_function,
-                source_col=transformation.metric,
-                dest_col=transformation.name,
+                source_col=analysis_function.metric,
+                dest_col=analysis_function.name,
                 function=(
-                    lambda x: Expr.rolling_std(x, window_size=transformation.window)
+                    lambda x: Expr.rolling_std(x, window_size=analysis_function.window)
                 ),
             ),
             partial(
                 _apply_unary_function,
-                source_col=transformation.name,
-                dest_col=transformation.name,
-                function=(lambda x: x * sqrt(transformation.window)),
+                source_col=analysis_function.name,
+                dest_col=analysis_function.name,
+                function=(lambda x: x * sqrt(analysis_function.window)),
             ),
         ],
         await data,
@@ -66,7 +66,7 @@ async def volatility(
 
 async def returns(
     data: Awaitable[LazyFrame],
-    transformation: models.ReturnsModel,
+    analysis_function: models.ReturnsModel,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
@@ -76,14 +76,14 @@ async def returns(
         [
             partial(
                 _apply_unary_function,
-                source_col=transformation.metric,
-                dest_col=transformation.name,
-                function=(lambda x: Expr.pct_change(x, n=transformation.horizon)),
+                source_col=analysis_function.metric,
+                dest_col=analysis_function.name,
+                function=(lambda x: Expr.pct_change(x, n=analysis_function.horizon)),
             ),
             partial(
                 _apply_unary_function,
-                source_col=transformation.name,
-                dest_col=transformation.name,
+                source_col=analysis_function.name,
+                dest_col=analysis_function.name,
                 function=(lambda x: x * 100),
             ),
         ],
@@ -93,7 +93,7 @@ async def returns(
 
 async def index_to_date(
     data: Awaitable[LazyFrame],
-    transformation: models.IndexToDateModel,
+    analysis_function: models.IndexToDateModel,
     keys: Columns,
     shared_params: Params,
     http_client: AsyncClient,
@@ -104,17 +104,17 @@ async def index_to_date(
 
     return _apply_unary_function(
         data=await data,
-        source_col=transformation.metric,
-        dest_col=transformation.name,
+        source_col=analysis_function.metric,
+        dest_col=analysis_function.name,
         function=(
             lambda x: (
-                (x / x.filter(col(DATE_KEY) == transformation.reference).first())
-                * transformation.base
+                (x / x.filter(col(DATE_KEY) == analysis_function.reference).first())
+                * analysis_function.base
             )
         ),
     )
 
 
-type AnyIndividualTransformation = (
+type AnyLinearFunction = (
     models.VolatilityModel | models.IndexToDateModel | models.ReturnsModel
 )
