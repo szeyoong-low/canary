@@ -1,5 +1,3 @@
-# For Claude, with love
-
 ## About this project
 Canary is a full-stack agentic financial terminal.
 Users can ask any question about businesses or the financial markets.
@@ -11,7 +9,7 @@ An AI agent will fetch data, transform it, and return an interactive chart and t
 - [Architecture](./canary.wiki/Architecture.md)
 - [Decision rationale](./canary.wiki/architecture-decisions/)
 
-## Way of working — read before answering any prompt
+## Way of working
 The highest priority of this project is learning.
 I want to be capable of making architectural decisions and reasoning about them.
 I would like the pace to be manageable so that I can stay in control.

@@ -1,6 +1,6 @@
 from coloraide import Color
 
-from ..global_constants import TRANSFORMATION_SEPARATOR
+from ..global_constants import ENTITY_TAG_SEPARATOR
 from ..global_types import Column, Entities
 from .output_models import ChartConfigModel, ItemStyle, LineStyle, Series
 
@@ -53,12 +53,12 @@ def _style_lines(
         # `<entity>/<value>` for individual metrics, `<value>` for collective
         entity: str
         analysis: str
-        entity, _, analysis = line.partition(TRANSFORMATION_SEPARATOR)
+        entity, _, analysis = line.partition(ENTITY_TAG_SEPARATOR)
 
         hue_key: ColorKey
         tint_key: ColorKey | None
         if entity in entities:
-            # Individual: hue = entity, tint = transformation
+            # Individual: hue = entity, tint = analysis function
             hue_key, tint_key = entity, analysis
         else:
             # Collective: one hue
