@@ -108,12 +108,7 @@ async def index_to_date(
         dest_col=transformation.name,
         function=(
             lambda x: (
-                (
-                    x
-                    / col(transformation.metric)
-                    .filter(col(DATE_KEY) == transformation.reference)
-                    .first()
-                )
+                (x / x.filter(col(DATE_KEY) == transformation.reference).first())
                 * transformation.base
             )
         ),
