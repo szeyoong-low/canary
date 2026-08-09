@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 from inspect import cleandoc
 
 from langchain.chat_models import init_chat_model
@@ -17,57 +17,67 @@ type ModelWithTools = Runnable[LanguageModelInput, AIMessage]
 # found in their own docstrings and field descriptions
 
 PLANNING_SYSTEM_PROMPT: str = cleandoc("""
-Your should turn the user's question about finance, business, or economics
-into a single tool call that produces a chart that answers it.
+Your should answer the user's question about finance, business, or economics
+with a chart by making a single tool call.
 
 - Call exactly one tool per turn.
 - Derive every argument from the user's question and the tool's schema. Never
 invent tickers, dates, or metric names to fill a required field.
 - If no tool can answer the question or the question is too vague to fill the
-required arguments, do not call a tool. Reply in plain text saying briefly
-what you cannot do and what you would need to proceed.
+required arguments, do not call a tool. Explain briefly in plain text what you
+cannot do and what you would need to proceed.
 
 All tools require an `analysis` argument. These so called "analysis functions"
-are how you specify what data is displayed in charts. They are series of composed
-transformations that operate on:
+are how you specify what data is displayed in charts. Think of them as sequential
+operations on the columns of a spreadsheet. They are composable and should be
+specified as nodes of a directed acyclic graph. Every node has two attributes:
 
-- **Individual entities:** base metrics or calculations involving a single entity,
-e.g. percentage change, rolling average, normalise (all tools accept these)
-- **Collective (all entities):** calculations involving all individual entities,
-e.g. index to peer, rank, benchmark (not all tools accept these)
+- name: serves as this column's unique ID and display name. Duplicate names are
+    not allowed.
+- show: If true, it will be displayed in the output dataset and the chart as
+    `name`, else it will be discarded at the end. At least one column must be
+    shown.
 
-An entity is an individual stock, commodity, etc.
-For now, collective transformations cannot be composed further.
+Nodes also take custom arguments and their dependencies (fields that contain a
+`Scope` enum in their metadata). Dependencies are referenced by name. Take care
+not to produce cyclic references.
 
-Specify each analysis function as `<foo>/<bar>/<baz>`, where `bar` is applied on
-`foo` and `baz` is applied on `bar`. Each transformation depends on its immediate
-precedecessor, which is the suffix.
+`Scope` describes the inputs and outputs of an analysis function. An entity is an
+individual stock, commodity, etc.
+- BASE: is used by BaseMetric to reference a base metric
+- INDIVIDUAL: applies to a single entity
+- COLLECTIVE: applies to all entities
+- ANY: either INDIVIDUAL or COLLECTIVE
 
-The first of these must be a base metric (something directly obtainable from data
-without any calculations) or an individual transformation with no dependencies.
-An analysis function must always be provided, even if it is to select a base metric for viewing.
+Dependencies referenced must match the `Scope` required by the field.
 
-Examples:
-- Simply select for viewing, with no transformation
-    - `vwap`
-- Apply one transformation
-    - `vwap/returns`
-    - `bid,ask/spread`: requires `bid` and `ask`, one transformation (non-commutative)
-- Applies two composed transformations
-    - `vwap/returns/normalise`
-    - `vwap/returns/realised-volatility`
-- Applies three composed transformations
-    - `vwap/returns/realised-volatility/normalise` 
+There are three types of analysis functions:
 
-If the first transformation is a list (e.g. `bid,ask/spread`), the next
-transformation must take this number of arguments and fuse them into a single metric.
+- Base metrics
+    - Metrics readily available to a tool, giving one output column of
+        `Scope.INDIVIDUAL` per entity.
+    - To display one, you MUST specify a BaseMetric referencing it. For example,
+        if you want to reference base metric `close`, make sure you add a
+        BaseMetric with `metric="close"` and reference its name. You may set
+        `show=False" 
+    - Not supported by all tools, and the supported set varies (listed in the
+        field description).
 
-Collective transformations must come after individual transformations.
-- `vwap/returns/rank`: Always depends on an individual transformation or base metric.
+- Linear
+    - Calculations involving a single entity that produce one output column per
+        entity, e.g. percentage change, rolling average, normalise. This is of
+        `Scope.COLLECTIVE` if all inputs resolve to `Scope.COLLECTIVE`, else
+        `Scope.INDIVIDUAL`.
+    - Supported by all tools, though the supported set varies.
+
+- Aggregate
+    - Calculations involving all individual entities that produce exactly one
+        output column of `Scope.COLLECTIVE`, e.g. index to peer, rank, benchmark.
+    - Not supported by all tools, and the supported set varies.
 """)
 
 
-@lru_cache
+@cache
 def planning_node_llm() -> ModelWithTools:
     """Build an LLM client for the planning node."""
 
