@@ -3,8 +3,8 @@ from collections.abc import Awaitable, Callable
 from httpx import AsyncClient
 from polars import LazyFrame
 
+from ..analysis.models import Transformation
 from ..global_types import Columns, Params
-from ..transformations.models import Transformation
 
 """
 Contract of transformation implementations

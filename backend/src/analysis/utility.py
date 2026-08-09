@@ -6,9 +6,9 @@ from httpx import AsyncClient
 from polars import LazyFrame, col
 from polars import all as pl_all
 
+from ..analysis.models import UNION_DISCRIMINATOR, Scope
 from ..global_constants import ENTITY_TAG_SEPARATOR
 from ..global_types import Columns, ImplementationError, Params
-from ..transformations.models import UNION_DISCRIMINATOR, Scope
 from .dispatch import TRANSFORMATION_DISPATCH
 from .exceptions import AnalysisError
 from .models import (

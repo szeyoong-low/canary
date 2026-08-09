@@ -3,6 +3,9 @@ from typing import Annotated
 
 from pydantic import Field
 
+from ..analysis.aggregate import AnyAggregateTransformation
+from ..analysis.individual import AnyIndividualTransformation
+from ..analysis.models import UNION_DISCRIMINATOR, BaseMetric
 from ..display.charts import HierarchyDisplayName, SeriesDisplayName
 from ..global_types import Column, ColumnOptional
 from ..loaders.constants import (
@@ -10,9 +13,6 @@ from ..loaders.constants import (
     MARKET_COMPOSITION_BASE_METRICS,
 )
 from ..loaders.models import MarketCompositionFilters
-from ..transformations.aggregate import AnyAggregateTransformation
-from ..transformations.individual import AnyIndividualTransformation
-from ..transformations.models import UNION_DISCRIMINATOR, BaseMetric
 from ..validators.primitives import DateRange, ParamBaseModel
 from .models import MARKET_DRILLDOWN, EntityParam, MarketDrilldownParam
 

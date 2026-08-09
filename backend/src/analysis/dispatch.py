@@ -1,6 +1,6 @@
-from ..transformations.aggregate import GROUP_MEAN, group_mean
-from ..transformations.constants import TransformationDispatch
-from ..transformations.individual import (
+from ..analysis.aggregate import GROUP_MEAN, group_mean
+from ..analysis.constants import TransformationDispatch
+from ..analysis.individual import (
     BASE_METRIC,
     INDEX_TO_DATE,
     RETURNS,
