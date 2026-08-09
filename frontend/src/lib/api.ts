@@ -3,66 +3,51 @@ import { type Params } from "react-router";
 import { POST, PROMPT_FIELD } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
-const requestPath: string[] = [
-  "asset-price-daily",
-  "market-composition",
-];
+const requestPath: string[] = ["asset-price-daily", "market-composition"];
 
 const requestBody: object[] = [
   {
-    "display": "time-series",
-    "analysis": [
-        {
-            "name": "Volume-weighted average price",
-            "show": false,
-            "analysis": "",
-            "metric": "vwap"
-        },
-        {
-            "name": "Indexed price",
-            "show": true,
-            "analysis": "index-to-date",
-            "metric": "Volume-weighted average price",
-            "base": 100,
-            "reference": "2026-01-02"
-        }
+    display: "time-series",
+    analysis: [
+      {
+        name: "Volume-weighted average price",
+        show: false,
+        analysis: "",
+        metric: "vwap",
+      },
+      {
+        name: "Indexed price",
+        show: true,
+        analysis: "index-to-date",
+        metric: "Volume-weighted average price",
+        base: 100,
+        reference: "2026-01-02",
+      },
     ],
-    "symbol": [
-        "aapl",
-        "goog",
-        "msft",
-        "nvda",
-        "tsla",
-        "jpm",
-        "bac"
-    ],
-    "start_date": "2026-01-01",
-    "end_date": "2026-03-31"
+    symbol: ["aapl", "goog", "msft", "nvda", "tsla", "jpm", "bac"],
+    start_date: "2026-01-01",
+    end_date: "2026-03-31",
   },
   {
-    "display": "treemap",
-    "analysis": [
-        {
-            "name": "Market capitalisation",
-            "show": true,
-            "analysis": "",
-            "metric": "marketCap"
-        },
-        {
-            "name": "Share price",
-            "show": true,
-            "analysis": "",
-            "metric": "price"
-        }
+    display: "treemap",
+    analysis: [
+      {
+        name: "Market capitalisation",
+        show: true,
+        analysis: "",
+        metric: "marketCap",
+      },
+      {
+        name: "Share price",
+        show: true,
+        analysis: "",
+        metric: "price",
+      },
     ],
-    "drilldown": [
-        "sector",
-        "industry",
-        "companyName"
-    ],
-    "aggregate_col": "marketCap"
-  }
-]
+    drilldown: ["sector", "industry", "companyName"],
+    aggregate_col: "marketCap",
+  },
+];
 
 const demoHeaders: Headers = new Headers({
   "Content-Type": "application/json",
@@ -101,7 +86,7 @@ export async function loadChartConfig({
       method: POST,
       body: JSON.stringify(requestBody[demoID]),
       headers: demoHeaders,
-    }
+    },
   );
 
   if (!response.ok) {
