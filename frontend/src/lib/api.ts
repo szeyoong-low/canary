@@ -3,10 +3,70 @@ import { type Params } from "react-router";
 import { POST, PROMPT_FIELD } from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
-const requestLookup: string[] = [
-  "asset-price-daily/time-series?analysis=vwap/index-to-date&symbol=aapl&symbol=goog&symbol=msft&symbol=nvda&symbol=tsla&symbol=jpm&symbol=bac&start_date=2026-01-01&end_date=2026-03-31&base=100&reference=2026-01-02",
-  "market-composition/treemap?analysis=marketCap&drilldown=sector,industry,companyName&aggregate_col=marketCap&analysis=price",
+const requestPath: string[] = [
+  "asset-price-daily",
+  "market-composition",
 ];
+
+const requestBody: object[] = [
+  {
+    "display": "time-series",
+    "analysis": [
+        {
+            "name": "Volume-weighted average price",
+            "show": false,
+            "analysis": "",
+            "metric": "vwap"
+        },
+        {
+            "name": "Indexed price",
+            "show": true,
+            "analysis": "index-to-date",
+            "metric": "Volume-weighted average price",
+            "base": 100,
+            "reference": "2026-01-02"
+        }
+    ],
+    "symbol": [
+        "aapl",
+        "goog",
+        "msft",
+        "nvda",
+        "tsla",
+        "jpm",
+        "bac"
+    ],
+    "start_date": "2026-01-01",
+    "end_date": "2026-03-31"
+  },
+  {
+    "display": "treemap",
+    "analysis": [
+        {
+            "name": "Market capitalisation",
+            "show": true,
+            "analysis": "",
+            "metric": "marketCap"
+        },
+        {
+            "name": "Share price",
+            "show": true,
+            "analysis": "",
+            "metric": "price"
+        }
+    ],
+    "drilldown": [
+        "sector",
+        "industry",
+        "companyName"
+    ],
+    "aggregate_col": "marketCap"
+  }
+]
+
+const demoHeaders: Headers = new Headers({
+  "Content-Type": "application/json",
+});
 
 const agentHeaders: Headers = new Headers({
   "Content-Type": "application/json",
@@ -27,16 +87,21 @@ export async function loadChartConfig({
     throw new Error("Demo ID is an integer");
   }
 
-  const requestURL: string | undefined = requestLookup[demoID];
+  const requestURL: string | undefined = requestPath[demoID];
 
   if (typeof requestURL === "undefined") {
     throw new Error(
-      `Demo IDs must be an integer between 0 and ${String(requestLookup.length - 1)}`,
+      `Demo IDs must be an integer between 0 and ${String(requestPath.length - 1)}`,
     );
   }
 
   const response: Response = await fetch(
     `${String(import.meta.env.VITE_TERMINAL_ENDPOINT)}${requestURL}`,
+    {
+      method: POST,
+      body: JSON.stringify(requestBody[demoID]),
+      headers: demoHeaders,
+    }
   );
 
   if (!response.ok) {
