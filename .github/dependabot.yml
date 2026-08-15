@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /frontend
+    ignore:
+      - dependency-name: "typescript"
+        # Typescript ESLint does not have TS7 support yet
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: weekly
     cooldown:
@@ -32,6 +36,13 @@ updates:
 
   - package-ecosystem: docker
     directory: /backend
+    ignore:
+      - dependency-name: "python"
+        # Will only do this after the next minor version exits bugfix phase.
+        # This will require a change in uv as well
+        # https://devguide.python.org/versions/
+        # 3.14 is known to cause compatibility issues with some libraries
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
       interval: weekly
     cooldown:
