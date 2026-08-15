@@ -1,6 +1,6 @@
 # Official Python Docker image
 # Slim strips out extras (e.g. docs, dev headers) to keep the image small
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Run all commands from this directory instead of filesystem root
 WORKDIR /backend
