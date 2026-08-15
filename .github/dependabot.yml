@@ -4,8 +4,32 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
+    groups:
+      frontend-dev:
+        dependency-type: development
+      frontend-prod:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: uv
     directory: /backend
     schedule:
       interval: weekly
+    groups:
+      # uv does not support `dependency-type` in groups yet.
+      # Keep in sync with [dependency-groups] dev in backend/pyproject.toml.
+      backend-dev:
+        patterns:
+          - pytest
+          - pytest-*
+          - ruff
+      backend-prod:
+        exclude-patterns:
+          - pytest
+          - pytest-*
+          - ruff
+        update-types:
+          - minor
+          - patch
