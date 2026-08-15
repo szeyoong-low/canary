@@ -4,6 +4,11 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
     groups:
       frontend-dev:
         dependency-type: development
@@ -17,6 +22,11 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
     groups:
       # uv does not support `dependency-type` in groups yet.
       # Keep in sync with [dependency-groups] dev in backend/pyproject.toml.
@@ -38,11 +48,15 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 5
 
   - package-ecosystem: terraform
     directory: /infrastructure
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 5
     groups:
       infrastructure:
         update-types:
