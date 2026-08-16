@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /frontend
+    ignore:
+      - dependency-name: "typescript"
+        # Typescript ESLint does not have TS7 support yet
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: weekly
     cooldown:
@@ -10,10 +14,7 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
     groups:
-      frontend-dev:
-        dependency-type: development
-      frontend-prod:
-        dependency-type: production
+      frontend-minor-patch:
         update-types:
           - minor
           - patch
@@ -28,24 +29,20 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
     groups:
-      # uv does not support `dependency-type` in groups yet.
-      # Keep in sync with [dependency-groups] dev in backend/pyproject.toml.
-      backend-dev:
-        patterns:
-          - pytest
-          - pytest-*
-          - ruff
-      backend-prod:
-        exclude-patterns:
-          - pytest
-          - pytest-*
-          - ruff
+      backend-minor-patch:
         update-types:
           - minor
           - patch
 
   - package-ecosystem: docker
     directory: /backend
+    ignore:
+      - dependency-name: "python"
+        # Will only do this after the next minor version exits bugfix phase.
+        # This will require a change in uv as well
+        # https://devguide.python.org/versions/
+        # 3.14 is known to cause compatibility issues with some libraries
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
       interval: weekly
     cooldown:
@@ -58,7 +55,7 @@ updates:
     cooldown:
       default-days: 5
     groups:
-      infrastructure:
+      infrastructure-minor-patch:
         update-types:
           - minor
           - patch
