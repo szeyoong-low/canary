@@ -1,0 +1,6 @@
+# The purpose of this file is to require my review and approval of PRs opened by
+# Dependabot
+*   @szeyoong-low
+
+# This line is used to fully protect against [unauthorised changes](https://docs.github.com/en/enterprise-server@3.19/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
+/.github/ @szeyoong-low
