@@ -11,10 +11,9 @@ on:
 env:
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
-  BOT_NAME: Bot
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ vars.TF_WORKSPACE_PRODUCTION }}
   queue: max
 
 jobs:

@@ -13,7 +13,7 @@ env:
   BOT_NAME: Bot
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ vars.TF_WORKSPACE_PRODUCTION }}
   queue: max
 
 jobs:
