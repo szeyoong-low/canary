@@ -1,48 +1,59 @@
-name: Production deployment
+name: Deploy to production
 # Adapted from https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
 
 on:
   pull_request:
     branches:
       - main
-    # types:
-      # - closed
+    types:
+      - closed
 
 env:
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
-  BOT_COMMENT_TITLE: "HCP Terraform Plan Output: Production"
+  BOT_NAME: Bot
+  TARGET_REF: main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  queue: max
 
 jobs:
-  plan-production:
-    # i f: github.event.pull_request.merged == true
+  deploy-production:
+    if: github.event.pull_request.merged == true
     # Skipped if PR is not merged
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET_REF }}
+          # Ensure this is run against the most up-to-date version of the branch
+          # in the event of concurrent PR merges
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
-        id: plan-upload
+        id: apply-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
           directory: ${{ vars.TF_DIRECTORY }}
 
-      - name: Create plan run
+      - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
-        id: plan-run
+        id: apply-run
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
       
-      - name: Get plan output
-        uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.0.0
-        id: plan-output
+      - name: Apply
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
+        id: apply
         with:
-          plan: ${{ fromJSON(steps.plan-run.outputs.payload).data.relationships.plan.data.id }}
+          run: ${{ steps.apply-run.outputs.run_id }}
 
       - name: Update PR
         uses: actions/github-script@v9
@@ -50,31 +61,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            // 1. Retrieve existing bot comments for the PR
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-
-            const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes(process.env.BOT_COMMENT_TITLE)
-            });
-
-            // Delete previous comment so PR timeline makes sense
-            if (botComment) {
-              await github.rest.issues.deleteComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-              });
-            }
-
-            const output = `#### ${{ env.BOT_COMMENT_TITLE }}
-            \`\`\`
-            Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
-            \`\`\`
-            [HCP Terraform Plan](${{ steps.plan-run.outputs.run_link }})
+            const output = `#### HCP Terraform Plan application to Production: ${{ steps.apply.conclusion }}
+            [HCP Terraform Apply](${{ steps.apply-run.outputs.run_link }})
             `;
 
             await github.rest.issues.createComment({
