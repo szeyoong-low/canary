@@ -1,0 +1,45 @@
+name: Backend CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  code-scanning:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Format check (ruff)
+        run: uv run ruff format --check .
+
+      - name: Lint check (ruff)
+        run: uv run ruff check .
+
+      - name: Run test suite
+        run: uv run pytest
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: code-scanning
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway preview environment
+        run: railway up --service canary --environment preview
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PREVIEW_TOKEN }}
