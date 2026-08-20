@@ -7,7 +7,7 @@ An AI agent will fetch data, transform it, and return an interactive chart and t
 - [Project phases](https://github.com/szeyoong-low/canary/milestones)
 - [Project roadmap](https://github.com/szeyoong-low/canary/issues)
 - [Architecture](./canary.wiki/Architecture.md)
-- [Decision rationale](./canary.wiki/architecture-decisions/)
+- [Decision rationale](./canary.wiki/)
 
 ## Way of working
 The highest priority of this project is learning.
