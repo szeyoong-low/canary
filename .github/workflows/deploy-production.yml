@@ -1,0 +1,68 @@
+name: Deploy to production
+# Adapted from https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+env:
+  TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
+  BOT_NAME: Bot
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  queue: max
+
+jobs:
+  deploy-production:
+    if: github.event.pull_request.merged == true
+    # Skipped if PR is not merged
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Upload configuration
+        uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
+        id: apply-upload
+        with:
+          workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
+          directory: ${{ vars.TF_DIRECTORY }}
+
+      - name: Create apply run
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0
+        id: apply-run
+        with:
+          workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
+          configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
+      
+      - name: Apply
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.0.0
+        if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
+        id: apply
+        with:
+          run: ${{ steps.apply-run.outputs.run_id }}
+
+      - name: Update PR
+        uses: actions/github-script@v9
+        id: plan-comment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### HCP Terraform Plan application to Production: ${{ steps.apply.conclusion }}
+            [HCP Terraform Apply](${{ steps.apply-run.outputs.run_link }})
+            `;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });

@@ -1,0 +1,42 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  code-scanning:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v4
+          
+      - name: Format Terraform
+        run: terraform fmt -check -recursive -diff
+        
+      - name: Initialise Terraform
+        run: terraform init -backend=false
+      
+      - name: Validate Terraform
+        run: terraform validate
+
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.64.0
+          cache: true
+
+      - name: Initialise TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Lint check (TFLint)
+        run: tflint -f compact
