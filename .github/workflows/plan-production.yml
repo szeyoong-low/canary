@@ -11,7 +11,6 @@ env:
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
   BOT_COMMENT_TITLE: "HCP Terraform Plan Output: Production"
   BOT_NAME: Bot
-  TARGET_REF: main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,10 +25,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ env.TARGET_REF }}
-          # Ensure this is run against the most up-to-date version of the branch
-          # in the event of concurrent PR merges
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.0.0
