@@ -1,3 +1,15 @@
+// These roles were created by hand in the console before this workspace
+// existed, so they are adopted into state rather than created. Delete this
+// block once the adopting apply has succeeded.
+import {
+  for_each = local.run_phases
+
+  to = aws_iam_role.development_shared_role[each.key]
+
+  // aws_iam_role is imported by role name, not ARN.
+  id = "${local.role_name_prefix}-${each.key}-${local.development_shared_environment}"
+}
+
 resource "aws_iam_role" "development_shared_role" {
   for_each = local.run_phases
 
