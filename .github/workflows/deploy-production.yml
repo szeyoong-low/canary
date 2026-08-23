@@ -33,7 +33,7 @@ jobs:
         id: apply-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          directory: ${{ vars.TF_DIRECTORY }}
+          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
 
       - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.0.0

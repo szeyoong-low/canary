@@ -31,7 +31,7 @@ jobs:
         id: plan-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          directory: ${{ vars.TF_DIRECTORY }}
+          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
           speculative: true
 
       - name: Create plan run
