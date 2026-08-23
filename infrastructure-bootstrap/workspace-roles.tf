@@ -68,37 +68,3 @@ resource "aws_iam_role" "workspace" {
     }]
   })
 }
-
-// The roles below were already applied under one resource block per environment.
-// These blocks tell Terraform the existing state entries belong to the collapsed
-// resource, so the plan reports moves instead of destroying and recreating six
-// live roles. Safe to delete once the move has been applied.
-moved {
-  from = aws_iam_role.production_role["plan"]
-  to   = aws_iam_role.workspace["production-plan"]
-}
-
-moved {
-  from = aws_iam_role.production_role["apply"]
-  to   = aws_iam_role.workspace["production-apply"]
-}
-
-moved {
-  from = aws_iam_role.development_shared_role["plan"]
-  to   = aws_iam_role.workspace["development-shared-plan"]
-}
-
-moved {
-  from = aws_iam_role.development_shared_role["apply"]
-  to   = aws_iam_role.workspace["development-shared-apply"]
-}
-
-moved {
-  from = aws_iam_role.development_pr_role["plan"]
-  to   = aws_iam_role.workspace["development-pr-plan"]
-}
-
-moved {
-  from = aws_iam_role.development_pr_role["apply"]
-  to   = aws_iam_role.workspace["development-pr-apply"]
-}
