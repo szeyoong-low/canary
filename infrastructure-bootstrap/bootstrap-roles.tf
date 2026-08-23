@@ -49,8 +49,8 @@ resource "aws_iam_role" "bootstrap_role" {
 }
 
 // Non-exclusive: each of these watches one named attachment, and stays silent
-// about any other policy attached to the same role. Catching those would need
-// aws_iam_role_policy_attachments_exclusive instead.
+// about any other policy attached to the same role. The exclusive resource
+// below closes that gap.
 import {
   for_each = local.run_phases
 
@@ -65,4 +65,55 @@ resource "aws_iam_role_policy_attachment" "bootstrap_iam_access" {
 
   role       = aws_iam_role.bootstrap_role[each.key].name
   policy_arn = local.bootstrap_policy_arns[each.key]
+}
+
+// Fences the roles above: declares that the attachment declared above is the
+// complete set of managed policies on each role. Nothing is attached here —
+// on refresh the provider lists what is really attached, and anything absent
+// from policy_arns becomes a planned detach.
+//
+// Read-only on the same terms as everything else in this file: iam:DetachRolePolicy
+// is denied by bootstrap-boundary, so a console-added policy shows up as a diff
+// that fails at apply rather than one Terraform can silently undo.
+//
+// Managed policies only — inline policies are fenced separately at the bottom.
+import {
+  for_each = local.run_phases
+
+  to = aws_iam_role_policy_attachments_exclusive.bootstrap_role[each.key]
+
+  // This resource is keyed by the role alone, so the import ID is just its name.
+  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
+}
+
+resource "aws_iam_role_policy_attachments_exclusive" "bootstrap_role" {
+  for_each = local.run_phases
+
+  role_name = aws_iam_role.bootstrap_role[each.key].name
+
+  // Read back off the attachment resource rather than the local it was built
+  // from: the fence can then never disagree with what we actually declare, and
+  // the reference orders the attach ahead of the fence.
+  policy_arns = [aws_iam_role_policy_attachment.bootstrap_iam_access[each.key].policy_arn]
+}
+
+// The inline half of the same fence. These roles draw all their permissions from
+// the managed policy attached above, so the complete set of inline policies is
+// none — an empty list is the assertion, not an oversight.
+//
+// iam:PutRolePolicy and iam:DeleteRolePolicy are denied here too, so an inline
+// policy added in the console turns the plan red and cannot be quietly deleted.
+import {
+  for_each = local.run_phases
+
+  to = aws_iam_role_policies_exclusive.bootstrap_role[each.key]
+
+  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
+}
+
+resource "aws_iam_role_policies_exclusive" "bootstrap_role" {
+  for_each = local.run_phases
+
+  role_name    = aws_iam_role.bootstrap_role[each.key].name
+  policy_names = []
 }
