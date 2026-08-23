@@ -7,6 +7,8 @@ on:
     types:
       - closed
 
+permissions: {}
+
 env:
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
@@ -91,6 +93,12 @@ jobs:
   # The now-empty workspace drops out of the open pull request list, so
   # reconciling can delete it.
   reconcile-ephemeral-workspaces:
+    # A called workflow can only downgrade the caller's permissions, never escalate.
+    # These must therefore cover what reconcile-workspaces.yml asks for.
+    permissions:
+      contents: read
+      pull-requests: write
+
     needs: destroy-development-environment
     uses: ./.github/workflows/reconcile-workspaces.yml
     secrets:

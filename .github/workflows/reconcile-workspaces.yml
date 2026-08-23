@@ -13,8 +13,10 @@ on:
         description: "HCP Terraform team token, scoped to managing workspaces in the Canary project."
         required: true
 
+permissions: {}
+
 jobs:
-  reconcile:
+  reconcile-ephemeral-workspaces:
     runs-on: ubuntu-latest
     permissions:
       contents: read

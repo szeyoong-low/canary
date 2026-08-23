@@ -4,8 +4,7 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   frontend-code-scanning:
@@ -13,6 +12,8 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v7

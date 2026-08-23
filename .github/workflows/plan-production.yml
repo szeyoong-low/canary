@@ -6,6 +6,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 env:
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
