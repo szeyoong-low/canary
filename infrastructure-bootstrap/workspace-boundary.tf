@@ -3,11 +3,6 @@
 // denies this workspace every IAM write against it, so Terraform can read and
 // refresh it but can never modify or destroy it.
 
-import {
-  to = aws_iam_policy.workspace_boundary
-  id = local.workspace_boundary_arn
-}
-
 resource "aws_iam_policy" "workspace_boundary" {
   name = local.workspace_boundary_name
 

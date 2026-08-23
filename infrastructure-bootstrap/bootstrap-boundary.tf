@@ -2,11 +2,6 @@
 // workspace-boundary — its own DenyManagingSelfAndBoundaries statement denies
 // every IAM write against it.
 
-import {
-  to = aws_iam_policy.bootstrap_boundary
-  id = local.bootstrap_boundary_arn
-}
-
 resource "aws_iam_policy" "bootstrap_boundary" {
   name = local.bootstrap_boundary_name
 
