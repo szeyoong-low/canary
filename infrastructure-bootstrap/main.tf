@@ -6,9 +6,10 @@ provider "aws" {
       managed_via = "terraform"
       function    = "infrastructure-as-code"
 
-      // Every role below overrides this: the workspace creating a role is not
-      // the environment that role serves.
-      environment = terraform.workspace
+      // The roles serving a single environment override this with their own.
+      // Only this workspace's own bootstrap roles keep "global", because they
+      // are not tied to one environment: they create the roles for all of them.
+      environment = "global"
     }
   }
 }
@@ -40,6 +41,10 @@ locals {
   development_shared_environment = "development-shared"
   development_pr_environment     = "development-pr"
 
+  // This workspace's own roles. Created in the console and adopted read-only:
+  // bootstrap-boundary denies this workspace every IAM write against them.
+  bootstrap_environment = "bootstrap"
+
   run_phases = toset(["plan", "apply"])
 
   role_name_prefix = "hcp-terraform"
@@ -55,4 +60,10 @@ data "aws_iam_openid_connect_provider" "hcp_terraform" {
 // It is maintained in the console, so it is looked up by name.
 data "aws_iam_policy" "workspace_boundary" {
   name = "workspace-boundary"
+}
+
+// The boundary on this workspace's own roles. Deliberately not managed here:
+// it is what stops this workspace from widening its own permissions.
+data "aws_iam_policy" "bootstrap_boundary" {
+  name = "bootstrap-boundary"
 }
