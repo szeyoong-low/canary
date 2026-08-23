@@ -17,6 +17,7 @@ jobs:
         directory:
           - infrastructure-bootstrap
           - infrastructure
+          - terraform-workspaces
 
     defaults:
       run:
