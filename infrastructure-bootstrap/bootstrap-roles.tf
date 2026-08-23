@@ -1,26 +1,11 @@
-// The roles this workspace itself assumes. They were created in the console to
-// break the chicken-and-egg problem — a workspace cannot create its own trust
-// anchor — and are adopted here so drift against this configuration is visible.
-//
-// bootstrap-boundary denies this workspace every IAM write against these roles,
-// so Terraform can read and refresh them but can never modify or destroy them.
-// Any plan showing a diff here will fail at apply with an explicit deny; the
-// fix is to reconcile the console, not to loosen the boundary.
-//
-// The attachments that actually grant these roles their permissions were also
-// made in the console. They are adopted below on the same read-only terms —
-// iam:AttachRolePolicy and iam:DetachRolePolicy are denied here — purely so
-// that swapping or removing one turns a plan red.
-
 resource "aws_iam_role" "bootstrap_role" {
   for_each = local.run_phases
 
   name = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
 
-  // Note this is bootstrap-boundary, not the workspace-boundary carried by
-  // every other role: this workspace needs IAM write access that the others
-  // are denied, capped instead by its own narrower boundary.
   permissions_boundary = aws_iam_policy.bootstrap_boundary.arn
+
+  tags = local.read_only_tags
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

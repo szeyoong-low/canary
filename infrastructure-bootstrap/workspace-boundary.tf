@@ -1,14 +1,9 @@
-// Created in the console and adopted here read-only, on the same terms as the
-// bootstrap roles: bootstrap-boundary's DenyManagingSelfAndBoundaries statement
-// denies this workspace every IAM write against it, so Terraform can read and
-// refresh it but can never modify or destroy it.
-
 resource "aws_iam_policy" "workspace_boundary" {
   name = local.workspace_boundary_name
 
-  tags = {
+  tags = merge(local.read_only_tags, {
     wildcard-allow = "intentional-permissions-boundary"
-  }
+  })
 
   policy = jsonencode({
     Version = "2012-10-17"

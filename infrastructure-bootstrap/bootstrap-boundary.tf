@@ -1,9 +1,7 @@
-// Created in the console and adopted here read-only, on the same terms as
-// workspace-boundary — its own DenyManagingSelfAndBoundaries statement denies
-// every IAM write against it.
-
 resource "aws_iam_policy" "bootstrap_boundary" {
   name = local.bootstrap_boundary_name
+
+  tags = local.read_only_tags
 
   policy = jsonencode({
     Version = "2012-10-17"

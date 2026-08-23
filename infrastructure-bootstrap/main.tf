@@ -18,15 +18,9 @@ locals {
   hcp_audience_claim    = "${local.hcp_hostname}:aud"
   hcp_subject_claim     = "${local.hcp_hostname}:sub"
 
-  // The fixed audience HCP asks for when trading its token for AWS credentials.
-  hcp_audience = "aws.workload.identity"
-
-  // The only STS call a federated identity provider can make.
+  hcp_audience           = "aws.workload.identity"
   hcp_assume_role_action = "sts:AssumeRoleWithWebIdentity"
-
-  // Every `sub` claim HCP presents shares this prefix. Each role file appends
-  // its own workspace and run phase segments.
-  subject_organization = "organization:CanaryMarkets:project:Canary"
+  subject_organization   = "organization:CanaryMarkets:project:Canary"
 
   // The claim HCP presents is a colon-delimited list of alternating keys and
   // values, in full:
@@ -38,13 +32,8 @@ locals {
   production_environment         = "production"
   development_shared_environment = "development-shared"
   development_pr_environment     = "development-pr"
+  bootstrap_environment          = "bootstrap"
 
-  // This workspace's own roles. Created in the console and adopted read-only:
-  // bootstrap-boundary denies this workspace every IAM write against them.
-  bootstrap_environment = "bootstrap"
-
-  // The two run phases HCP executes. Each is both a segment of the `sub` claim
-  // and the suffix distinguishing a read-only role from a writing one.
   plan_phase  = "plan"
   apply_phase = "apply"
 
@@ -69,6 +58,12 @@ locals {
   bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"
 
   oidc_provider_arn = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:oidc-provider/${local.hcp_hostname}"
+
+  // Carried by everything this workspace can read and refresh but never write.
+  // Created in the console but prohibited from managing by permissions boundary.
+  read_only_tags = {
+    managed_via = "terraform-read-only"
+  }
 
   // The AWS-managed policy each bootstrap role carries. A plan only ever reads,
   // so it gets no write access at all; only apply can change IAM. Both live
