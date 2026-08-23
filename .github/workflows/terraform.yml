@@ -10,9 +10,17 @@ permissions:
 jobs:
   code-scanning:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        directory:
+          - infrastructure-bootstrap
+          - infrastructure
+
     defaults:
       run:
-        working-directory: infrastructure
+        working-directory: ${{ matrix.directory }}
 
     steps:
       - uses: actions/checkout@v7
