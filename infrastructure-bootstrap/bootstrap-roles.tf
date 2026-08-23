@@ -12,14 +12,6 @@
 // iam:AttachRolePolicy and iam:DetachRolePolicy are denied here — purely so
 // that swapping or removing one turns a plan red.
 
-import {
-  for_each = local.run_phases
-
-  to = aws_iam_role.bootstrap_role[each.key]
-
-  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
-}
-
 resource "aws_iam_role" "bootstrap_role" {
   for_each = local.run_phases
 
@@ -51,14 +43,6 @@ resource "aws_iam_role" "bootstrap_role" {
 // Non-exclusive: each of these watches one named attachment, and stays silent
 // about any other policy attached to the same role. The exclusive resource
 // below closes that gap.
-import {
-  for_each = local.run_phases
-
-  to = aws_iam_role_policy_attachment.bootstrap_iam_access[each.key]
-
-  // Attachments are imported as <role name>/<policy ARN>.
-  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}/${local.bootstrap_policy_arns[each.key]}"
-}
 
 resource "aws_iam_role_policy_attachment" "bootstrap_iam_access" {
   for_each = local.run_phases
@@ -77,14 +61,6 @@ resource "aws_iam_role_policy_attachment" "bootstrap_iam_access" {
 // that fails at apply rather than one Terraform can silently undo.
 //
 // Managed policies only — inline policies are fenced separately at the bottom.
-import {
-  for_each = local.run_phases
-
-  to = aws_iam_role_policy_attachments_exclusive.bootstrap_role[each.key]
-
-  // This resource is keyed by the role alone, so the import ID is just its name.
-  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
-}
 
 resource "aws_iam_role_policy_attachments_exclusive" "bootstrap_role" {
   for_each = local.run_phases
@@ -103,13 +79,6 @@ resource "aws_iam_role_policy_attachments_exclusive" "bootstrap_role" {
 //
 // iam:PutRolePolicy and iam:DeleteRolePolicy are denied here too, so an inline
 // policy added in the console turns the plan red and cannot be quietly deleted.
-import {
-  for_each = local.run_phases
-
-  to = aws_iam_role_policies_exclusive.bootstrap_role[each.key]
-
-  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
-}
 
 resource "aws_iam_role_policies_exclusive" "bootstrap_role" {
   for_each = local.run_phases
