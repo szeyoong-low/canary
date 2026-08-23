@@ -47,3 +47,22 @@ resource "aws_iam_role" "bootstrap_role" {
     }]
   })
 }
+
+// Non-exclusive: each of these watches one named attachment, and stays silent
+// about any other policy attached to the same role. Catching those would need
+// aws_iam_role_policy_attachments_exclusive instead.
+import {
+  for_each = local.run_phases
+
+  to = aws_iam_role_policy_attachment.bootstrap_iam_access[each.key]
+
+  // Attachments are imported as <role name>/<policy ARN>.
+  id = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}/${local.bootstrap_policy_arns[each.key]}"
+}
+
+resource "aws_iam_role_policy_attachment" "bootstrap_iam_access" {
+  for_each = local.run_phases
+
+  role       = aws_iam_role.bootstrap_role[each.key].name
+  policy_arn = local.bootstrap_policy_arns[each.key]
+}
