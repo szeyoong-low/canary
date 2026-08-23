@@ -45,7 +45,12 @@ locals {
   // bootstrap-boundary denies this workspace every IAM write against them.
   bootstrap_environment = "bootstrap"
 
-  run_phases = toset(["plan", "apply"])
+  // The two run phases HCP executes. Each is both a segment of the `sub` claim
+  // and the suffix distinguishing a read-only role from a writing one.
+  plan_phase  = "plan"
+  apply_phase = "apply"
+
+  run_phases = toset([local.plan_phase, local.apply_phase])
 
   role_name_prefix = "hcp-terraform"
 
@@ -56,8 +61,8 @@ locals {
   // or deleted, so there is no absence for a data source to catch. Avoids a
   // paginated ListPolicies call on every plan.
   bootstrap_policy_arns = {
-    plan  = "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
-    apply = "arn:aws:iam::aws:policy/IAMFullAccess"
+    (local.plan_phase)  = "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
+    (local.apply_phase) = "arn:aws:iam::aws:policy/IAMFullAccess"
   }
 }
 
