@@ -14,8 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         directory:
-          - infrastructure-bootstrap
           - infrastructure
+          - infrastructure-bootstrap
+          - infrastructure-development-shared
           - terraform-workspaces
 
     defaults:
