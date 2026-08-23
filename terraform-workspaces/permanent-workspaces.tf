@@ -12,6 +12,10 @@ resource "tfe_workspace" "production" {
 
   force_delete = false
 
+  // prevent_destroy stops Terraform deleting this workspace object.
+  // this stops anyone from destroying the infrastructure inside it.
+  allow_destroy_plan = false
+
   lifecycle {
     prevent_destroy = true
   }
@@ -26,6 +30,8 @@ resource "tfe_workspace" "development_shared" {
 
   force_delete = false
 
+  allow_destroy_plan = false
+
   lifecycle {
     prevent_destroy = true
   }
@@ -39,6 +45,8 @@ resource "tfe_workspace" "bootstrap" {
   auto_apply = false
 
   force_delete = false
+
+  allow_destroy_plan = false
 
   lifecycle {
     prevent_destroy = true

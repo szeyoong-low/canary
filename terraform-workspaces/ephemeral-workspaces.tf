@@ -9,4 +9,6 @@ resource "tfe_workspace" "development_pr" {
   auto_apply = false
 
   force_delete = false
+
+  allow_destroy_plan = true
 }
