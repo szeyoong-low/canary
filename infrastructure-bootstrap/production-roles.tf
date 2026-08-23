@@ -1,15 +1,3 @@
-// These roles were created by hand in the console before this workspace
-// existed, so they are adopted into state rather than created. Delete this
-// block once the adopting apply has succeeded.
-import {
-  for_each = local.run_phases
-
-  to = aws_iam_role.production_role[each.key]
-
-  // aws_iam_role is imported by role name, not ARN.
-  id = "${local.role_name_prefix}-${each.key}-${local.production_environment}"
-}
-
 resource "aws_iam_role" "production_role" {
   for_each = local.run_phases
 
