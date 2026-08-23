@@ -4,15 +4,26 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  code-scanning:
+  terraform-code-scanning:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        directory:
+          - infrastructure-bootstrap
+          - infrastructure
+          - terraform-workspaces
+
     defaults:
       run:
-        working-directory: infrastructure
+        working-directory: ${{ matrix.directory }}
+    
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v7

@@ -1,31 +1,48 @@
-name: Deploy to production
+name: Deploy to development
 # Adapted from https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
 
 on:
   pull_request:
     branches:
       - main
-    types:
-      - closed
 
 permissions: {}
 
 env:
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
   TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
+  BOT_NAME: Bot
+  PR_NUMBER: "${{ github.event.pull_request.number }}"
+  TF_WORKSPACE_DEVELOPMENT_PR: "${{ vars.TF_WORKSPACE_DEV_PREFIX }}${{ github.event.pull_request.number }}"
 
 concurrency:
-  group: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-  queue: max
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
 
 jobs:
-  deploy-production:
-    if: github.event.pull_request.merged == true
-    # Skipped if PR is not merged
+  reconcile-ephemeral-workspaces:
+    permissions:
+      contents: read
+      pull-requests: write
+
+    uses: ./.github/workflows/reconcile-workspaces.yml
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+    with:
+      pull_request_number: ${{ github.event.pull_request.number }}
+
+  # deploy-development-shared:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+
+  deploy-development-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+
+    needs: reconcile-ephemeral-workspaces
 
     steps:
       - uses: actions/checkout@v7
@@ -34,16 +51,16 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: apply-upload
         with:
-          workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
+          workspace: ${{ env.TF_WORKSPACE_DEVELOPMENT_PR }}
           directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
 
       - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
         id: apply-run
         with:
-          workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
+          workspace: ${{ env.TF_WORKSPACE_DEVELOPMENT_PR }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
-      
+
       - name: Apply
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
         if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
@@ -54,15 +71,17 @@ jobs:
       - name: Update PR
         uses: actions/github-script@v9
         id: plan-comment
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### HCP Terraform Plan application to Production: ${{ steps.apply.conclusion }}
+            const output = `#### HCP Terraform Plan application to Development: ${{ steps.apply.conclusion }}
             [HCP Terraform Apply](${{ steps.apply-run.outputs.run_link }})
             `;
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: Number(process.env.PR_NUMBER),
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output

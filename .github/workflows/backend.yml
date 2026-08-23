@@ -4,15 +4,17 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  code-scanning:
+  backend-code-scanning:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v7
 
@@ -30,9 +32,12 @@ jobs:
       - name: Run test suite
         run: uv run pytest
 
-  deploy-preview:
+  backend-deploy-preview:
     runs-on: ubuntu-latest
-    needs: code-scanning
+    needs: backend-code-scanning
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v7
 

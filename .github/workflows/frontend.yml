@@ -4,15 +4,16 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  code-scanning:
+  frontend-code-scanning:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v7
