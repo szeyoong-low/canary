@@ -20,7 +20,7 @@ resource "aws_iam_role" "bootstrap_role" {
   // Note this is bootstrap-boundary, not the workspace-boundary carried by
   // every other role: this workspace needs IAM write access that the others
   // are denied, capped instead by its own narrower boundary.
-  permissions_boundary = data.aws_iam_policy.bootstrap_boundary.arn
+  permissions_boundary = aws_iam_policy.bootstrap_boundary.arn
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

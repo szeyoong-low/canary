@@ -25,7 +25,7 @@ resource "aws_iam_role" "workspace" {
 
   name = "${local.role_name_prefix}-${each.value.phase}-${each.value.environment}"
 
-  permissions_boundary = data.aws_iam_policy.workspace_boundary.arn
+  permissions_boundary = aws_iam_policy.workspace_boundary.arn
 
   // Carried into the assumed session as a principal tag, which is what the
   // attribute-based access control policies will match resource tags against.

@@ -7,8 +7,6 @@ provider "aws" {
       function    = "infrastructure-as-code"
 
       // The roles serving a single environment override this with their own.
-      // Only this workspace's own bootstrap roles keep "global", because they
-      // are not tied to one environment: they create the roles for all of them.
       environment = "global"
     }
   }
@@ -54,6 +52,22 @@ locals {
 
   role_name_prefix = "hcp-terraform"
 
+  // The two permissions boundaries, adopted read-only in their own files.
+  //
+  // Their ARNs are assembled by hand rather than read off the resources they
+  // name, because each boundary's own Deny statements refer to both boundaries
+  // by ARN — including itself. A self-reference is a dependency cycle Terraform
+  // refuses to build, so the ARN has to exist as a plain string first.
+  workspace_boundary_name = "workspace-boundary"
+  bootstrap_boundary_name = "bootstrap-boundary"
+  arn_prefix              = "arn:aws:iam::"
+
+  policy_arn_prefix = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:policy"
+  role_arn_prefix   = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:role"
+
+  workspace_boundary_arn = "${local.policy_arn_prefix}/${local.workspace_boundary_name}"
+  bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"
+
   // The AWS-managed policy each bootstrap role carries. A plan only ever reads,
   // so it gets no write access at all; only apply can change IAM. Both live
   // under the fixed "aws" account alias, not ours.
@@ -66,20 +80,10 @@ locals {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 // The identity provider already exists in the account and is not managed by any
 // workspace, so it is read rather than created.
 data "aws_iam_openid_connect_provider" "hcp_terraform" {
   url = local.hcp_oidc_provider_url
-}
-
-// The permissions boundary capping every role this workspace creates.
-// It is maintained in the console, so it is looked up by name.
-data "aws_iam_policy" "workspace_boundary" {
-  name = "workspace-boundary"
-}
-
-// The boundary on this workspace's own roles. Deliberately not managed here:
-// it is what stops this workspace from widening its own permissions.
-data "aws_iam_policy" "bootstrap_boundary" {
-  name = "bootstrap-boundary"
 }
