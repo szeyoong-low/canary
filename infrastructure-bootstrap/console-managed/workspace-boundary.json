@@ -71,6 +71,56 @@
         "cloudtrail:DeleteTrail"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "DenyCrossEnvironmentResourceAccess",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:ResourceTag/environment": "${aws:PrincipalTag/environment}"
+        }
+      }
+    },
+    {
+      "Sid": "DenyForeignEnvironmentTagOnCreation",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "aws:RequestTag/environment": "${aws:PrincipalTag/environment}"
+        }
+      }
+    },
+    {
+      "Sid": "DenyUntaggedPrincipalCreation",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreateRole",
+        "iam:CreateUser"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/environment": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyEnvironmentTagRemoval",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "aws:TagKeys": "environment"
+        },
+        "Null": {
+          "aws:RequestTag/environment": "true"
+        }
+      }
     }
   ]
 }
