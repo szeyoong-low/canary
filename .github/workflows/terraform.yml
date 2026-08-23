@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  code-scanning:
+  terraform-code-scanning:
     runs-on: ubuntu-latest
 
     strategy:

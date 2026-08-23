@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  code-scanning:
+  frontend-code-scanning:
     runs-on: ubuntu-latest
     defaults:
       run:
