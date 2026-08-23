@@ -57,8 +57,6 @@ locals {
   workspace_boundary_arn = "${local.policy_arn_prefix}/${local.workspace_boundary_name}"
   bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"
 
-  oidc_provider_arn = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:oidc-provider/${local.hcp_hostname}"
-
   // Carried by everything this workspace can read and refresh but never write.
   // Created in the console but prohibited from managing by permissions boundary.
   read_only_tags = {
