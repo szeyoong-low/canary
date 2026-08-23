@@ -19,7 +19,8 @@ concurrency:
 jobs:
   reconcile-ephemeral-workspaces:
     uses: ./.github/workflows/reconcile-workspaces.yml
-    secrets: inherit
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
 

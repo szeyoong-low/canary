@@ -8,6 +8,10 @@ on:
         required: false
         type: string
         default: ""
+    secrets:
+      TF_API_TOKEN:
+        description: "HCP Terraform team token, scoped to managing workspaces in the Canary project."
+        required: true
 
 jobs:
   reconcile:
