@@ -38,7 +38,7 @@ resource "aws_iam_role" "workspace" {
     Statement = [{
       Effect = "Allow"
       Principal = {
-        Federated = data.aws_iam_openid_connect_provider.hcp_terraform.arn
+        Federated = aws_iam_openid_connect_provider.hcp_terraform.arn
       }
       Action = local.hcp_assume_role_action
       Condition = {

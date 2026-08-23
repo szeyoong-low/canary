@@ -68,6 +68,8 @@ locals {
   workspace_boundary_arn = "${local.policy_arn_prefix}/${local.workspace_boundary_name}"
   bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"
 
+  oidc_provider_arn = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:oidc-provider/${local.hcp_hostname}"
+
   // The AWS-managed policy each bootstrap role carries. A plan only ever reads,
   // so it gets no write access at all; only apply can change IAM. Both live
   // under the fixed "aws" account alias, not ours.
@@ -81,9 +83,3 @@ locals {
 }
 
 data "aws_caller_identity" "current" {}
-
-// The identity provider already exists in the account and is not managed by any
-// workspace, so it is read rather than created.
-data "aws_iam_openid_connect_provider" "hcp_terraform" {
-  url = local.hcp_oidc_provider_url
-}
