@@ -52,13 +52,3 @@ resource "tfe_workspace" "bootstrap" {
     prevent_destroy = true
   }
 }
-
-import {
-  to = tfe_workspace.production
-  id = "CanaryMarkets/${local.production_environment}"
-}
-
-import {
-  to = tfe_workspace.bootstrap
-  id = "CanaryMarkets/${local.bootstrap_environment}"
-}
