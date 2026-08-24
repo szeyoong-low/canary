@@ -30,12 +30,6 @@ jobs:
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
 
-  # deploy-development-shared:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     pull-requests: write
-
   deploy-development-pr:
     runs-on: ubuntu-latest
     permissions:
