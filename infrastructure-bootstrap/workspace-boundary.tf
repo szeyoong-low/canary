@@ -80,18 +80,24 @@ resource "aws_iam_policy" "workspace_boundary" {
         Resource = "*"
       },
       {
-        Sid    = "DenyUntaggedResourceCreation"
-        Effect = "Deny"
-        Action = [
-          "iam:CreateRole",
-          "iam:CreateUser",
-          "ec2:CreateVpc",
-          "ec2:CreateSubnet",
-        ]
+        Sid      = "DenyCrossEnvironmentResourceAccess"
+        Effect   = "Deny"
+        Action   = "*"
         Resource = "*"
         Condition = {
-          Null = {
-            "aws:RequestTag/environment" = "true"
+          StringNotEquals = {
+            "aws:ResourceTag/environment" = "$${aws:PrincipalTag/environment}"
+          }
+        }
+      },
+      {
+        Sid      = "DenyForeignEnvironmentTagOnCreation"
+        Effect   = "Deny"
+        Action   = "*"
+        Resource = "*"
+        Condition = {
+          StringNotEquals = {
+            "aws:RequestTag/environment" = "$${aws:PrincipalTag/environment}"
           }
         }
       },
