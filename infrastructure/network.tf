@@ -57,6 +57,10 @@ module "vpc" {
   name = "vpc-${local.name_suffix}"
   cidr = var.vpc_cidr
 
+  tags = {
+    "function" : "network"
+  }
+
   // The module pairs these three lists BY POSITION, not by name: public_subnets[1]
   // lands in azs[1]. All three are derived from var.availability_zones so they
   // cannot fall out of step with each other.
