@@ -80,17 +80,6 @@ resource "aws_iam_policy" "workspace_boundary" {
         Resource = "*"
       },
       {
-        Sid      = "DenyCrossEnvironmentResourceAccess"
-        Effect   = "Deny"
-        Action   = "*"
-        Resource = "*"
-        Condition = {
-          StringNotEquals = {
-            "aws:ResourceTag/environment" = "$${aws:PrincipalTag/environment}"
-          }
-        }
-      },
-      {
         Sid      = "DenyForeignEnvironmentTagOnCreation"
         Effect   = "Deny"
         Action   = "*"
