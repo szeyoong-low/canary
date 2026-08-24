@@ -85,7 +85,7 @@ resource "aws_iam_policy" "workspace_boundary" {
         Action   = "*"
         Resource = "*"
         Condition = {
-          StringNotEqualsIfExists = {
+          StringNotEquals = {
             "aws:ResourceTag/environment" = "$${aws:PrincipalTag/environment}"
           }
         }
@@ -96,17 +96,19 @@ resource "aws_iam_policy" "workspace_boundary" {
         Action   = "*"
         Resource = "*"
         Condition = {
-          StringNotEqualsIfExists = {
+          StringNotEquals = {
             "aws:RequestTag/environment" = "$${aws:PrincipalTag/environment}"
           }
         }
       },
       {
-        Sid    = "DenyUntaggedPrincipalCreation"
+        Sid    = "DenyUntaggedResourceCreation"
         Effect = "Deny"
         Action = [
           "iam:CreateRole",
           "iam:CreateUser",
+          "ec2:CreateVpc",
+          "ec2:CreateSubnet",
         ]
         Resource = "*"
         Condition = {
