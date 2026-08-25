@@ -1,0 +1,10 @@
+# Cloudflare Worker static assets
+
+"$schema" = "./node_modules/wrangler/config-schema.json"
+name = "canary"
+compatibility_date = "2026-08-25"
+preview_urls = true
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
