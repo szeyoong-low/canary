@@ -7,9 +7,10 @@
 // that I create versions of and promote.
 
 const LOCAL_ORIGIN: string = "http://localhost:8000";
+const DEVELOPMENT_ORIGIN: string = "https://canary-preview.up.railway.app";
 const PRODUCTION_ORIGIN: string = "https://api.canary.markets";
 
-// Preview deployments are published as `dev-<pull>-canary.low-szeyoong.workers.dev`
+// Development deployments are published as `dev-<pull>-canary.low-szeyoong.workers.dev`
 // by `wrangler versions upload --preview-alias dev-<pull>`.
 const PREVIEW_HOSTNAME: RegExp = /^dev-(?<pull>\d+)-canary\./;
 
@@ -22,7 +23,8 @@ export function resolveAPIOrigin(hostname: string): string {
     PREVIEW_HOSTNAME.exec(hostname)?.groups?.pull;
 
   if (typeof pull !== "undefined") {
-    return `https://development-pr-${pull}.api.canary.markets`;
+    // return `https://development-pr-${pull}.api.canary.markets`;
+    return DEVELOPMENT_ORIGIN;
   }
 
   // Anything else is a custom domain, so it is production. Defaulting this way
