@@ -72,16 +72,20 @@ jobs:
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
           WORKSPACE_EXISTS: ${{ steps.workspace-existence.outputs.exists }}
+          CONCLUSION: ${{ steps.destroy-apply.conclusion }}
+          RUN_LINK: ${{ steps.destroy-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const body = process.env.WORKSPACE_EXISTS === 'true'
-              ? `#### Development environment teardown: ${{ steps.destroy-apply.conclusion }}
-            [HCP Terraform Destroy](${{ steps.destroy-run.outputs.run_link }})
-            `
-              : `#### Development environment teardown: nothing to destroy
-            No workspace existed for this pull request.
-            `;
+              ? [
+                  `#### Development environment teardown: ${process.env.CONCLUSION}`,
+                  `[HCP Terraform Destroy](${process.env.RUN_LINK})`,
+                ].join("\n")
+              : [
+                  "#### Development environment teardown: nothing to destroy",
+                  "No workspace existed for this pull request.",
+                ].join("\n");
 
             await github.rest.issues.createComment({
               issue_number: Number(process.env.PR_NUMBER),

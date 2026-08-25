@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "compile": "tsc -b",
+    "build": "npm run compile && vite build",
+    "lint": "eslint --fix .",
+    "format": "prettier --write .",
+    "preview": "npm run build && vite preview"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -23,6 +25,8 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
+    "@cloudflare/vite-plugin": "^1.53.1",
+    "@cloudflare/workers-types": "^5.20260825.1",
     "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/babel__core": "^7.20.5",
@@ -39,6 +43,11 @@
     "prettier": "3.9.6",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
-    "vite": "^8.2.1"
+    "vite": "^8.2.1",
+    "wrangler": "^4.125.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260820.1": true
   }
 }

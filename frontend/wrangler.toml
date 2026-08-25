@@ -1,0 +1,29 @@
+# Cloudflare Worker static assets
+
+"$schema" = "./node_modules/wrangler/config-schema.json"
+name = "canary"
+main = "./worker/index.ts"
+compatibility_date = "2026-08-25"
+
+[assets]
+not_found_handling = "single-page-application"
+binding = "ASSETS"
+
+# By default the asset worker answers first and the Worker never runs.
+# A file match serves `/` from `index.html`, and `not_found_handling` serves the
+# same file for deep links like `/demo/0`. Both would skip the injection, so
+# every route has to be claimed here.
+#
+# The negative rules hand the hashed bundles and the favicon back to the asset
+# worker, which serves them directly. Only HTML ever reaches the Worker.
+run_worker_first = ["/*", "!/assets/*", "!/favicon.svg"]
+
+# Workers Logs. This cannot be managed from Terraform: every `wrangler versions
+# upload` patches the Worker's non-versioned settings and sends
+# `observability: { enabled: false }` whenever this table is absent, so CI would
+# switch it straight back off.
+#
+# head_sampling_rate defaults to 1, meaning every request is logged. Traffic is
+# low enough that sampling would only cost us the one log we wanted.
+[observability]
+enabled = true

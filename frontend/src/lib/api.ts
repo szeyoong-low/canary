@@ -1,6 +1,12 @@
 import { type EChartsOption } from "echarts";
 import { type Params } from "react-router";
-import { POST, PROMPT_FIELD } from "@/shared/constants";
+import { apiOrigin } from "@/lib/env";
+import {
+  AGENT_PATH,
+  POST,
+  PROMPT_FIELD,
+  TERMINAL_PATH,
+} from "@/shared/constants";
 import { isDemoParams } from "@/shared/types";
 
 const requestPath: string[] = ["asset-price-daily", "market-composition"];
@@ -81,7 +87,7 @@ export async function loadChartConfig({
   }
 
   const response: Response = await fetch(
-    `${String(import.meta.env.VITE_TERMINAL_ENDPOINT)}${requestURL}`,
+    new URL(`${TERMINAL_PATH}${requestURL}`, apiOrigin),
     {
       method: POST,
       body: JSON.stringify(requestBody[demoID]),
@@ -107,14 +113,11 @@ export async function getChartFromPrompt({
 }): Promise<EChartsOption> {
   const form_data: FormData = await request.formData();
 
-  const response: Response = await fetch(
-    String(import.meta.env.VITE_AGENT_ENDPOINT),
-    {
-      method: POST,
-      body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),
-      headers: agentHeaders,
-    },
-  );
+  const response: Response = await fetch(new URL(AGENT_PATH, apiOrigin), {
+    method: POST,
+    body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),
+    headers: agentHeaders,
+  });
 
   if (!response.ok) {
     throw new Error(

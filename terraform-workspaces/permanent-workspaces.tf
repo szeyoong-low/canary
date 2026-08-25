@@ -24,7 +24,7 @@ resource "tfe_workspace" "production" {
 resource "tfe_workspace" "global" {
   name        = local.global_environment
   project_id  = data.tfe_project.canary.id
-  description = "Long-lived resources shared by every ephemeral development environment. Run from CI/CD pipeline."
+  description = "Long-lived resources shared by every ephemeral development environment. Run from CLI."
 
   auto_apply = false
 
