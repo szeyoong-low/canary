@@ -1,7 +1,3 @@
-locals {
-  cloudflare_account_id = "186e5cb41a4496f3fe4621133cbfb8b6"
-}
-
 resource "cloudflare_worker" "frontend" {
   account_id = local.cloudflare_account_id
   name       = "canary"
