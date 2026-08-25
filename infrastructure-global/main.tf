@@ -10,5 +10,5 @@ provider "aws" {
 }
 
 locals {
-  environment = "development-shared"
+  environment = "global"
 }

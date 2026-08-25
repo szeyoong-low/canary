@@ -16,7 +16,7 @@ jobs:
         directory:
           - infrastructure
           - infrastructure-bootstrap
-          - infrastructure-development-shared
+          - infrastructure-global
           - terraform-workspaces
 
     defaults:
