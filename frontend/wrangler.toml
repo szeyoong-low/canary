@@ -8,6 +8,7 @@ compatibility_date = "2026-08-25"
 [assets]
 not_found_handling = "single-page-application"
 binding = "ASSETS"
+html_handling = "drop-trailing-slash"
 
 # By default the asset worker answers first and the Worker never runs.
 # A file match serves `/` from `index.html`, and `not_found_handling` serves the
