@@ -67,12 +67,15 @@ jobs:
         id: plan-comment
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
+          CONCLUSION: ${{ steps.apply.conclusion }}
+          RUN_LINK: ${{ steps.apply-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### HCP Terraform Plan application to Development: ${{ steps.apply.conclusion }}
-            [HCP Terraform Apply](${{ steps.apply-run.outputs.run_link }})
-            `;
+            const output = [
+              `#### HCP Terraform Plan application to Development: ${process.env.CONCLUSION}`,
+              `[HCP Terraform Apply](${process.env.RUN_LINK})`,
+            ].join("\n");
 
             await github.rest.issues.createComment({
               issue_number: Number(process.env.PR_NUMBER),

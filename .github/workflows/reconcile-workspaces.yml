@@ -32,7 +32,7 @@ jobs:
     env:
       TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
       TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
-      PULL_REQUEST_COUNT_FILE: terraform-workspaces/pull-requests.auto.tfvars
+      PULL_REQUEST_COUNT_FILE: "terraform-workspaces/pull-requests.auto.tfvars"
 
     steps:
       - uses: actions/checkout@v7
@@ -75,12 +75,15 @@ jobs:
         if: always() && inputs.pull_request_number != ''
         env:
           PR_NUMBER: ${{ inputs.pull_request_number }}
+          CONCLUSION: ${{ steps.reconcile-apply.conclusion }}
+          RUN_LINK: ${{ steps.reconcile-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### HCP Terraform workspace reconciliation: ${{ steps.reconcile-apply.conclusion }}
-            [HCP Terraform Apply](${{ steps.reconcile-run.outputs.run_link }})
-            `;
+            const output = [
+              `#### HCP Terraform workspace reconciliation: ${process.env.CONCLUSION}`,
+              `[HCP Terraform Apply](${process.env.RUN_LINK})`,
+            ].join("\n");
 
             await github.rest.issues.createComment({
               issue_number: Number(process.env.PR_NUMBER),

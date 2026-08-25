@@ -54,12 +54,16 @@ jobs:
       - name: Update PR
         uses: actions/github-script@v9
         id: plan-comment
+        env:
+          CONCLUSION: ${{ steps.apply.conclusion }}
+          RUN_LINK: ${{ steps.apply-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### HCP Terraform Plan application to Production: ${{ steps.apply.conclusion }}
-            [HCP Terraform Apply](${{ steps.apply-run.outputs.run_link }})
-            `;
+            const output = [
+              `#### HCP Terraform Plan application to Production: ${process.env.CONCLUSION}`,
+              `[HCP Terraform Apply](${process.env.RUN_LINK})`,
+            ].join("\n");
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,

@@ -53,6 +53,11 @@ jobs:
       - name: Update PR
         uses: actions/github-script@v9
         id: plan-comment
+        env:
+          RESOURCES_ADDED: ${{ steps.plan-output.outputs.add }}
+          RESOURCES_CHANGED: ${{ steps.plan-output.outputs.change }}
+          RESOURCES_DESTROYED: ${{ steps.plan-output.outputs.destroy }}
+          RUN_LINK: ${{ steps.plan-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -76,12 +81,16 @@ jobs:
               });
             }
 
-            const output = `#### ${{ env.BOT_COMMENT_TITLE }}
-            \`\`\`
-            Plan: ${{ steps.plan-output.outputs.add }} to add, ${{ steps.plan-output.outputs.change }} to change, ${{ steps.plan-output.outputs.destroy }} to destroy.
-            \`\`\`
-            [HCP Terraform Plan](${{ steps.plan-run.outputs.run_link }})
-            `;
+            const { RESOURCES_ADDED, RESOURCES_CHANGED, RESOURCES_DESTROYED } =
+              process.env;
+
+            const output = [
+              `#### ${process.env.BOT_COMMENT_TITLE}`,
+              "```",
+              `Plan: ${RESOURCES_ADDED} to add, ${RESOURCES_CHANGED} to change, ${RESOURCES_DESTROYED} to destroy.`,
+              "```",
+              `[HCP Terraform Plan](${process.env.RUN_LINK})`,
+            ].join("\n");
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
