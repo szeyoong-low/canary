@@ -2,9 +2,19 @@
 
 "$schema" = "./node_modules/wrangler/config-schema.json"
 name = "canary"
+main = "./worker/index.ts"
 compatibility_date = "2026-08-25"
 preview_urls = true
 
 [assets]
-directory = "./dist"
 not_found_handling = "single-page-application"
+binding = "ASSETS"
+
+# By default the asset worker answers first and the Worker never runs.
+# A file match serves `/` from `index.html`, and `not_found_handling` serves the
+# same file for deep links like `/demo/0`. Both would skip the injection, so
+# every route has to be claimed here.
+#
+# The negative rules hand the hashed bundles and the favicon back to the asset
+# worker, which serves them directly. Only HTML ever reaches the Worker.
+run_worker_first = ["/*", "!/assets/*", "!/favicon.svg"]
