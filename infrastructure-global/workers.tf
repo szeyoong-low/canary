@@ -63,3 +63,17 @@ resource "cloudflare_worker" "frontend" {
     prevent_destroy = true
   }
 }
+
+resource "cloudflare_workers_custom_domain" "apex" {
+  account_id = local.cloudflare_account_id
+  zone_id    = local.cloudflare_zone_id
+  hostname   = "canary.markets"
+  service    = cloudflare_worker.frontend.name
+}
+
+resource "cloudflare_workers_custom_domain" "www" {
+  account_id = local.cloudflare_account_id
+  zone_id    = local.cloudflare_zone_id
+  hostname   = "www.canary.markets"
+  service    = cloudflare_worker.frontend.name
+}
