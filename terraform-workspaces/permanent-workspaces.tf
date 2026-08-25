@@ -21,6 +21,13 @@ resource "tfe_workspace" "production" {
   }
 }
 
+// One-shot import of the pre-existing workspace, created by hand before this
+// configuration managed it. Remove once the apply has run.
+import {
+  to = tfe_workspace.global
+  id = "CanaryMarkets/${local.global_environment}"
+}
+
 resource "tfe_workspace" "global" {
   name        = local.global_environment
   project_id  = data.tfe_project.canary.id
