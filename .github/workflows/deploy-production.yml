@@ -67,3 +67,85 @@ jobs:
               repo: context.repo.repo,
               body: output
             });
+
+  deploy-frontend:
+    # Forks never receive secrets, so the promotion would fail rather than be
+    # denied. Skipping keeps the run green and the reason explicit. `head.repo`
+    # reads as null once a deleted fork is garbage collected, which compares
+    # false and therefore also skips.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    # Since the frontend is decoupled from the rest of the architecture,
+    # I will allow the two to be deployed separately
+
+    permissions:
+      contents: read
+
+    env:
+      CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+      CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+
+      # Masks the workflow-level value, which this job has no use for. `npm ci`
+      # runs a great deal of third-party code alongside it otherwise.
+      TF_API_TOKEN: ""
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Only to put Wrangler on the path at the version package.json pins.
+      # Nothing is built here: promotion reuses the artifact the pull request.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Promote final frontend artifact
+        env:
+          # The tip of the pull request branch, which is what Frontend CI/CD
+          # tagged when it uploaded this version.
+          #
+          # Deliberately neither `github.sha` nor `merge_commit_sha`. Squashing
+          # writes a brand new commit, so both of those are SHAs that no version
+          # carries and promotion would fail every time.
+          VERSION_TAG: "${{ github.event.pull_request.head.sha }}"
+
+          PR_NUMBER: "${{ github.event.pull_request.number }}"
+        
+        # The @ is the percentage of traffic that is directed to each version.
+        # We want an atomic promotion (this is a default made explicit).
+        run: |
+          npx wrangler versions deploy --version-tag "$VERSION_TAG@100" --yes \
+            --message "Squash merge of #$PR_NUMBER"
+
+  frontend-health-check:
+    runs-on: ubuntu-latest
+    needs: deploy-frontend
+
+    permissions: {}
+
+    steps:
+      - name: Check home page
+        env:
+          PRODUCTION_URL: "${{ vars.FRONTEND_PROD_HEALTHCHECK }}"
+
+        run: |
+          http_status="$(curl \
+            --silent --show-error --location \
+            --retry 5 --retry-delay 5 --max-time 30 \
+            --output /dev/null --write-out "%{http_code}" \
+            "$PRODUCTION_URL")"
+
+          echo "$PRODUCTION_URL returned $http_status"
+
+          test "$http_status" = "200"

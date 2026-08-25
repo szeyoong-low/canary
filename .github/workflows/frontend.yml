@@ -33,5 +33,154 @@ jobs:
       - name: Lint check (ESLint)
         run: npm run lint
 
-      - name: Typescript compiler type check + bundling (vite)
+      - name: Typescript compiler type check
+        run: npm run compile
+
+  frontend-deploy-development:
+    runs-on: ubuntu-latest
+    needs: frontend-code-scanning
+
+    # Forks never receive secrets, so the upload would fail rather than be
+    # denied. Skipping keeps the run green and the reason explicit.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    outputs:
+      preview-url: "${{ steps.upload.outputs.preview-url }}"
+
+    env:
+      CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+      CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript compilation and Vite bundling
         run: npm run build
+
+      - name: Upload artifacts
+        id: upload
+        env:
+          # Wrangler appends newline-delimited JSON describing what it did.
+          # Reading the preview URL back from there beats hardcoding the
+          # account's workers.dev subdomain into this file.
+          WRANGLER_OUTPUT_FILE_PATH: "${{ runner.temp }}/wrangler-output.ndjson"
+
+          # Deploy to production resolves this exact tag back to a version ID
+          # when the pull request is squash merged, so the two must agree.
+          VERSION_TAG: "${{ github.event.pull_request.head.sha }}"
+
+          PR_NUMBER: "${{ github.event.pull_request.number }}"
+
+        # Re-running this job creates two versions carrying the same tag.
+        # `wrangler versions deploy --version-tag` throws "matches multiple
+        # versions", and that lands during deployment to production post-merge.
+        # To avoid this, I made this job idempotent. The tag is claimed at most
+        # once per commit (no code changes).
+        run: |
+          tag_argument=()
+
+          if npx wrangler versions list --json |
+            jq --exit-status --arg tag "$VERSION_TAG" \
+              'any(.[]; .annotations["workers/tag"] == $tag)' > /dev/null; then
+            echo "A version already carries $VERSION_TAG. Not claiming it again."
+          else
+            tag_argument=(--tag "$VERSION_TAG")
+          fi
+
+          npx wrangler versions upload \
+            "${tag_argument[@]}" \
+            --preview-alias "dev-$PR_NUMBER" \
+            --message "Preview for #$PR_NUMBER"
+
+          preview_url="$(jq --raw-output \
+            'select(.type == "version-upload") | .preview_alias_url' \
+            "$WRANGLER_OUTPUT_FILE_PATH")"
+
+          echo "preview-url=$preview_url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        uses: actions/github-script@v9
+        env:
+          PREVIEW_URL: "${{ steps.upload.outputs.preview-url }}"
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+          # The alias is stable for the lifetime of the pull request, so the
+          # comment is updated in place. Creating a new one on every push
+          # would bury the review conversation under identical URLs.
+          script: |
+            const marker = "<!-- frontend-preview -->";
+
+            const body = [
+              marker,
+              "#### Frontend preview",
+              process.env.PREVIEW_URL,
+            ].join("\n");
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find((comment) =>
+              comment.body.includes(marker),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  frontend-development-health-check:
+    runs-on: ubuntu-latest
+    needs: frontend-deploy-development
+
+    permissions: {}
+
+    steps:
+      - name: Check home page
+        env:
+          PREVIEW_URL: "${{ needs.frontend-deploy-development.outputs.preview-url }}"
+        
+        # curl retries timeouts and 5xx by default, which covers a version
+        # that is still propagating. --location follows the redirect that
+        # Cloudflare issues before the alias settles.
+        run: |
+          http_status="$(curl \
+            --silent --show-error --location \
+            --retry 5 --retry-delay 5 --max-time 30 \
+            --output /dev/null --write-out "%{http_code}" \
+            "$PREVIEW_URL")"
+
+          echo "$PREVIEW_URL returned $http_status"
+
+          test "$http_status" = "200"
