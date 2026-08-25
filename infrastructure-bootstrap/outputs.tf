@@ -7,12 +7,12 @@ output "production_oidc_roles" {
   }
 }
 
-output "development_shared_oidc_roles" {
+output "global_oidc_roles" {
   description = "HCP environment variables that grant the shared development workspace dynamic AWS credentials."
 
   value = {
-    TFC_AWS_PLAN_ROLE_ARN  = aws_iam_role.workspace["${local.development_shared_environment}-${local.plan_phase}"].arn
-    TFC_AWS_APPLY_ROLE_ARN = aws_iam_role.workspace["${local.development_shared_environment}-${local.apply_phase}"].arn
+    TFC_AWS_PLAN_ROLE_ARN  = aws_iam_role.workspace["${local.global_environment}-${local.plan_phase}"].arn
+    TFC_AWS_APPLY_ROLE_ARN = aws_iam_role.workspace["${local.global_environment}-${local.apply_phase}"].arn
   }
 }
 

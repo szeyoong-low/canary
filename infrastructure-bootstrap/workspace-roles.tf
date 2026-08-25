@@ -4,9 +4,9 @@ locals {
   // known ahead of time. The others contain no wildcard character, so matching
   // them with StringLike is equivalent to matching them exactly.
   workspace_environments = {
-    (local.production_environment)         = local.production_environment
-    (local.development_shared_environment) = local.development_shared_environment
-    (local.development_pr_environment)     = "${local.development_pr_environment}-*"
+    (local.production_environment)     = local.production_environment
+    (local.global_environment)         = local.global_environment
+    (local.development_pr_environment) = "${local.development_pr_environment}-*"
   }
 
   // One role per environment per run phase.

@@ -11,9 +11,9 @@ locals {
   // on, so its own credentials stay console-owned — if this configuration wrote a
   // bad ARN there, layer 0 could no longer authenticate to repair itself.
   workspace_aws_credentials = {
-    (local.production_environment)         = data.tfe_outputs.bootstrap.nonsensitive_values.production_oidc_roles
-    (local.development_shared_environment) = data.tfe_outputs.bootstrap.nonsensitive_values.development_shared_oidc_roles
-    (local.development_pr_environment)     = data.tfe_outputs.bootstrap.nonsensitive_values.development_pr_oidc_roles
+    (local.production_environment)     = data.tfe_outputs.bootstrap.nonsensitive_values.production_oidc_roles
+    (local.global_environment)         = data.tfe_outputs.bootstrap.nonsensitive_values.global_oidc_roles
+    (local.development_pr_environment) = data.tfe_outputs.bootstrap.nonsensitive_values.development_pr_oidc_roles
   }
 
   workspace_aws_credential_variables = merge([
@@ -49,9 +49,9 @@ resource "tfe_workspace_variable_set" "production" {
   variable_set_id = tfe_variable_set.aws_credentials[local.production_environment].id
 }
 
-resource "tfe_workspace_variable_set" "development_shared" {
-  workspace_id    = tfe_workspace.development_shared.id
-  variable_set_id = tfe_variable_set.aws_credentials[local.development_shared_environment].id
+resource "tfe_workspace_variable_set" "global" {
+  workspace_id    = tfe_workspace.global.id
+  variable_set_id = tfe_variable_set.aws_credentials[local.global_environment].id
 }
 
 resource "tfe_workspace_variable_set" "development_pr" {

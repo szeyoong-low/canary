@@ -10,7 +10,7 @@ provider "aws" {
 }
 
 locals {
-  // The HCP workspace this run belongs to: "production", "development-shared",
+  // The HCP workspace this run belongs to: "production",
   // or "development-pr-n" for a pull request environment.
   workspace = terraform.workspace
 

@@ -29,10 +29,10 @@ locals {
   subject_run_phase_key = "run_phase"
 
   // Workspace names. Each doubles as the suffix on its environment's role names.
-  production_environment         = "production"
-  development_shared_environment = "development-shared"
-  development_pr_environment     = "development-pr"
-  bootstrap_environment          = "bootstrap"
+  production_environment     = "production"
+  global_environment         = "global"
+  development_pr_environment = "development-pr"
+  bootstrap_environment      = "bootstrap"
 
   plan_phase  = "plan"
   apply_phase = "apply"
