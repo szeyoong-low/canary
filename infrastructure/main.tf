@@ -3,7 +3,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      managed_by  = "terraform"
+      managed_via  = "terraform"
       environment = local.environment // `environment` is load-bearing: used for ABAC.
     }
   }
