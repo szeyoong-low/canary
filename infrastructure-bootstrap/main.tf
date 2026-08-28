@@ -54,6 +54,10 @@ locals {
   policy_arn_prefix = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:policy"
   role_arn_prefix   = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:role"
 
+  // AWS-managed policies are owned by AWS, so their ARNs carry the fixed "aws"
+  // account alias where customer-managed ones carry the account ID.
+  aws_managed_policy_prefix = "${local.arn_prefix}aws:policy"
+
   workspace_boundary_arn = "${local.policy_arn_prefix}/${local.workspace_boundary_name}"
   bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"
 
