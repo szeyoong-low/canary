@@ -14,6 +14,10 @@ resource "aws_ecr_repository" "backend" {
   lifecycle {
     prevent_destroy = true
   }
+
+  tags = {
+    function = "storage"
+  }
 }
 
 resource "aws_ecr_lifecycle_policy" "backend" {
