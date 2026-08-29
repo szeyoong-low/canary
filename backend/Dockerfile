@@ -24,8 +24,4 @@ ENV PORT=8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD python -c "import urllib.request, os; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')"
 
-# Host: listen on all network interfaces (https://dev.to/engrmark/what-is-host0000-goa)
-# Exec form needs a shell workaround so $PORT expands at runtime from the environment
-# https://docs.docker.com/reference/dockerfile/#shell-and-exec-form
-# Railway injects $PORT at runtime
-CMD ["uv", "run", "fastapi", "run", "--port", "echo $PORT"]
+CMD ["uv", "run", "fastapi", "run"]
