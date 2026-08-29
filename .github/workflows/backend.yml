@@ -32,6 +32,90 @@ jobs:
       - name: Run test suite
         run: uv run pytest
 
+  backend-build-image:
+    runs-on: ubuntu-latest
+    needs: backend-code-scanning
+
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    permissions:
+      contents: read
+
+      # Mints the OIDC token that AWS exchanges for the ECR push role. Absent
+      # this, the token is never issued and configure-aws-credentials fails.
+      id-token: write
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+      # Third copy of this name, after the bootstrap role's policy and
+      # infrastructure-global/ecr.tf. Renaming the repository without changing
+      # all three surfaces as AccessDenied on push.
+      ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
+
+      TAG_PREFIX: "dev-${{ github.event.pull_request.number }}-"
+
+    outputs:
+      image-tag: "${{ steps.tag.outputs.image-tag }}"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Assume AWS image publishing role
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: "${{ secrets.AWS_ECR_ROLE_ARN }}"
+          aws-region: "${{ env.AWS_REGION }}"
+
+      - name: Log in to ECR
+        id: login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve image tag
+        id: tag
+        env:
+          # The tip of the pull request branch. Deliberately not `github.sha`,
+          # which on a pull request is the ephemeral merge commit and so names
+          # a tree that no branch ever carries.
+          COMMIT_SHA: "${{ github.event.pull_request.head.sha }}"
+
+        run: echo "image-tag=$TAG_PREFIX$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Purge this pull request's images
+
+        run: |
+          existing="$(aws ecr list-images \
+            --repository-name "$ECR_REPOSITORY_NAME" \
+            --filter tagStatus=TAGGED \
+            --output json |
+            jq --compact-output --arg prefix "$TAG_PREFIX" \
+              '[.imageIds[] | select(.imageTag | startswith($prefix))]')"
+
+          count="$(jq length <<< "$existing")"
+
+          if [ "$count" -eq 0 ]; then
+            echo "No images to purge."
+          else
+            echo "Purging $count image(s)."
+            aws ecr batch-delete-image \
+              --repository-name "$ECR_REPOSITORY_NAME" \
+              --image-ids "$existing"
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: true
+          tags: "${{ steps.login.outputs.registry }}/${{ env.ECR_REPOSITORY_NAME }}:${{ steps.tag.outputs.image-tag }}"
+
+          # Layer cache lives in the Actions cache rather than the registry, so
+          # cached layers cost no ECR storage and expire on GitHub's terms.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   backend-deploy-preview:
     runs-on: ubuntu-latest
     needs: backend-code-scanning
