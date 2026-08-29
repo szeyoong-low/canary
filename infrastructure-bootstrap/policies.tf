@@ -47,8 +47,12 @@ locals {
     // The plan phase can read secret material, unavoidably: Terraform refreshes
     // aws_secretsmanager_secret_version by calling GetSecretValue, so a plan role
     // that cannot read the values cannot refresh the resource at all.
+    //
+    // AWSSecretsManagerClientReadOnlyAccess is written for the client case, an
+    // application fetching a value at runtime, and omits the reads that managing
+    // a secret's configuration needs. Hence the hand-rolled policy below.
     secretsmanager = {
-      (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AWSSecretsManagerClientReadOnlyAccess"
+      (local.plan_phase)  = aws_iam_policy.secretsmanager_read_only.arn
       (local.apply_phase) = "${local.aws_managed_policy_prefix}/SecretsManagerReadWrite"
     }
 
@@ -89,6 +93,40 @@ resource "aws_iam_policy" "ecs_read_only" {
       // Most ECS List* actions take no resource ARN, so a scoped Resource would
       // deny them outright. Environment isolation comes from the principal tags
       // and the permissions boundary, not from here.
+      Resource = "*"
+    }]
+  })
+}
+
+// The plan-phase counterpart to SecretsManagerReadWrite. Every action here is one
+// the AWS provider issues while refreshing the two secret resources.
+resource "aws_iam_policy" "secretsmanager_read_only" {
+  name        = "${local.customer_managed_policy_name_prefix}secretsmanager-read-only"
+  description = "Refresh and plan Secrets Manager resources without being able to change them."
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+
+      // Enumerated rather than matched by verb, unlike the ECS policy above.
+      // secretsmanager:Get* would also cover GetSecretValue, and a role that can
+      // read secret material should say so outright rather than acquire it as a
+      // side effect of a wildcard.
+      Action = [
+        // The secret's own configuration.
+        "secretsmanager:DescribeSecret",
+
+        // Populates the `policy` attribute, which is the resource-based policy.
+        // Read on every plan even though none is set.
+        "secretsmanager:GetResourcePolicy",
+
+        // The two below refresh aws_secretsmanager_secret_version, which cannot
+        // be read without reading the material it holds.
+        "secretsmanager:ListSecretVersionIds",
+        "secretsmanager:GetSecretValue",
+      ]
+
       Resource = "*"
     }]
   })
