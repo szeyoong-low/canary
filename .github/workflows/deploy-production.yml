@@ -116,6 +116,28 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # `*.auto.tfvars` is loaded automatically by Terraform and the upload step
+      # packages the whole directory, so the value travels with the configuration
+      # version. The run itself executes in HCP, so nothing set in this runner's
+      # environment would otherwise reach it.
+      #
+      # Safe only because a commit SHA is not a secret: a configuration version
+      # can be downloaded by anyone with read access to the workspace.
+      #
+      - name: Pin the image the task definition runs
+        env:
+          # Must stay identical to RELEASE_TAG in the promotion job above, which
+          # is the tag that job put on the image.
+          #
+          # The tip of the merged branch, not `github.sha` and not
+          # `merge_commit_sha`: squashing writes a new commit that no image is
+          # tagged with, so either of those would name a tag that never existed.
+          IMAGE_TAG: "release-${{ github.event.pull_request.head.sha }}"
+          IMAGE_TAG_FILE: "${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}/image-tag.auto.tfvars"
+        run: |
+          printf 'image_tag = "%s"\n' "$IMAGE_TAG" > "$IMAGE_TAG_FILE"
+          cat "$IMAGE_TAG_FILE"
+
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: apply-upload

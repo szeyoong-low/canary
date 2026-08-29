@@ -1,8 +1,22 @@
 name: Backend CI/CD
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
+    outputs:
+      image-tag:
+        description: "Tag of the image pushed to ECR, which the task definition pulls. Empty when the build is skipped for a fork."
+        value: ${{ jobs.backend-build-image.outputs.image-tag }}
+
+    secrets:
+      ECR_REPOSITORY_NAME:
+        description: "Name of the backend container repository, which must match the one infrastructure-global creates."
+        required: true
+      AWS_ECR_ROLE_ARN:
+        description: "Role the OIDC token is exchanged for, permitted to push to and prune that repository."
+        required: true
+      RAILWAY_PREVIEW_TOKEN:
+        description: "Deploys the preview environment on Railway, until that deployment is retired in favour of ECS."
+        required: true
 
 permissions: {}
 

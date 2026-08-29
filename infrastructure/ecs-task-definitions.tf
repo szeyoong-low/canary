@@ -7,7 +7,14 @@ data "aws_region" "current" {}
 
 variable "image_tag" {
   type        = string
-  description = "Tag of the image in the backend repository to run, being the tip commit SHA of the branch this environment tracks, prefixed by its pipeline."
+  description = "Tag of the image in the backend repository to run: the tip commit SHA of the branch this environment tracks, under the prefix its pipeline pushed it with."
+
+  validation {
+    // The realistic failure is an empty value, which arrives when the upstream
+    // build was skipped. The prefix convention belongs to the pipeline.
+    condition     = length(trimspace(var.image_tag)) > 0
+    error_message = "image_tag must not be empty."
+  }
 }
 
 locals {
