@@ -17,8 +17,8 @@ RUN uv sync --frozen --no-dev
 # Copy source files from current directory on host to container working directory
 COPY . .
 
-# Python reads PORT from environment directly, avoiding shell interpolation
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD python -c "import urllib.request, os; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')"
+# Should align with the ECS task definition
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=60s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 CMD ["uv", "run", "fastapi", "run"]
