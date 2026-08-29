@@ -50,7 +50,7 @@ resource "aws_iam_role" "task_execution" {
 }
 
 resource "aws_iam_role_policy_attachment" "task_execution" {
-  role = aws_iam_role.task_execution.name
+  role       = aws_iam_role.task_execution.name
   policy_arn = "${local.aws_managed_policy_prefix}/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
