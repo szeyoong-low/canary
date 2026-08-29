@@ -1,31 +1,29 @@
-# Official Python Docker image
-# Slim strips out extras (e.g. docs, dev headers) to keep the image small
 FROM python:3.12-slim
 
 # Run all commands from this directory instead of filesystem root
 WORKDIR /backend
 
-# Copies the uv binary directly from uv's official image instead of pip installing
+# Copies the uv binary directly from the official image instead of pip installing
 COPY --from=ghcr.io/astral-sh/uv:0.11.26 /uv /usr/local/bin/uv
 
-# Build command
-# Dependencies are installed before source code is copied
-# Docker caches each instruction as a layer, so a code-only change won't
-# re-download packages
+# Docker caches each instruction as a layer, so code-only changes won't
+# re-download dependency packages
 COPY pyproject.toml uv.lock ./
-# frozen: Sync without updating the `uv.lock` file, ensures reproducibility
+
+# Sync without automatically updating the lock file to ensure reproducibility.
+# This is equivalent to `npm ci`.
 RUN uv sync --frozen --no-dev
 
-# Copy all other files from current directory on host machine to
-# working directory in container
+# Copy source files from current directory on host to container working directory
 COPY . .
 
 # Default for local runs
 ENV PORT=8000
-# Python reads PORT from environment directly, avoiding shell quoting issues
+
+# Python reads PORT from environment directly, avoiding shell interpolation
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD python -c "import urllib.request, os; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')"
-# Start command
+
 # Host: listen on all network interfaces (https://dev.to/engrmark/what-is-host0000-goa)
 # Shell form (not array form) so $PORT expands at runtime from the environment
 # Railway injects $PORT at runtime

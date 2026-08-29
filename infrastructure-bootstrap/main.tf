@@ -18,15 +18,28 @@ locals {
   hcp_audience_claim    = "${local.hcp_hostname}:aud"
   hcp_subject_claim     = "${local.hcp_hostname}:sub"
 
-  hcp_audience           = "aws.workload.identity"
-  hcp_assume_role_action = "sts:AssumeRoleWithWebIdentity"
-  subject_organization   = "organization:CanaryMarkets:project:Canary"
+  hcp_audience             = "aws.workload.identity"
+  hcp_assume_role_action   = "sts:AssumeRoleWithWebIdentity"
+  hcp_subject_organization = "organization:CanaryMarkets:project:Canary"
+  hcp_role_name_prefix     = "hcp-terraform"
 
   // The claim HCP presents is a colon-delimited list of alternating keys and
   // values, in full:
   //   organization:<ORG>:project:<PROJECT>:workspace:<WORKSPACE>:run_phase:<PHASE>
   subject_workspace_key = "workspace"
   subject_run_phase_key = "run_phase"
+
+  github_oidc_provider_url  = "https://token.actions.githubusercontent.com"
+  github_audience           = "sts.amazonaws.com"
+  github_assume_role_action = "sts:AssumeRoleWithWebIdentity"
+
+  // The claim GitHub presents identifies the workflow's trigger, in one of:
+  //   repo:<OWNER>/<REPO>:pull_request
+  //   repo:<OWNER>/<REPO>:ref:refs/heads/<BRANCH>
+  github_repository       = "szeyoong-low/canary"
+  github_subject_claim    = "token.actions.githubusercontent.com:sub"
+  github_audience_claim   = "token.actions.githubusercontent.com:aud"
+  github_role_name_prefix = "github-actions"
 
   // Workspace names. Each doubles as the suffix on its environment's role names.
   production_environment     = "production"
@@ -38,8 +51,6 @@ locals {
   apply_phase = "apply"
 
   run_phases = toset([local.plan_phase, local.apply_phase])
-
-  role_name_prefix = "hcp-terraform"
 
   // The two permissions boundaries, adopted read-only in their own files.
   //
@@ -53,6 +64,10 @@ locals {
 
   policy_arn_prefix = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:policy"
   role_arn_prefix   = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:role"
+
+  // AWS-managed policies are owned by AWS, so their ARNs carry the fixed "aws"
+  // account alias where customer-managed ones carry the account ID.
+  aws_managed_policy_prefix = "${local.arn_prefix}aws:policy"
 
   workspace_boundary_arn = "${local.policy_arn_prefix}/${local.workspace_boundary_name}"
   bootstrap_boundary_arn = "${local.policy_arn_prefix}/${local.bootstrap_boundary_name}"

@@ -1,4 +1,4 @@
-# Backend
+// Backend
 
 resource "cloudflare_dns_record" "api" {
   zone_id = local.cloudflare_zone_id
@@ -18,7 +18,7 @@ resource "cloudflare_dns_record" "www_api" {
   ttl     = 1
 }
 
-# Ownership proofs Railway issues per custom domain.
+// Ownership proofs Railway issues per custom domain.
 resource "cloudflare_dns_record" "railway_verify_api" {
   zone_id = local.cloudflare_zone_id
   name    = "_railway-verify.api.canary.markets"
@@ -35,10 +35,10 @@ resource "cloudflare_dns_record" "railway_verify_www_api" {
   ttl     = 1
 }
 
-# Mail
+// Mail
 
 locals {
-  # Namecheap's email-forwarding servers
+  // Namecheap's email-forwarding servers
   mx_records = {
     "eforward1.registrar-servers.com" = 10
     "eforward2.registrar-servers.com" = 10
@@ -59,7 +59,7 @@ resource "cloudflare_dns_record" "mx" {
   ttl      = 1
 }
 
-# Unclassified
+// Unclassified
 
 resource "cloudflare_dns_record" "mailboxes_www" {
   for_each = toset(["64.29.17.1", "64.29.17.65"])

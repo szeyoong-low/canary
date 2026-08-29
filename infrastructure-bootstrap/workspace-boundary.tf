@@ -30,7 +30,8 @@ resource "aws_iam_policy" "workspace_boundary" {
         Effect = "Deny"
         Action = "iam:*"
         Resource = [
-          "${local.role_arn_prefix}/${local.role_name_prefix}-*",
+          "${local.role_arn_prefix}/${local.hcp_role_name_prefix}-*",
+          "${local.role_arn_prefix}/${local.github_role_name_prefix}-*",
           local.bootstrap_boundary_arn,
           local.workspace_boundary_arn,
         ]

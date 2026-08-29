@@ -1,7 +1,7 @@
 resource "aws_iam_role" "bootstrap_role" {
   for_each = local.run_phases
 
-  name = "${local.role_name_prefix}-${each.key}-${local.bootstrap_environment}"
+  name = "${local.hcp_role_name_prefix}-${each.key}-${local.bootstrap_environment}"
 
   permissions_boundary = aws_iam_policy.bootstrap_boundary.arn
 
@@ -18,7 +18,7 @@ resource "aws_iam_role" "bootstrap_role" {
       Condition = {
         StringEquals = {
           (local.hcp_audience_claim) = local.hcp_audience
-          (local.hcp_subject_claim)  = "${local.subject_organization}:${local.subject_workspace_key}:${local.bootstrap_environment}:${local.subject_run_phase_key}:${each.key}"
+          (local.hcp_subject_claim)  = "${local.hcp_subject_organization}:${local.subject_workspace_key}:${local.bootstrap_environment}:${local.subject_run_phase_key}:${each.key}"
         }
       }
     }]

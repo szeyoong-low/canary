@@ -19,7 +19,93 @@ concurrency:
   queue: max
 
 jobs:
-  deploy-production:
+  promote-backend-artifact:
+    # Forks never receive secrets or an OIDC token, so the promotion would fail
+    # rather than be denied. Skipping keeps the run green and the reason
+    # explicit. `head.repo` reads as null once a deleted fork is garbage
+    # collected, which compares false and therefore also skips.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-latest
+
+    # No checkout: this job only makes registry API calls, so it needs no
+    # repository contents and no Docker daemon.
+    permissions:
+      id-token: write
+
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
+      DEVELOPMENT_TAG: "dev-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}"
+      RELEASE_TAG: "release-${{ github.event.pull_request.head.sha }}"
+      TF_API_TOKEN: "" # Masks the workflow-level value, which this job has no use for.
+
+    steps:
+      - name: Assume AWS image publishing role
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: "${{ secrets.AWS_ECR_ROLE_ARN }}"
+          aws-region: "${{ env.AWS_REGION }}"
+
+      - name: Retag promoted image
+        run: |
+          # This job deletes its own input on success, so a re-run finds no
+          # development tag to read. The release tag is therefore what records
+          # that the work is done, and it is checked before anything else.
+          if aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY_NAME" \
+            --image-ids "imageTag=$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "$RELEASE_TAG is already in the registry. Nothing to promote."
+            exit 0
+          fi
+
+          # Buildx writes an OCI manifest, but batch-get-image accepts only the
+          # Docker media types unless told otherwise, and reports a failure
+          # rather than an image when the type is not accepted.
+          image="$(aws ecr batch-get-image \
+            --repository-name "$ECR_REPOSITORY_NAME" \
+            --image-ids "imageTag=$DEVELOPMENT_TAG" \
+            --accepted-media-types \
+              "application/vnd.oci.image.manifest.v1+json" \
+              "application/vnd.oci.image.index.v1+json" \
+              "application/vnd.docker.distribution.manifest.v2+json" \
+              "application/vnd.docker.distribution.manifest.list.v2+json" \
+            --output json)"
+
+          if [ "$(jq '.images | length' <<< "$image")" -eq 0 ]; then
+            echo "No image is tagged $DEVELOPMENT_TAG." >&2
+            jq '.failures' <<< "$image" >&2
+            exit 1
+          fi
+
+          manifest="$(jq --raw-output '.images[0].imageManifest' <<< "$image")"
+          media_type="$(jq --raw-output '.images[0].imageManifestMediaType' <<< "$image")"
+
+          aws ecr put-image \
+            --repository-name "$ECR_REPOSITORY_NAME" \
+            --image-tag "$RELEASE_TAG" \
+            --image-manifest "$manifest" \
+            --image-manifest-media-type "$media_type" > /dev/null
+
+          echo "Promoted $DEVELOPMENT_TAG to $RELEASE_TAG."
+
+      # The manifest survives under its release tag; only the pointer goes.
+      # This is what leaves `release-*` as the only thing the lifecycle policy's
+      # rollback rule counts.
+      #
+      # batch-delete-image reports a missing tag in its `failures` array rather
+      # than exiting non-zero, so this is safe on the re-run path where the
+      # promotion above short-circuited and the tag is already gone.
+      - name: Drop the development tag
+        run: |
+          aws ecr batch-delete-image \
+            --repository-name "$ECR_REPOSITORY_NAME" \
+            --image-ids "imageTag=$DEVELOPMENT_TAG"
+
+  deploy-aws-infrastructure:
+    needs: promote-backend-artifact
     if: github.event.pull_request.merged == true
     # Skipped if PR is not merged
     runs-on: ubuntu-latest
@@ -72,7 +158,7 @@ jobs:
               body: output
             });
 
-  deploy-frontend:
+  promote-frontend-artifact:
     # Forks never receive secrets, so the promotion would fail rather than be
     # denied. Skipping keeps the run green and the reason explicit. `head.repo`
     # reads as null once a deleted fork is garbage collected, which compares
@@ -134,7 +220,7 @@ jobs:
 
   frontend-health-check:
     runs-on: ubuntu-latest
-    needs: deploy-frontend
+    needs: promote-frontend-artifact
 
     permissions: {}
 

@@ -32,7 +32,10 @@ resource "aws_iam_policy" "bootstrap_boundary" {
           "iam:DeleteRolePolicy",
           "iam:PutRolePermissionsBoundary",
         ]
-        Resource = "${local.role_arn_prefix}/${local.role_name_prefix}-*"
+        Resource = [
+          "${local.role_arn_prefix}/${local.hcp_role_name_prefix}-*",
+          "${local.role_arn_prefix}/${local.github_role_name_prefix}-*",
+        ]
       },
       {
         Sid    = "ManageWorkspacePolicies"
@@ -56,7 +59,7 @@ resource "aws_iam_policy" "bootstrap_boundary" {
           "iam:List*",
         ]
         Resource = [
-          "${local.role_arn_prefix}/${local.role_name_prefix}-*-${local.bootstrap_environment}",
+          "${local.role_arn_prefix}/${local.hcp_role_name_prefix}-*-${local.bootstrap_environment}",
           local.bootstrap_boundary_arn,
           local.workspace_boundary_arn,
         ]
