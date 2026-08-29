@@ -11,8 +11,3 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
 
   tags = local.read_only_tags
 }
-
-import {
-  to = aws_iam_openid_connect_provider.github_actions
-  id = "${local.arn_prefix}${data.aws_caller_identity.current.account_id}:oidc-provider/${trimprefix(local.github_oidc_provider_url, "https://")}"
-}
