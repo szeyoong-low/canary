@@ -28,6 +28,16 @@ locals {
   subject_workspace_key = "workspace"
   subject_run_phase_key = "run_phase"
 
+  github_oidc_provider_url = "https://token.actions.githubusercontent.com"
+  github_audience          = "sts.amazonaws.com"
+
+  // The claim GitHub presents identifies the workflow's trigger, in one of:
+  //   repo:<OWNER>/<REPO>:pull_request
+  //   repo:<OWNER>/<REPO>:ref:refs/heads/<BRANCH>
+  github_repository     = "szeyoong-low/canary"
+  github_subject_claim  = "token.actions.githubusercontent.com:sub"
+  github_audience_claim = "token.actions.githubusercontent.com:aud"
+
   // Workspace names. Each doubles as the suffix on its environment's role names.
   production_environment     = "production"
   global_environment         = "global"
