@@ -6,7 +6,8 @@ data "tfe_outputs" "bootstrap" {
 }
 
 locals {
-  aws_managed_policy_prefix = "arn:aws:iam::aws:policy"
+  aws_managed_policy_arn_prefix       = "arn:aws:iam::aws:policy"
+  customer_managed_policy_name_prefix = "canary-"
 
   workspace_boundary_arn = data.tfe_outputs.bootstrap.nonsensitive_values.workspace_boundary_arn
 
@@ -51,7 +52,7 @@ resource "aws_iam_role" "task_execution" {
 
 resource "aws_iam_role_policy_attachment" "task_execution" {
   role       = aws_iam_role.task_execution.name
-  policy_arn = "${local.aws_managed_policy_prefix}/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = "${local.aws_managed_policy_arn_prefix}/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 // Assumed by the application itself
@@ -65,4 +66,19 @@ resource "aws_iam_role" "task" {
   tags = {
     function = "compute"
   }
+}
+
+// Inline so that it can be scoped to the associated secret
+resource "aws_iam_role_policy" "task_execution_secrets" {
+  name = "${local.customer_managed_policy_name_prefix}read-backend-secret"
+  role = aws_iam_role.task_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "secretsmanager:GetSecretValue"
+      Resource = aws_secretsmanager_secret.backend.arn
+    }]
+  })
 }
