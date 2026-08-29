@@ -4,5 +4,5 @@ data "tfe_outputs" "global" {
 }
 
 locals {
-  backend_repository_url = data.tfe_outputs.global.values.backend_repository_url
+  backend_repository_url = data.tfe_outputs.global.nonsensitive_values.backend_repository_url
 }
