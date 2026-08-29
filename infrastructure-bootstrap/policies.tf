@@ -1,5 +1,5 @@
 locals {
-  customer_managed_policy_prefix = "canary-"
+  customer_managed_policy_name_prefix = "canary-"
 
   // The AWS-managed policy each bootstrap role carries. A `plan` only ever reads,
   // so it gets no write access at all. Only `apply` can change IAM.
@@ -44,6 +44,14 @@ locals {
       (local.apply_phase) = "${local.aws_managed_policy_prefix}/CloudWatchLogsFullAccess"
     }
 
+    // The plan phase can read secret material, unavoidably: Terraform refreshes
+    // aws_secretsmanager_secret_version by calling GetSecretValue, so a plan role
+    // that cannot read the values cannot refresh the resource at all.
+    secretsmanager = {
+      (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AWSSecretsManagerClientReadOnlyAccess"
+      (local.apply_phase) = "${local.aws_managed_policy_prefix}/SecretsManagerReadWrite"
+    }
+
     // Load balancer, target groups
     elb = {
       (local.plan_phase)  = "${local.aws_managed_policy_prefix}/ElasticLoadBalancingReadOnly"
@@ -65,7 +73,7 @@ locals {
 }
 
 resource "aws_iam_policy" "ecs_read_only" {
-  name        = "${local.customer_managed_policy_prefix}ecs-read-only"
+  name        = "${local.customer_managed_policy_name_prefix}ecs-read-only"
   description = "Refresh and plan ECS resources without being able to change them."
 
   policy = jsonencode({
