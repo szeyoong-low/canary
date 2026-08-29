@@ -27,7 +27,7 @@ locals {
 }
 
 resource "aws_iam_role" "github_actions_ecr" {
-  name = "${local.github_role_name_prefix}-ecr"
+  name                 = "${local.github_role_name_prefix}-ecr"
   permissions_boundary = aws_iam_policy.workspace_boundary.arn
 
   tags = {
