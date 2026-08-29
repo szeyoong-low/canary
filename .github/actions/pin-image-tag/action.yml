@@ -1,0 +1,29 @@
+name: Pin image tag
+description: >-
+  Writes the image tag the task definition should run into the infrastructure
+  directory, so that it travels with the configuration version uploaded to HCP.
+  `*.auto.tfvars` is loaded automatically by Terraform and the upload step
+  packages the whole directory. The run itself executes in HCP, so nothing set
+  in this runner's environment would otherwise reach it.
+
+inputs:
+  image-tag:
+    description: "Tag of the image in the backend repository to run."
+    required: true
+
+  directory:
+    description: "Terraform directory that is uploaded as the configuration version."
+    required: true
+
+runs:
+  using: composite
+  steps:
+    
+    - name: Write image tag to a tfvars file
+      shell: bash
+      env:
+        IMAGE_TAG: ${{ inputs.image-tag }}
+        IMAGE_TAG_FILE: ${{ inputs.directory }}/image-tag.auto.tfvars
+      run: |
+        printf 'image_tag = "%s"\n' "$IMAGE_TAG" > "$IMAGE_TAG_FILE"
+        cat "$IMAGE_TAG_FILE"
