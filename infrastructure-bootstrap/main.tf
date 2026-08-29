@@ -18,9 +18,10 @@ locals {
   hcp_audience_claim    = "${local.hcp_hostname}:aud"
   hcp_subject_claim     = "${local.hcp_hostname}:sub"
 
-  hcp_audience           = "aws.workload.identity"
-  hcp_assume_role_action = "sts:AssumeRoleWithWebIdentity"
-  subject_organization   = "organization:CanaryMarkets:project:Canary"
+  hcp_audience             = "aws.workload.identity"
+  hcp_assume_role_action   = "sts:AssumeRoleWithWebIdentity"
+  hcp_subject_organization = "organization:CanaryMarkets:project:Canary"
+  hcp_role_name_prefix     = "hcp-terraform"
 
   // The claim HCP presents is a colon-delimited list of alternating keys and
   // values, in full:
@@ -28,15 +29,17 @@ locals {
   subject_workspace_key = "workspace"
   subject_run_phase_key = "run_phase"
 
-  github_oidc_provider_url = "https://token.actions.githubusercontent.com"
-  github_audience          = "sts.amazonaws.com"
+  github_oidc_provider_url  = "https://token.actions.githubusercontent.com"
+  github_audience           = "sts.amazonaws.com"
+  github_assume_role_action = "sts:AssumeRoleWithWebIdentity"
 
   // The claim GitHub presents identifies the workflow's trigger, in one of:
   //   repo:<OWNER>/<REPO>:pull_request
   //   repo:<OWNER>/<REPO>:ref:refs/heads/<BRANCH>
-  github_repository     = "szeyoong-low/canary"
-  github_subject_claim  = "token.actions.githubusercontent.com:sub"
-  github_audience_claim = "token.actions.githubusercontent.com:aud"
+  github_repository       = "szeyoong-low/canary"
+  github_subject_claim    = "token.actions.githubusercontent.com:sub"
+  github_audience_claim   = "token.actions.githubusercontent.com:aud"
+  github_role_name_prefix = "github-actions"
 
   // Workspace names. Each doubles as the suffix on its environment's role names.
   production_environment     = "production"
@@ -48,8 +51,6 @@ locals {
   apply_phase = "apply"
 
   run_phases = toset([local.plan_phase, local.apply_phase])
-
-  role_name_prefix = "hcp-terraform"
 
   // The two permissions boundaries, adopted read-only in their own files.
   //

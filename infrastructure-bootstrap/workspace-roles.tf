@@ -15,7 +15,7 @@ locals {
     "${pair[0]}-${pair[1]}" => {
       environment = pair[0]
       phase       = pair[1]
-      subject     = "${local.subject_organization}:${local.subject_workspace_key}:${local.workspace_environments[pair[0]]}:${local.subject_run_phase_key}:${pair[1]}"
+      subject     = "${local.hcp_subject_organization}:${local.subject_workspace_key}:${local.workspace_environments[pair[0]]}:${local.subject_run_phase_key}:${pair[1]}"
     }
   }
 }
@@ -23,7 +23,7 @@ locals {
 resource "aws_iam_role" "workspace" {
   for_each = local.workspace_roles
 
-  name = "${local.role_name_prefix}-${each.value.phase}-${each.value.environment}"
+  name = "${local.hcp_role_name_prefix}-${each.value.phase}-${each.value.environment}"
 
   permissions_boundary = aws_iam_policy.workspace_boundary.arn
 
