@@ -43,6 +43,10 @@ resource "aws_lb" "backend" {
   tags = {
     function = "network"
   }
+
+  // Destroyed before the sleep, so its interfaces have time to detach before the
+  // subnets holding them are deleted.
+  depends_on = [time_sleep.eni_release]
 }
 
 resource "aws_lb_target_group" "backend" {

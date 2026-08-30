@@ -50,10 +50,19 @@ jobs:
 
       # No checkout and no upload: a destroy run reuses the configuration version
       # already on the workspace.
+      #
+      # Attempted twice. AWS releases the load balancer's and the tasks' network
+      # interfaces minutes after reporting those resources deleted, and a subnet
+      # or security group one still references refuses to go with a
+      # DependencyViolation. The time_sleep in teardown.tf waits for the common
+      # case; this covers the days AWS is slower than that. A second run starts
+      # from whatever the first managed to delete, so it only has the remainder
+      # to do.
       - name: Create destroy run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
         if: steps.workspace-existence.outputs.exists == 'true'
         id: destroy-run
+        continue-on-error: true
         with:
           is_destroy: true
           workspace: ${{ env.TF_WORKSPACE_DEVELOPMENT_PR }}
@@ -63,8 +72,46 @@ jobs:
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
         if: steps.workspace-existence.outputs.exists == 'true' && fromJSON(steps.destroy-run.outputs.payload).data.attributes.actions.IsConfirmable
         id: destroy-apply
+        continue-on-error: true
         with:
           run: ${{ steps.destroy-run.outputs.run_id }}
+
+      - name: Create destroy run (retry)
+        uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
+        if: steps.workspace-existence.outputs.exists == 'true' && steps.destroy-apply.outcome != 'success'
+        id: retry-run
+        continue-on-error: true
+        with:
+          is_destroy: true
+          workspace: ${{ env.TF_WORKSPACE_DEVELOPMENT_PR }}
+          message: "Retry destroy for closed pull request #${{ github.event.pull_request.number }}"
+
+      - name: Apply destroy (retry)
+        uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
+        if: steps.retry-run.outcome == 'success' && fromJSON(steps.retry-run.outputs.payload).data.attributes.actions.IsConfirmable
+        id: retry-apply
+        continue-on-error: true
+        with:
+          run: ${{ steps.retry-run.outputs.run_id }}
+
+      # Both attempts run with continue-on-error so the second is reachable, which
+      # means nothing has failed the job yet. This is where that is decided, and
+      # it must stay ahead of the workspace reconciliation: deleting a workspace
+      # whose resources still exist would strand them with no state to destroy
+      # them from.
+      - name: Check teardown succeeded
+        id: teardown-result
+        if: always() && steps.workspace-existence.outputs.exists == 'true'
+        run: |
+          if [ "${{ steps.destroy-apply.outcome }}" = "success" ] \
+            || [ "${{ steps.retry-apply.outcome }}" = "success" ]; then
+            echo "conclusion=success" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "conclusion=failure" >> "$GITHUB_OUTPUT"
+          echo "Both destroy attempts failed. The workspace is deliberately left in place so its state still names whatever survived."
+          exit 1
 
       - name: Update PR
         uses: actions/github-script@v9
@@ -72,8 +119,8 @@ jobs:
         env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
           WORKSPACE_EXISTS: ${{ steps.workspace-existence.outputs.exists }}
-          CONCLUSION: ${{ steps.destroy-apply.conclusion }}
-          RUN_LINK: ${{ steps.destroy-run.outputs.run_link }}
+          CONCLUSION: ${{ steps.teardown-result.outputs.conclusion }}
+          RUN_LINK: ${{ steps.retry-run.outputs.run_link || steps.destroy-run.outputs.run_link }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

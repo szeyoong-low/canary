@@ -106,7 +106,13 @@ resource "aws_ecs_service" "backend" {
   }
 
   // A service cannot be created against a target group no listener forwards to.
-  depends_on = [aws_lb_listener.https]
+  // The listener, because a service cannot be created against a target group
+  // nothing forwards to. The sleep, so that the interfaces belonging to drained
+  // tasks are released before the subnets are deleted.
+  depends_on = [
+    aws_lb_listener.https,
+    time_sleep.eni_release,
+  ]
 
   lifecycle {
     // Autoscaling moves this at runtime. Without the exemption every apply would

@@ -14,6 +14,11 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 5.24"
     }
+
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.14"
+    }
   }
 
   required_version = "~> 1.15"
