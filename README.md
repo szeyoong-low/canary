@@ -21,7 +21,7 @@
 | Data pipeline | Polars |
 | AI agent | LangGraph, OpenRouter |
 | Deployment | AWS, Cloudflare Workers, Terraform, Docker |
-| DevOps | Git, GitHub Actions, npm, uv, ruff, eslint, prettier |
+| DevOps | Git, GitHub Actions, npm, uv, Ruff, ESLint, Prettier, Lefthook |
 | Testing | pytest asyncio, unittest mock, Postman |
 | Coding agent | Claude Code (Skills, MCP) |
 | Design & diagramming | Figma, Mermaid, Lucidchart |
