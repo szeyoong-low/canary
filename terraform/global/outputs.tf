@@ -8,6 +8,11 @@ output "backend_repository_url" {
   value       = aws_ecr_repository.backend.repository_url
 }
 
+output "backend_hostname" {
+  description = "The apex domain of the backend API"
+  value       = local.backend_hostname
+}
+
 output "api_tls_certificate_arn" {
   description = "ARN of the issued wildcard certificate for the backend API, for each environment's HTTPS listener. Reads through the validation resource so consumers cannot attach it before ACM has issued it."
   value       = aws_acm_certificate_validation.api.certificate_arn
