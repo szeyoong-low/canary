@@ -44,7 +44,6 @@ jobs:
     secrets:
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
       AWS_ECR_ROLE_ARN: ${{ secrets.AWS_ECR_ROLE_ARN }}
-      RAILWAY_PREVIEW_TOKEN: ${{ secrets.RAILWAY_PREVIEW_TOKEN }}
 
   deploy-development-pr:
     runs-on: ubuntu-latest
