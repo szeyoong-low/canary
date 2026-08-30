@@ -45,6 +45,20 @@ jobs:
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
       AWS_ECR_ROLE_ARN: ${{ secrets.AWS_ECR_ROLE_ARN }}
 
+  # Called rather than left to trigger itself, so that the production plan is
+  # only spent on a pull request whose image actually builds. It pins the
+  # release tag itself, so it never reads the build's output.
+  plan-production:
+    permissions:
+      contents: read
+      pull-requests: write
+
+    needs: backend
+
+    uses: ./.github/workflows/plan-production.yml
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
   deploy-development-pr:
     runs-on: ubuntu-latest
     permissions:

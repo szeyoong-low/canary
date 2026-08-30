@@ -2,9 +2,11 @@ name: Plan production
 # Adapted from https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    secrets:
+      TF_API_TOKEN:
+        description: "HCP Terraform team token, scoped to running plans in the Canary project."
+        required: true
 
 permissions: {}
 
