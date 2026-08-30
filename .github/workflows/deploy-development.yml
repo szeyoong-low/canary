@@ -30,16 +30,45 @@ jobs:
     with:
       pull_request_number: ${{ github.event.pull_request.number }}
 
+  # Builds and pushes the image, then reports the tag it used. Called rather than
+  # left to trigger itself, so that the image is in ECR before the task definition
+  # below names it.
+  backend:
+    permissions:
+      contents: read
+
+      # A reusable workflow can never hold more than the job that calls it grants.
+      id-token: write
+
+    uses: ./.github/workflows/backend.yml
+    secrets:
+      ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
+      AWS_ECR_ROLE_ARN: ${{ secrets.AWS_ECR_ROLE_ARN }}
+      RAILWAY_PREVIEW_TOKEN: ${{ secrets.RAILWAY_PREVIEW_TOKEN }}
+
   deploy-development-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
 
-    needs: reconcile-ephemeral-workspaces
+    needs:
+      - reconcile-ephemeral-workspaces
+      - backend
+
+    # The build is skipped for pull requests from forks, which hold no secrets
+    # and so cannot assume the push role. Its output is then empty, which would
+    # otherwise pin the task definition to a tag that does not exist.
+    if: needs.backend.outputs.image-tag != ''
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Pin image for task definition
+        uses: ./.github/actions/pin-image-tag
+        with:
+          image-tag: "${{ needs.backend.outputs.image-tag }}"
+          directory: "${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}"
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2

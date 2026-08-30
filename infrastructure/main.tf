@@ -24,7 +24,7 @@ locals {
   // Every pull request shares one role, and so one principal tag.
   environment = startswith(local.workspace, local.development_pr_prefix) ? local.development_pr_prefix : local.workspace
 
-  // is_prod = local.environment == "production"
+  is_production = local.environment == "production"
 
   name_suffix = local.workspace // for global/regional/account-level uniqueness
 }

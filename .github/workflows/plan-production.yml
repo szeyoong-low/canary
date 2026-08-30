@@ -28,6 +28,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Must stay identical to the tag deploy-production.yml pins, so that this
+      # plan previews the task definition the merge will actually apply. The
+      # image itself is only created on merge, which plan never checks.
+      - name: Pin image for task definition
+        uses: ./.github/actions/pin-image-tag
+        with:
+          image-tag: "release-${{ github.event.pull_request.head.sha }}"
+          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: plan-upload

@@ -32,3 +32,8 @@ output "github_actions_oidc_roles" {
     AWS_ECR_ROLE_ARN = aws_iam_role.github_actions_ecr.arn
   }
 }
+
+output "workspace_boundary_arn" {
+  description = "Permissions boundary every role an environment workspace creates must carry, for those workspaces to attach to their own roles."
+  value       = aws_iam_policy.workspace_boundary.arn
+}

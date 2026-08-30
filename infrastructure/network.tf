@@ -73,9 +73,13 @@ module "vpc" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
+  // Resources that interact with the public Internet need a public IP address or ENI.
+  // However, individual resources should opt in.
   map_public_ip_on_launch = false
 
-  // Toggle when needed as both cost money to leave running
-  create_igw         = false
+  // Creating it also adds the 0.0.0.0/0 route to the public route table, which
+  // is what lets a task reach ECR, Secrets Manager, and CloudWatch Logs.
+  create_igw = true
+
   enable_nat_gateway = false
 }

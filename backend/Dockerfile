@@ -17,14 +17,8 @@ RUN uv sync --frozen --no-dev
 # Copy source files from current directory on host to container working directory
 COPY . .
 
-# Default for local runs
-ENV PORT=8000
+# Should align with the ECS task definition
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=60s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-# Python reads PORT from environment directly, avoiding shell interpolation
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD python -c "import urllib.request, os; urllib.request.urlopen('http://localhost:' + os.environ.get('PORT', '8000') + '/health')"
-
-# Host: listen on all network interfaces (https://dev.to/engrmark/what-is-host0000-goa)
-# Shell form (not array form) so $PORT expands at runtime from the environment
-# Railway injects $PORT at runtime
-CMD uv run fastapi run --port $PORT
+CMD ["uv", "run", "fastapi", "run"]

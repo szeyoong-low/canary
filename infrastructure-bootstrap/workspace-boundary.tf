@@ -15,13 +15,15 @@ resource "aws_iam_policy" "workspace_boundary" {
         Resource = "*"
       },
       {
-        Sid      = "CannotPassRolesToUnboundedServices"
+        Sid      = "CannotPassRolesToUnapprovedServices"
         Effect   = "Deny"
         Action   = "iam:PassRole"
         Resource = "*"
         Condition = {
           StringNotEquals = {
-            "iam:PermissionsBoundary" = local.workspace_boundary_arn
+            "iam:PassedToService" = [
+              "ecs-tasks.amazonaws.com",
+            ]
           }
         }
       },

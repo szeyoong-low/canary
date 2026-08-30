@@ -116,6 +116,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Must stay identical to RELEASE_TAG in the promotion job above, which is
+      # the tag that job put on the image.
+      #
+      # The tip of the merged branch, not `github.sha` and not
+      # `merge_commit_sha`: squashing writes a new commit that no image is
+      # tagged with, so either of those would name a tag that never existed.
+      - name: Pin image for task definition
+        uses: ./.github/actions/pin-image-tag
+        with:
+          image-tag: "release-${{ github.event.pull_request.head.sha }}"
+          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: apply-upload
