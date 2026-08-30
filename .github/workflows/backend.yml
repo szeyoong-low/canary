@@ -14,9 +14,6 @@ on:
       AWS_ECR_ROLE_ARN:
         description: "Role the OIDC token is exchanged for, permitted to push to and prune that repository."
         required: true
-      RAILWAY_PREVIEW_TOKEN:
-        description: "Deploys the preview environment on Railway, until that deployment is retired in favour of ECS."
-        required: true
 
 permissions: {}
 
@@ -129,20 +126,3 @@ jobs:
           # cached layers cost no ECR storage and expire on GitHub's terms.
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  backend-deploy-preview:
-    runs-on: ubuntu-latest
-    needs: backend-code-scanning
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway preview environment
-        run: railway up --service canary --environment preview
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PREVIEW_TOKEN }}
