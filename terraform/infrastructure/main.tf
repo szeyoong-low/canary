@@ -15,7 +15,7 @@ locals {
   workspace = terraform.workspace
 
   // Must stay identical to the "development-pr" environment key in
-  // infrastructure-bootstrap, which is the principal tag carried by the OIDC role.
+  // terraform/bootstrap, which is the principal tag carried by the OIDC role.
   development_pr_prefix = "development-pr"
 
   // The environment that attribute access control matches on. Exactly

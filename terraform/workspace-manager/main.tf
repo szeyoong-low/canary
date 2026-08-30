@@ -9,7 +9,7 @@ data "tfe_project" "canary" {
 
 locals {
   // Workspace names, which double as environment names throughout.
-  // Named to match the identical locals in infrastructure-bootstrap.
+  // Named to match the identical locals in terraform/bootstrap.
   production_environment     = "production"
   global_environment         = "global"
   development_pr_environment = "development-pr"

@@ -67,14 +67,14 @@ jobs:
         uses: ./.github/actions/pin-image-tag
         with:
           image-tag: "${{ needs.backend.outputs.image-tag }}"
-          directory: "${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}"
+          directory: terraform/infrastructure
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: apply-upload
         with:
           workspace: ${{ env.TF_WORKSPACE_DEVELOPMENT_PR }}
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
 
       - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2

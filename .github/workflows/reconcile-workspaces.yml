@@ -32,7 +32,7 @@ jobs:
     env:
       TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
       TF_CLOUD_ORGANIZATION: "${{ vars.TF_CLOUD_ORGANIZATION }}"
-      PULL_REQUEST_COUNT_FILE: "terraform-workspaces/pull-requests.auto.tfvars"
+      PULL_REQUEST_COUNT_FILE: "terraform/workspace-manager/pull-requests.auto.tfvars"
 
     steps:
       - uses: actions/checkout@v7
@@ -54,7 +54,7 @@ jobs:
         id: reconcile-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_MANAGER }}
-          directory: ${{ vars.TF_DIRECTORY_WORKSPACES }}
+          directory: terraform/workspace-manager
 
       - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2

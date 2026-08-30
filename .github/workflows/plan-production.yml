@@ -35,14 +35,14 @@ jobs:
         uses: ./.github/actions/pin-image-tag
         with:
           image-tag: "release-${{ github.event.pull_request.head.sha }}"
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: plan-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
           speculative: true
 
       - name: Create plan run

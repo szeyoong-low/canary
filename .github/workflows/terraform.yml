@@ -14,14 +14,20 @@ jobs:
       fail-fast: false
       matrix:
         directory:
-          - infrastructure
-          - infrastructure-bootstrap
-          - infrastructure-global
-          - terraform-workspaces
+          - terraform/infrastructure
+          - terraform/bootstrap
+          - terraform/global
+          - terraform/workspace-manager
 
     defaults:
       run:
         working-directory: ${{ matrix.directory }}
+
+    # One TFLint config is shared by every root module. TFLint only looks for
+    # .tflint.hcl in the working directory, which is the matrix directory, so
+    # the shared file one level up has to be pointed at explicitly.
+    env:
+      TFLINT_CONFIG_FILE: ${{ github.workspace }}/terraform/.tflint.hcl
     
     permissions:
       contents: read
