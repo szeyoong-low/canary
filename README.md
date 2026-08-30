@@ -1,4 +1,4 @@
-# 🦜 Canary
+# <img src="frontend/public/favicon.svg" height="32" align="top"> Canary crystalises chaos into charts
 [Canary](https://canary.markets) is an agentic analyst who uncovers business stories hidden in data. You can interact with it just like how you would prepare a report or write scripts on a Jupyter Notebook.
 
 ## Inspiration
@@ -8,7 +8,7 @@
 - [Factset workstation](https://www.factset.com/)
 
 ## Architecture
-<img src="./Canary-infrastructure.png" width=800>
+<img src="public/Canary-infrastructure.png" width=800>
 
 [Architecture diagram on Lucidchart](https://lucid.app/lucidchart/c42a4a91-df21-4cbd-8531-80d03def2023/edit?viewport_loc=-2084%2C-780%2C3105%2C1505%2C0_0&invitationId=inv_acd69b55-1da8-4e08-a279-c3a66c4b2fc0)
 
