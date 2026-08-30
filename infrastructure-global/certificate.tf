@@ -1,14 +1,13 @@
 locals {
-  api_subdomain          = "api.canary.markets"
-  api_wildcard_subdomain = "*.${local.api_subdomain}" // One label deep: covers www.api & dev-n.api
+  zone_apex     = "canary.markets"
+  zone_wildcard = "*.${local.zone_apex}"
 }
 
 resource "aws_acm_certificate" "api" {
   // Regional, so it must sit in the same region as the load
   // balancers that reference it.
 
-  domain_name               = local.api_subdomain
-  subject_alternative_names = [local.api_wildcard_subdomain]
+  domain_name = local.zone_wildcard
 
   validation_method = "DNS" // Implemented below
 
@@ -29,8 +28,8 @@ resource "cloudflare_dns_record" "api_certificate_validation" {
   // ACM generates a random token, tells you to publish it at a specific
   // _-prefixed name in the DNS, then looks it up.
 
-  // ACM collapses the apex and its wildcard onto a single validation CNAME record,
-  // so drop the wildcard or the same record gets written twice and collides.
+  // One name on the certificate means one validation record, but this stays a
+  // for_each so that adding a name later needs no restructuring here.
   //
   // Keyed on domain_name because for_each keys must be known while the plan is
   // built, before ACM has been called. domain_name is echoed back from the
@@ -38,7 +37,6 @@ resource "cloudflare_dns_record" "api_certificate_validation" {
   for_each = {
     for dvo in aws_acm_certificate.api.domain_validation_options :
     dvo.domain_name => dvo
-    if dvo.domain_name != local.api_wildcard_subdomain
   }
 
   zone_id = local.cloudflare_zone_id
