@@ -13,16 +13,9 @@ locals {
 }
 
 resource "cloudflare_dns_record" "backend" {
-  // Production's hostname is still the Railway record owned by the global
-  // workspace, and Cloudflare will not hold two records for one name.
-  // An empty set builds nothing, a single-element one builds the record. Keyed by
-  // the hostname rather than a position, so the address in state reads as
-  // backend["dev-3-api.canary.markets"] and says which name it holds.
-  for_each = local.is_production ? toset([]) : toset([local.backend_hostname])
-
   zone_id = data.tfe_outputs.global.nonsensitive_values.cloudflare_zone_id
 
-  name = each.value
+  name = local.backend_hostname
   type = "CNAME"
 
   // A load balancer has no stable address, so it is always named rather than
