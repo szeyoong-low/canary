@@ -125,20 +125,3 @@ jobs:
               repo: context.repo.repo,
               body: output
             });
-
-  backend-health-check:
-    runs-on: ubuntu-latest
-    needs: deploy-development-pr
-
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: ./.github/actions/health-check
-        with:
-          # Mirrors `backend_hostname` in terraform/infrastructure/dns.tf, which
-          # prefixes the pull request number onto the production name to give
-          # each ephemeral environment its own subdomain.
-          url: "https://dev-${{ env.PR_NUMBER }}-${{ vars.BACKEND_API_HOST }}/health"

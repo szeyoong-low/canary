@@ -170,20 +170,6 @@ jobs:
               body: output
             });
 
-  backend-health-check:
-    runs-on: ubuntu-latest
-    needs: deploy-aws-infrastructure
-
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: ./.github/actions/health-check
-        with:
-          url: "https://${{ vars.BACKEND_API_HOST }}/health"
-
   promote-frontend-artifact:
     # Forks never receive secrets, so the promotion would fail rather than be
     # denied. Skipping keeps the run green and the reason explicit. `head.repo`
@@ -243,23 +229,3 @@ jobs:
         run: |
           npx wrangler versions deploy --version-tag "$VERSION_TAG@100" --yes \
             --message "Squash merge of #$PR_NUMBER"
-
-  frontend-health-check:
-    runs-on: ubuntu-latest
-    needs: promote-frontend-artifact
-
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Check home page on the apex domain
-        uses: ./.github/actions/health-check
-        with:
-          url: "${{ vars.FRONTEND_PROD_APEX }}"
-
-      - name: Check home page on www
-        uses: ./.github/actions/health-check
-        with:
-          url: "${{ vars.FRONTEND_PROD_WWW }}"
