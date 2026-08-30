@@ -5,7 +5,7 @@ variable "CLOUDFLARE_API_TOKEN" {
 }
 
 locals {
-  cloudflare_credential_key = "CLOUDFLARE_API_TOKEN"
+  cloudflare_credential_key      = "CLOUDFLARE_API_TOKEN"
   cloudflare_credential_category = "env"
 }
 
