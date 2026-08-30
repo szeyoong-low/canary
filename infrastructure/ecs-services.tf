@@ -94,6 +94,8 @@ resource "aws_ecs_service" "backend" {
   // reports a green pipeline while the circuit breaker quietly reverts it.
   wait_for_steady_state = true
 
+  force_new_deployment = true
+
   // Keeps tasks spread across both Availability Zones as they are replaced
   availability_zone_rebalancing = "ENABLED"
 
