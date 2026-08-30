@@ -88,7 +88,7 @@ resource "aws_lb_target_group" "backend" {
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.backend.arn
 
-  port     = 443
+  port     = local.https_port
   protocol = "HTTPS"
 
   ssl_policy      = local.alb_ssl_policy

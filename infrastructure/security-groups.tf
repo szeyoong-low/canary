@@ -21,6 +21,7 @@ resource "aws_security_group" "task" {
 locals {
   all_ipv4      = "0.0.0.0/0"
   all_protocols = "-1" // every protocol, and so every port
+  https_port    = 443
 }
 
 // Inbound
@@ -30,8 +31,8 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   description       = "HTTPS from the public Internet."
 
   ip_protocol = "tcp"
-  from_port   = 443
-  to_port     = 443
+  from_port   = local.https_port
+  to_port     = local.https_port
   cidr_ipv4   = local.all_ipv4
 }
 
