@@ -1,0 +1,63 @@
+name: Health check
+description: >-
+  Requests a URL and fails unless it answers 200, printing the response headers
+  when it does not.
+
+  This local action lives in the repository, so it has to be fetched with actions/checkout.
+
+inputs:
+  url:
+    description: "Absolute URL to request. Must answer 200 to pass."
+    required: true
+
+  retries:
+    description: >-
+      Attempts before giving up. curl retries timeouts and 5xx but not 4xx, so
+      this covers a deployment still settling, never a refusal.
+    required: false
+    default: "5"
+
+  retry-delay:
+    description: "Seconds between attempts."
+    required: false
+    default: "5"
+
+  max-time:
+    description: "Seconds any single attempt may take."
+    required: false
+    default: "30"
+
+runs:
+  using: composite
+  steps:
+
+    - name: Request the URL
+      shell: bash
+      env:
+        URL: ${{ inputs.url }}
+        RETRIES: ${{ inputs.retries }}
+        RETRY_DELAY: ${{ inputs.retry-delay }}
+        MAX_TIME: ${{ inputs.max-time }}
+        USER_AGENT: "canary-health-check/1"
+
+      run: |
+        headers="$(mktemp)"
+
+        status="$(curl \
+          --silent --show-error --location \
+          --retry "$RETRIES" --retry-delay "$RETRY_DELAY" --max-time "$MAX_TIME" \
+          --user-agent "$USER_AGENT" \
+          --dump-header "$headers" \
+          --output /dev/null --write-out "%{http_code}" \
+          "$URL")"
+
+        echo "$URL returned $status"
+
+        if [ "$status" != "200" ]; then
+          # `server: cloudflare` alongside `cf-mitigated` means the edge refused
+          # rather than the application; `cf-ray` identifies the request in
+          # Security Events, where the rule that fired is named.
+          echo "Response headers from $URL:" >&2
+          cat "$headers" >&2
+          exit 1
+        fi

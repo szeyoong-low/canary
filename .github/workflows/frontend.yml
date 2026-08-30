@@ -164,23 +164,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: frontend-deploy-development
 
-    permissions: {}
+    permissions:
+      contents: read
 
     steps:
-      - name: Check home page
-        env:
-          PREVIEW_URL: "${{ needs.frontend-deploy-development.outputs.preview-url }}"
-        
-        # curl retries timeouts and 5xx by default, which covers a version
-        # that is still propagating. --location follows the redirect that
-        # Cloudflare issues before the alias settles.
-        run: |
-          http_status="$(curl \
-            --silent --show-error --location \
-            --retry 5 --retry-delay 5 --max-time 30 \
-            --output /dev/null --write-out "%{http_code}" \
-            "$PREVIEW_URL")"
+      - uses: actions/checkout@v7
 
-          echo "$PREVIEW_URL returned $http_status"
-
-          test "$http_status" = "200"
+      # The preview URL is a *.workers.dev name, which sits outside the zone and
+      # so meets no WAF or bot mitigation.
+      - uses: ./.github/actions/health-check
+        with:
+          url: "${{ needs.frontend-deploy-development.outputs.preview-url }}"
