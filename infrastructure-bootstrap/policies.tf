@@ -12,10 +12,31 @@ locals {
     (local.apply_phase) = "${local.aws_managed_policy_prefix}/IAMFullAccess"
   }
 
-  ecr_policy_arns = {
-    (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AmazonEC2ContainerRegistryReadOnly"
-    (local.apply_phase) = "${local.aws_managed_policy_prefix}/AmazonEC2ContainerRegistryFullAccess"
+  // The policies the global workspace carries, one family per service.
+  global_policy_families = {
+    // Repository, lifecycle policy, scanning configuration
+    ecr = {
+      (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AmazonEC2ContainerRegistryReadOnly"
+      (local.apply_phase) = "${local.aws_managed_policy_prefix}/AmazonEC2ContainerRegistryFullAccess"
+    }
+
+    // TLS certificates and their DNS validation
+    acm = {
+      (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AWSCertificateManagerReadOnly"
+      (local.apply_phase) = "${local.aws_managed_policy_prefix}/AWSCertificateManagerFullAccess"
+    }
   }
+
+  // Flattened the same way as the prod/dev families below.
+  global_policies = merge([
+    for phase in local.run_phases : {
+      for family, arns in local.global_policy_families :
+      "${phase}-${family}" => {
+        phase = phase
+        arn   = arns[phase]
+      }
+    }
+  ]...)
 
   // The policies production and development workspaces carry, one family per service.
   prod_dev_shared_policy_families = {
