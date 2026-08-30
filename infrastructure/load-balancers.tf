@@ -92,7 +92,7 @@ resource "aws_lb_listener" "https" {
   protocol = "HTTPS"
 
   ssl_policy      = local.alb_ssl_policy
-  certificate_arn = data.tfe_outputs.global.nonsensitive_values.api_certificate_arn
+  certificate_arn = data.tfe_outputs.global.nonsensitive_values.api_tls_certificate_arn
 
   default_action {
     type             = "forward"
