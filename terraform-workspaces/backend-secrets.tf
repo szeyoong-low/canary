@@ -12,12 +12,13 @@ variable "DEVELOPMENT_BACKEND_SECRETS" {
 
 locals {
   backend_secrets_variable_key = "BACKEND_SECRETS"
+  backend_secrets_category     = "terraform"
 }
 
 resource "tfe_variable" "production_backend_secrets" {
   workspace_id = tfe_workspace.production.id
   key          = local.backend_secrets_variable_key
-  category     = "terraform"
+  category     = local.backend_secrets_category
   hcl          = true
   sensitive    = true
   value        = jsonencode(var.PRODUCTION_BACKEND_SECRETS)
@@ -30,7 +31,7 @@ resource "tfe_variable" "development_pr_backend_secrets" {
   for_each     = tfe_workspace.development_pr
   workspace_id = each.value.id
   key          = local.backend_secrets_variable_key
-  category     = "terraform"
+  category     = local.backend_secrets_category
   hcl          = true
   sensitive    = true
   value        = jsonencode(var.DEVELOPMENT_BACKEND_SECRETS)
