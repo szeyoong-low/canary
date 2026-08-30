@@ -28,7 +28,7 @@ jobs:
     # the shared file one level up has to be pointed at explicitly.
     env:
       TFLINT_CONFIG_FILE: ${{ github.workspace }}/terraform/.tflint.hcl
-    
+
     permissions:
       contents: read
 
@@ -36,13 +36,13 @@ jobs:
       - uses: actions/checkout@v7
 
       - uses: hashicorp/setup-terraform@v4
-          
+
       - name: Format Terraform
         run: terraform fmt -check -recursive -diff
-        
+
       - name: Initialise Terraform
         run: terraform init -backend=false
-      
+
       - name: Validate Terraform
         run: terraform validate
 

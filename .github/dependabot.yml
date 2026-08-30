@@ -42,7 +42,8 @@ updates:
         # This will require a change in uv as well
         # https://devguide.python.org/versions/
         # 3.14 is known to cause compatibility issues with some libraries
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+        update-types:
+          ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
       interval: weekly
     cooldown:
