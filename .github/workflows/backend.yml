@@ -9,7 +9,7 @@ on:
 
     secrets:
       ECR_REPOSITORY_NAME:
-        description: "Name of the backend container repository, which must match the one infrastructure-global creates."
+        description: "Name of the backend container repository, which must match the one terraform/global creates."
         required: true
       AWS_ECR_ROLE_ARN:
         description: "Role the OIDC token is exchanged for, permitted to push to and prune that repository."
@@ -60,7 +60,7 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
 
       # Third copy of this name, after the bootstrap role's policy and
-      # infrastructure-global/ecr.tf. Renaming the repository without changing
+      # terraform/global/ecr.tf. Renaming the repository without changing
       # all three surfaces as AccessDenied on push.
       ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY_NAME }}
 

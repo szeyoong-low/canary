@@ -1,0 +1,75 @@
+pre-commit:
+  parallel: true
+
+  jobs:
+    - name: backend-ruff
+      glob: "backend/**/*.py"
+      root: backend/
+      stage_fixed: true
+      run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
+
+    # ESLint first, Prettier last, so formatting has the final word on any
+    # line ESLint rewrote.
+    - name: frontend-eslint-prettier
+      glob: "frontend/**/*.{ts,tsx,js,jsx,css,html,json,md}"
+      root: frontend/
+      stage_fixed: true
+      run: npx eslint --fix --no-error-on-unmatched-pattern {staged_files} && npx prettier --write --ignore-unknown {staged_files}
+
+    # terraform.yml runs `fmt -check -recursive` over each root module.
+    - name: terraform-fmt
+      glob: "terraform/**/*.{tf,tfvars}"
+      stage_fixed: true
+      run: terraform fmt {staged_files}
+
+pre-push:
+  parallel: true
+
+  jobs:
+    - name: backend-pytest
+      glob: "backend/**"
+      root: backend/
+      run: uv run pytest
+
+    - name: frontend-typecheck
+      glob: "frontend/**"
+      root: frontend/
+      run: npm run compile
+
+    # terraform.yml runs this as a matrix over the four root modules. Here the
+    # modules are discovered from the directory listing instead of being
+    # listed, so adding one needs no change here.
+    #
+    # `init` downloads providers into cache in each module's .terraform directory.
+    - name: terraform-validate-tflint
+      glob: "terraform/**"
+      run: |
+        # Captured before the loop cd's away. TFLint only looks for
+        # .tflint.hcl in the working directory, so the shared config one
+        # level up has to be pointed at explicitly, exactly as CI does.
+        export TFLINT_CONFIG_FILE="$PWD/terraform/.tflint.hcl"
+
+        # Downloads the plugins the shared config declares. Once is enough;
+        # the cache is shared across the modules below.
+        tflint --init
+
+        # Mirrors the matrix's `fail-fast: false`: every module is checked
+        # and the failures are reported together, rather than stopping at
+        # the first one.
+        failed=""
+
+        for directory in terraform/*/; do
+          echo "==> $directory"
+
+          (
+            cd "$directory" || exit 1
+            terraform init -backend=false || exit 1
+            terraform validate || exit 1
+            tflint -f compact || exit 1
+          ) || failed="$failed $directory"
+        done
+
+        if [ -n "$failed" ]; then
+          echo "Failed:$failed"
+          exit 1
+        fi

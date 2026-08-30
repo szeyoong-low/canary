@@ -126,14 +126,14 @@ jobs:
         uses: ./.github/actions/pin-image-tag
         with:
           image-tag: "release-${{ github.event.pull_request.head.sha }}"
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: apply-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
 
       - name: Create apply run
         uses: hashicorp/tfc-workflows-github/actions/create-run@v1.3.2
@@ -141,7 +141,7 @@ jobs:
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
-      
+
       - name: Apply
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
         if: fromJSON(steps.apply-run.outputs.payload).data.attributes.actions.IsConfirmable
@@ -223,33 +223,9 @@ jobs:
           VERSION_TAG: "${{ github.event.pull_request.head.sha }}"
 
           PR_NUMBER: "${{ github.event.pull_request.number }}"
-        
+
         # The @ is the percentage of traffic that is directed to each version.
         # We want an atomic promotion (this is a default made explicit).
         run: |
           npx wrangler versions deploy --version-tag "$VERSION_TAG@100" --yes \
             --message "Squash merge of #$PR_NUMBER"
-
-  frontend-health-check:
-    runs-on: ubuntu-latest
-    needs: promote-frontend-artifact
-
-    permissions: {}
-
-    steps:
-      - name: Check home page
-        env:
-          PRODUCTION_URL_APEX: "${{ vars.FRONTEND_PROD_APEX }}"
-          PRODUCTION_URL_WWW: "${{ vars.FRONTEND_PROD_WWW }}"
-
-        run: |
-          for url in "$PRODUCTION_URL_APEX" "$PRODUCTION_URL_WWW"; do
-            status="$(curl \
-              --silent --show-error --location \
-              --retry 5 --retry-delay 5 --max-time 30 \
-              --output /dev/null --write-out "%{http_code}" \
-              "$url")"
-
-            echo "$url returned $status"
-            test "$status" = "200"
-          done

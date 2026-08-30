@@ -1,0 +1,12 @@
+{
+  "name": "canary",
+  "private": true,
+  "//": "Exists solely to pin Lefthook, which is a Go binary with no other version-controlled home in this repo.",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+
+  "devDependencies": {
+    "lefthook": "^1.14.0"
+  }
+}

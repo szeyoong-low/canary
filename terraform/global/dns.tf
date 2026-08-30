@@ -9,6 +9,9 @@ locals {
     "eforward4.registrar-servers.com" = 15
     "eforward5.registrar-servers.com" = 20
   }
+
+  // DNS records managed by infrastructure workspaces. Passed to them as an output
+  backend_hostname = "api.canary.markets"
 }
 
 resource "cloudflare_dns_record" "mx" {

@@ -1,9 +1,7 @@
 locals {
   pull_request_number = trimprefix(local.workspace, "${local.development_pr_prefix}-")
 
-  // The frontend Worker derives this same hostname from its own preview URL, so
-  // the two mappings have to agree exactly.
-  api_subdomain = "api.canary.markets"
+  api_subdomain = data.tfe_outputs.global.nonsensitive_values.backend_hostname
 
   backend_hostname = (
     local.is_production

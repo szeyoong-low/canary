@@ -2,9 +2,11 @@ name: Plan production
 # Adapted from https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    secrets:
+      TF_API_TOKEN:
+        description: "HCP Terraform team token, scoped to running plans in the Canary project."
+        required: true
 
 permissions: {}
 
@@ -35,14 +37,14 @@ jobs:
         uses: ./.github/actions/pin-image-tag
         with:
           image-tag: "release-${{ github.event.pull_request.head.sha }}"
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
 
       - name: Upload configuration
         uses: hashicorp/tfc-workflows-github/actions/upload-configuration@v1.3.2
         id: plan-upload
         with:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
-          directory: ${{ vars.TF_DIRECTORY_INFRASTRUCTURE }}
+          directory: terraform/infrastructure
           speculative: true
 
       - name: Create plan run
@@ -52,7 +54,7 @@ jobs:
           workspace: ${{ vars.TF_WORKSPACE_PRODUCTION }}
           configuration_version: ${{ steps.plan-upload.outputs.configuration_version_id }}
           plan_only: true
-      
+
       - name: Get plan output
         uses: hashicorp/tfc-workflows-github/actions/plan-output@v1.3.2
         id: plan-output

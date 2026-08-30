@@ -42,20 +42,28 @@ updates:
         # This will require a change in uv as well
         # https://devguide.python.org/versions/
         # 3.14 is known to cause compatibility issues with some libraries
-        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+        update-types:
+          ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
       interval: weekly
     cooldown:
       default-days: 5
 
+  # Every root module under terraform/ is watched. Dependabot raises a separate
+  # pull request per directory, since each one pins providers independently in
+  # its own .terraform.lock.hcl.
   - package-ecosystem: terraform
-    directory: /infrastructure
+    directories:
+      - /terraform/infrastructure
+      - /terraform/bootstrap
+      - /terraform/global
+      - /terraform/workspace-manager
     schedule:
       interval: weekly
     cooldown:
       default-days: 5
     groups:
-      infrastructure-minor-patch:
+      terraform-minor-patch:
         update-types:
           - minor
           - patch
