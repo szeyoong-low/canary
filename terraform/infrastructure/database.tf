@@ -99,9 +99,8 @@ resource "aws_db_instance" "postgres" {
     function = "database"
   }
 
-  // Nothing is needed from the sleep on the way up; it has no create duration.
   // This exists for the destroy graph, which runs in reverse: depending on the
-  // sleep places this instance's deletion BEFORE it, so its elastic network
+  // sleep places this instance's deletion before it, so its elastic network
   // interface is already released by the time the sleep expires and Terraform
   // moves on to the security group and subnets that interface references.
   depends_on = [time_sleep.eni_release]
