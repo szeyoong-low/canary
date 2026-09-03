@@ -105,3 +105,28 @@ resource "aws_db_instance" "postgres" {
   // moves on to the security group and subnets that interface references.
   depends_on = [time_sleep.eni_release]
 }
+
+locals {
+  // RDS creates this secret, names it itself, and rotates it. The attribute is
+  // a list because it is empty unless manage_master_user_password is set, so
+  // the index is safe only while that stays true above.
+  //
+  // It holds a JSON object of exactly {"username", "password"}. Everything else
+  // needed to build a connection URL is read from the instance attributes
+  // below, NOT from the secret.
+  database_secret_arn = aws_db_instance.postgres.master_user_secret[0].secret_arn
+
+  database_username_key = "username"
+  database_password_key = "password"
+
+  // `address` is the hostname alone. `endpoint` would append the port.
+  database_host = aws_db_instance.postgres.address
+  database_port = aws_db_instance.postgres.port
+  database_name = aws_db_instance.postgres.db_name
+
+  database_host_env     = "DATABASE_HOST"
+  database_port_env     = "DATABASE_PORT"
+  database_name_env     = "DATABASE_NAME"
+  database_username_env = "DATABASE_USERNAME"
+  database_password_env = "DATABASE_PASSWORD"
+}

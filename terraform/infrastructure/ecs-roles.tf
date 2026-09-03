@@ -68,7 +68,7 @@ resource "aws_iam_role" "task" {
   }
 }
 
-// Inline so that it can be scoped to the associated secret
+// Inline so that it can be scoped to the associated secrets
 resource "aws_iam_role_policy" "task_execution_secrets" {
   name = "${local.customer_managed_policy_name_prefix}read-backend-secret"
   role = aws_iam_role.task_execution.id
@@ -76,9 +76,13 @@ resource "aws_iam_role_policy" "task_execution_secrets" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = "secretsmanager:GetSecretValue"
-      Resource = aws_secretsmanager_secret.backend.arn
+      Effect = "Allow"
+      Action = "secretsmanager:GetSecretValue"
+
+      Resource = [
+        aws_secretsmanager_secret.backend.arn,
+        local.database_secret_arn, // Owned and rotated by RDS
+      ]
     }]
   })
 }
