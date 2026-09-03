@@ -1,4 +1,8 @@
 version: 2
+
+# Branch protection exempts Dependabot from GitHub status checks
+# https://nesbitt.io/2026/01/10/16-best-practices-for-reducing-dependabot-noise.html
+
 updates:
   - package-ecosystem: npm
     directory: /frontend
@@ -18,11 +22,13 @@ updates:
         update-types:
           - minor
           - patch
+    commit-message:
+      prefix: "[skip ci] "
 
   - package-ecosystem: uv
     directory: /backend
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 5
       semver-major-days: 30
@@ -33,6 +39,8 @@ updates:
         update-types:
           - minor
           - patch
+    commit-message:
+      prefix: "[skip ci] "
 
   - package-ecosystem: docker
     directory: /backend
@@ -45,9 +53,11 @@ updates:
         update-types:
           ["version-update:semver-major", "version-update:semver-minor"]
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 5
+    commit-message:
+      prefix: "[skip ci] "
 
   # Every root module under terraform/ is watched. Dependabot raises a separate
   # pull request per directory, since each one pins providers independently in
@@ -59,7 +69,7 @@ updates:
       - /terraform/global
       - /terraform/workspace-manager
     schedule:
-      interval: weekly
+      interval: monthly
     cooldown:
       default-days: 5
     groups:
@@ -67,3 +77,5 @@ updates:
         update-types:
           - minor
           - patch
+    commit-message:
+      prefix: "[skip ci] "
