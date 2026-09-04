@@ -92,7 +92,7 @@ resource "aws_ecs_service" "backend" {
   // Holds the apply open until the deployment settles. Without it Terraform
   // returns as soon as ECS accepts the revision, so a crashlooping container
   // reports a green pipeline while the circuit breaker quietly reverts it.
-  wait_for_steady_state = true
+  wait_for_steady_state = local.is_production
 
   force_new_deployment = true
 
