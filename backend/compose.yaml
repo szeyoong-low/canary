@@ -1,0 +1,66 @@
+# For local development
+
+services:
+  postgres:
+    # Pinned to the same MAJOR version as the RDS instance
+    image: postgres:18-alpine
+
+    # Compose reads .env, so there is a single source of truth.
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME:?set DATABASE_USERNAME in backend/.env}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in backend/.env}
+      POSTGRES_DB: ${DATABASE_NAME:?set DATABASE_NAME in backend/.env}
+
+    ports:
+      # Published on the host so `uv run fastapi dev`, running outside Docker,
+      # can reach it at localhost. The container port is fixed at 5432; only the
+      # host side is configurable, in case something already holds that port.
+      - "${DATABASE_PORT:-5432}:5432"
+
+    volumes:
+      # A named volume, so data survives `docker compose down` and every
+      # container replacement.
+      # `docker compose down --volumes` is what actually discards it.
+      - postgres-data:/var/lib/postgresql
+
+    healthcheck:
+      # pg_isready reports whether the server is accepting connections, which is
+      # later than the container being "up". Postgres runs an initialisation
+      # pass on first boot, and a client that connects during it is refused.
+      #
+      # `-U` matters. Without it pg_isready uses the OS user, which does not
+      # exist as a role, and the check fails even once the server is healthy.
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+
+      # Generous, because only the very first boot is slow. `--wait` on the
+      # command line is what makes this useful: it holds until healthy.
+      retries: 12
+
+volumes:
+  postgres-data:
+
+# The same thing without Compose, kept for reference.
+# Postgres reads POSTGRES_* while .env supplies DATABASE_*, so `--env-file .env`
+# does not line up and the values end up duplicated here.
+#
+#   docker run --detach \
+#     --name canary-postgres \
+#     --env POSTGRES_USER=canary_admin \
+#     --env POSTGRES_PASSWORD=<the DATABASE_PASSWORD from .env> \
+#     --env POSTGRES_DB=canary \
+#     --publish 5432:5432 \
+#     --volume canary-postgres-data:/var/lib/postgresql \
+#     postgres:18-alpine
+#
+# Two behaviours are lost. There is no `--wait`, so the next command has to poll
+# for readiness itself:
+#   until docker exec canary-postgres pg_isready -U canary_admin -d canary; do sleep 1; done
+#
+# And `docker run` fails once the container exists, so every run after the first
+# is `docker start canary-postgres` instead. `docker compose up` is idempotent.
+#
+# Note the volume names differ: Compose prefixes its own with the project
+# directory, giving `backend_postgres-data`. Switching between the two therefore
+# switches databases rather than sharing one.
