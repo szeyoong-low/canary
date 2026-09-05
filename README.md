@@ -21,7 +21,7 @@ Check out [the project wiki](https://github.com/szeyoong-low/canary/wiki) for de
 | Backend | FastAPI, Python 3.12, httpx, Pydantic |
 | Data sources | Financial Modelling Prep |
 | Data pipeline | Polars |
-| Database | PostgreSQL, SQLAlchemy, asyncpg |
+| Database | PostgreSQL, SQLAlchemy, asyncpg, Alembic, dbeaver |
 | AI agent | LangGraph, OpenRouter |
 | Deployment | AWS, Cloudflare Workers, Terraform, Docker |
 | DevOps | Git, GitHub Actions, npm, uv, Ruff, ESLint, Prettier, Lefthook |
