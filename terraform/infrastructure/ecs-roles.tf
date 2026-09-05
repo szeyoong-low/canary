@@ -68,6 +68,29 @@ resource "aws_iam_role" "task" {
   }
 }
 
+resource "aws_iam_role_policy" "task_database_connect" {
+  name = "${local.customer_managed_policy_name_prefix}connect-as-application-role"
+  role = aws_iam_role.task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      // Authorises minting a token for one database user on one instance.
+      Action = "rds-db:connect"
+
+      // rds-db is its own ARN namespace, unrelated to the rds one that
+      // administers the instance.
+      Resource = join("", [
+        "arn:aws:rds-db:",
+        data.aws_region.current.region, ":",
+        data.aws_caller_identity.current.account_id, ":",
+        "dbuser:", local.database_resource_id, "/", local.database_app_username,
+      ])
+    }]
+  })
+}
+
 // Inline so that it can be scoped to the associated secrets
 resource "aws_iam_role_policy" "task_execution_secrets" {
   name = "${local.customer_managed_policy_name_prefix}read-backend-secret"

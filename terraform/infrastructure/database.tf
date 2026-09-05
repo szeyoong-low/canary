@@ -68,6 +68,15 @@ resource "aws_db_instance" "postgres" {
   // this secret plus the host and port below.
   manage_master_user_password = true
 
+  // Lets a database role authenticate with a signed, short-lived IAM token
+  // instead of a password. This only permits the mechanism. A role must also be
+  // granted `rds_iam` inside Postgres, which the application_role migration
+  // does, and the caller needs rds-db:connect, which the task role carries.
+  //
+  // The master user above keeps its password regardless: migrations run as the
+  // owner, and IAM authentication is reserved for the application role.
+  iam_database_authentication_enabled = true
+
   db_subnet_group_name   = aws_db_subnet_group.postgres.name
   vpc_security_group_ids = [aws_security_group.database.id]
 
@@ -129,4 +138,20 @@ locals {
   database_name_env     = "DATABASE_NAME"
   database_username_env = "DATABASE_USERNAME"
   database_password_env = "DATABASE_PASSWORD"
+
+  // The role the application connects as, created and granted by the
+  // application_role migration.
+  //
+  // This string has to match the role name in that migration exactly
+  database_app_username = "canary_app"
+
+  // The immutable `db-XXXXXXXX` identifier, NOT the `identifier` attribute
+  // above. The rds-db:connect ARN is built from this one, and using the
+  // readable name instead produces a policy that matches nothing and denies
+  // silently.
+  database_resource_id = aws_db_instance.postgres.resource_id
+
+  database_app_username_env = "DATABASE_APP_USERNAME"
+  database_auth_env         = "DATABASE_AUTH"
+  database_region_env       = "DATABASE_REGION"
 }

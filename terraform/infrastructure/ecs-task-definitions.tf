@@ -101,6 +101,18 @@ resource "aws_ecs_task_definition" "backend" {
         name  = local.database_name_env
         value = local.database_name
       },
+      {
+        name  = local.database_app_username_env
+        value = local.database_app_username
+      },
+      {
+        name  = local.database_auth_env
+        value = "iam"
+      },
+      {
+        name  = local.database_region_env
+        value = data.aws_region.current.region
+      },
     ]
 
     // Each key of the secret becomes one environment variable. The trailing
