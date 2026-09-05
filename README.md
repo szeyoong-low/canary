@@ -22,6 +22,7 @@ Check out [the project wiki](https://github.com/szeyoong-low/canary/wiki) for de
 | Data sources | Financial Modelling Prep |
 | Data pipeline | Polars |
 | Database | PostgreSQL, SQLAlchemy, asyncpg, Alembic, dbeaver |
+| Authentication | Auth0 |
 | AI agent | LangGraph, OpenRouter |
 | Deployment | AWS, Cloudflare Workers, Terraform, Docker |
 | DevOps | Git, GitHub Actions, npm, uv, Ruff, ESLint, Prettier, Lefthook |
