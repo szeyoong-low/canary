@@ -42,6 +42,9 @@ runs:
         DATABASE_NAME=canary
         DATABASE_USERNAME=canary_admin
         DATABASE_PASSWORD=$(openssl rand -hex 16)
+        DATABASE_APP_USERNAME=canary_app
+        DATABASE_APP_PASSWORD=$(openssl rand -hex 16)
+        DATABASE_AUTH=password
         EOF
 
     - name: Start Postgres
