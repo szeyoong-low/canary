@@ -11,7 +11,7 @@ diffs the live database against.
 # `column_0_name` shown in the Alembic docs. The ledger tables have composite
 # keys, and the single-column form would give two different constraints on one
 # table the same name.
-# 
+#
 # Note: Postgres truncates identifiers at 63 bytes.
 NAMING_CONVENTION: dict[str, str] = {
     "ix": "ix_%(column_0_label)s",
@@ -23,3 +23,11 @@ NAMING_CONVENTION: dict[str, str] = {
 }
 
 metadata: MetaData = MetaData(naming_convention=NAMING_CONVENTION)
+
+# Imported for its side effect: a `Table` registers itself against the MetaData
+# only when its module is executed. Without this, `target_metadata` reaches
+# autogenerate empty and every existing table looks like one to drop.
+#
+# It sits at the bottom because `identity` imports `metadata` from here, so the
+# name has to exist before that module runs.
+from . import app_users  # noqa: F401
