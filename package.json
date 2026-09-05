@@ -5,8 +5,7 @@
   "scripts": {
     "prepare": "lefthook install"
   },
-
   "devDependencies": {
-    "lefthook": "^1.14.0"
+    "lefthook": "^2.1.12"
   }
 }
