@@ -1,14 +1,32 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from http import HTTPMethod
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .src.agent import router as agent
+from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import CONTENT_TYPE_HEADER
 from .src.terminal import router as terminal
 
-app: FastAPI = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    """Runs either side of the application serving requests.
+    https://fastapi.tiangolo.com/advanced/events/"""
+
+    await verify_connection()
+
+    yield
+
+    # Closes the pooled connections rather than leaving the server to drop them,
+    # which would leave the database holding backends open until they time out.
+    await get_engine().dispose()
+
+
+app: FastAPI = FastAPI(lifespan=lifespan)
 
 env: Environment = get_environment()
 

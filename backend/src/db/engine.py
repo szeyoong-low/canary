@@ -3,7 +3,7 @@ from functools import cache
 from typing import Any
 
 import boto3
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -63,7 +63,7 @@ def _use_iam_tokens(engine: AsyncEngine, settings: DatabaseSettings) -> None:
         cparams["password"] = _rds_client(settings.region).generate_db_auth_token(
             DBHostname=settings.host,
             Port=settings.port,
-            DBUsername=settings.app_username, # Must match the database role exactly
+            DBUsername=settings.app_username,  # Must match the database role exactly
             Region=settings.region,
         )
 
@@ -91,14 +91,12 @@ def get_engine() -> AsyncEngine:
 
     engine = create_async_engine(
         settings.application_url,
-
         # The engine holds TCP connections open between requests. Anything that
         # kills them server-side leaves dead sockets in the pool that may still
         # be handed out. Pre-ping spends one trivial round trip per checkout to
         # verify the connection is alive, and silently replaces it if not.
         # https://docs.sqlalchemy.org/en/20/core/pooling.html
         pool_pre_ping=True,
-
         # RDS refuses IAM authentication over an unencrypted connection, so the
         # two are enabled together. `create_default_context` already requires a
         # valid certificate and a matching hostname; naming the bundle only
@@ -139,3 +137,24 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
         # confusing way to discover the behaviour.
         expire_on_commit=False,
     )
+
+
+async def verify_connection() -> None:
+    """
+    Open one connection and confirm it is the identity we intended.
+    Called at startup so that a broken database configuration fails the
+    deployment rather than waiting for the first request that touches a table.
+
+    Raises whatever the driver raises, which is what makes the task exit.
+    """
+
+    settings: DatabaseSettings = get_database_settings()
+
+    async with get_engine().connect() as connection:
+        connected_as = await connection.scalar(text("SELECT current_user"))
+
+    if connected_as != settings.app_username:
+        raise RuntimeError(
+            f"Connected to the database as {connected_as!r}, "
+            f"expected {settings.app_username!r}."
+        )
