@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.19.2",
     "asyncpg>=0.31.0",
     "coloraide>=8.12.1",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.141.1",
