@@ -82,6 +82,11 @@ locals {
       (local.plan_phase)  = "${local.aws_managed_policy_prefix}/ElasticLoadBalancingReadOnly"
       (local.apply_phase) = "${local.aws_managed_policy_prefix}/ElasticLoadBalancingFullAccess"
     }
+
+    rds = {
+      (local.plan_phase)  = "${local.aws_managed_policy_prefix}/AmazonRDSReadOnlyAccess"
+      (local.apply_phase) = "${local.aws_managed_policy_prefix}/AmazonRDSFullAccess"
+    }
   }
 
   // Flattened to "<phase>-<family>" => { phase, arn } so a single `for_each` can
