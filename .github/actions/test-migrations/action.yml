@@ -1,0 +1,85 @@
+name: Test migrations
+description: >-
+  Runs every migration forwards, checks the schema modules and the migrations
+  have not drifted apart, then runs every migration backwards and forwards
+  again, against a throwaway Postgres.
+
+  This local action lives in the repository, so it has to be fetched with actions/checkout.
+
+inputs:
+  working-directory:
+    description: "Directory holding compose.yaml, alembic.ini and pyproject.toml."
+    required: false
+    default: backend
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v10.0.1
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv sync --dev
+
+    # Only the database settings are needed. `migrations/env.py` reads
+    # `DatabaseSettings`, which is separate from `Environment`, so no agent
+    # credential has to exist for a migration to run.
+    #
+    # Compose reads .env from this directory too, so one file supplies the
+    # container's credentials and the ones alembic connects with. They cannot
+    # disagree.
+    - name: Write a throwaway .env
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        # The password is generated per run and never leaves this runner.
+        cat > .env <<EOF
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=canary
+        DATABASE_USERNAME=canary_admin
+        DATABASE_PASSWORD=$(openssl rand -hex 16)
+        DATABASE_APP_USERNAME=canary_app
+        DATABASE_APP_PASSWORD=$(openssl rand -hex 16)
+        DATABASE_AUTH=password
+        EOF
+
+    - name: Start Postgres
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: docker compose up --wait
+
+    - name: Apply every migration
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv run alembic upgrade head
+
+    # Fails when the schema modules and the migration history have diverged,
+    # which is what happens when a table is edited and no revision is generated.
+    - name: Check for schema drift
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv run alembic check
+
+    - name: Revert every migration
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv run alembic downgrade base
+
+    # Also checks the downgrade did its job: anything it failed to drop makes
+    # this fail with "already exists".
+    - name: Apply every migration again
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: uv run alembic upgrade head
+
+    # The runner is thrown away regardless, but tearing down explicitly keeps
+    # the action honest if it is ever reused somewhere persistent.
+    - name: Stop Postgres
+      if: always()
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: docker compose down --volumes

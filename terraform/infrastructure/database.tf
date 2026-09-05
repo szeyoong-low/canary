@@ -1,0 +1,157 @@
+// A subnet group is the set of subnets RDS may place the instance in. RDS
+// demands at least two Availability Zones even for a single-AZ instance: the
+// second is what a later conversion to Multi-AZ would fail over into, so
+// requiring it now avoids a rebuild then.
+// https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html
+
+resource "aws_db_subnet_group" "postgres" {
+  name        = "postgres-${local.name_suffix}"
+  subnet_ids  = module.vpc.private_subnets
+  description = "Private subnets the ${local.environment} database may be placed in."
+
+  tags = {
+    function = "database"
+  }
+}
+
+locals {
+  postgres_port = 5432
+
+  initial_storage = 20 // The floor RDS bills for
+
+  // Ceiling for RDS's own storage autoscaling: grows the volume when the
+  // instance runs short and never shrinks it again, so this is the ceiling on
+  // storage bills. https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html
+  maximum_storage = 100
+  fixed_storage   = 0
+
+  // Retained backups are free up to the size of allocated storage, so one day
+  // in production costs nothing and buys point-in-time recovery. Zero disables
+  // PITR entirely and forbids a final snapshot for disposable PR environments.
+  production_backup_retention  = 1
+  development_backup_retention = 0
+
+  // UTC. Kept apart from each other, and both in the small hours so that a
+  // future EventBridge stop/start schedule can be slotted around them.
+  backup_window      = "03:00-04:00"
+  maintenance_window = "sun:04:30-sun:05:30" // Stopped DB will always wake up for this
+}
+
+resource "aws_db_instance" "postgres" {
+  identifier = "postgres-${local.name_suffix}"
+
+  engine                     = "postgres"
+  engine_version             = "18"
+  auto_minor_version_upgrade = true
+
+  instance_class = "db.t4g.micro"
+
+  // Burstable Graviton. Its CPU credits accrue while idle and are spent under
+  // load, which suits traffic that arrives in bursts between long quiet spells.
+
+  allocated_storage     = local.initial_storage
+  max_allocated_storage = local.is_production ? local.maximum_storage : local.fixed_storage
+
+  // gp3 costs the same as gp2 and gives a higher 3,000 IOPS baseline than gp2's
+  // 3 IOPS/GB, which at 20 GiB would be 60.
+  storage_type = "gp3"
+
+  // Free encryption at rest under the account's default AWS-managed key.
+  storage_encrypted = true
+
+  db_name  = "canary"
+  username = "canary_admin"
+
+  // RDS generates the password, stores it in a Secrets Manager secret it owns,
+  // and rotates it. The value never enters Terraform state or a plan.
+  // The cost is that the connection URL has to be assembled at runtime from
+  // this secret plus the host and port below.
+  manage_master_user_password = true
+
+  // Lets a database role authenticate with a signed, short-lived IAM token
+  // instead of a password. This only permits the mechanism. A role must also be
+  // granted `rds_iam` inside Postgres, which the application_role migration
+  // does, and the caller needs rds-db:connect, which the task role carries.
+  //
+  // The master user above keeps its password regardless: migrations run as the
+  // owner, and IAM authentication is reserved for the application role.
+  iam_database_authentication_enabled = true
+
+  db_subnet_group_name   = aws_db_subnet_group.postgres.name
+  vpc_security_group_ids = [aws_security_group.database.id]
+
+  publicly_accessible = false
+
+  multi_az = false
+
+  port = local.postgres_port
+
+  backup_retention_period = local.is_production ? local.production_backup_retention : local.development_backup_retention
+  backup_window           = local.backup_window
+  maintenance_window      = local.maintenance_window
+  copy_tags_to_snapshot   = true
+
+  deletion_protection       = local.is_production
+  skip_final_snapshot       = !local.is_production
+  final_snapshot_identifier = local.is_production ? "postgres-${local.name_suffix}-final" : null
+
+  // Applies changes during the next maintenance window in production, so a
+  // parameter edit cannot reboot the instance in the middle of the day.
+  apply_immediately = !local.is_production
+
+  // RDS refuses to shrink storage if it would cause it to be full
+  lifecycle {
+    ignore_changes = [allocated_storage]
+  }
+
+  tags = {
+    function = "database"
+  }
+
+  // This exists for the destroy graph, which runs in reverse: depending on the
+  // sleep places this instance's deletion before it, so its elastic network
+  // interface is already released by the time the sleep expires and Terraform
+  // moves on to the security group and subnets that interface references.
+  depends_on = [time_sleep.eni_release]
+}
+
+locals {
+  // RDS creates this secret, names it itself, and rotates it. The attribute is
+  // a list because it is empty unless manage_master_user_password is set, so
+  // the index is safe only while that stays true above.
+  //
+  // It holds a JSON object of exactly {"username", "password"}. Everything else
+  // needed to build a connection URL is read from the instance attributes
+  // below, NOT from the secret.
+  database_secret_arn = aws_db_instance.postgres.master_user_secret[0].secret_arn
+
+  database_username_key = "username"
+  database_password_key = "password"
+
+  // `address` is the hostname alone. `endpoint` would append the port.
+  database_host = aws_db_instance.postgres.address
+  database_port = aws_db_instance.postgres.port
+  database_name = aws_db_instance.postgres.db_name
+
+  database_host_env     = "DATABASE_HOST"
+  database_port_env     = "DATABASE_PORT"
+  database_name_env     = "DATABASE_NAME"
+  database_username_env = "DATABASE_USERNAME"
+  database_password_env = "DATABASE_PASSWORD"
+
+  // The role the application connects as, created and granted by the
+  // application_role migration.
+  //
+  // This string has to match the role name in that migration exactly
+  database_app_username = "canary_app"
+
+  // The immutable `db-XXXXXXXX` identifier, NOT the `identifier` attribute
+  // above. The rds-db:connect ARN is built from this one, and using the
+  // readable name instead produces a policy that matches nothing and denies
+  // silently.
+  database_resource_id = aws_db_instance.postgres.resource_id
+
+  database_app_username_env = "DATABASE_APP_USERNAME"
+  database_auth_env         = "DATABASE_AUTH"
+  database_region_env       = "DATABASE_REGION"
+}

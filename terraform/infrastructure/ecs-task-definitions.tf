@@ -82,6 +82,39 @@ resource "aws_ecs_task_definition" "backend" {
 
     stopTimeout = local.stop_timeout
 
+    // Connection details are non-sensitive as the instance is unreachable from
+    // outside the VPC.
+    //
+    // Kept out of the backend secret deliberately. These are outputs of the
+    // database resource, so sourcing them from anywhere else will lead to drift
+    // (secrets must be read from somewhere with valueFrom).
+    environment = [
+      {
+        name  = local.database_host_env
+        value = local.database_host
+      },
+      {
+        name  = local.database_port_env
+        value = tostring(local.database_port)
+      },
+      {
+        name  = local.database_name_env
+        value = local.database_name
+      },
+      {
+        name  = local.database_app_username_env
+        value = local.database_app_username
+      },
+      {
+        name  = local.database_auth_env
+        value = "iam"
+      },
+      {
+        name  = local.database_region_env
+        value = data.aws_region.current.region
+      },
+    ]
+
     // Each key of the secret becomes one environment variable. The trailing
     // colons are the version stage and version id, left empty to take the
     // current version.
@@ -93,12 +126,24 @@ resource "aws_ecs_task_definition" "backend" {
     //
     // Resolved once, at task start. Changing a secret's value does not reach a
     // running container until the service is redeployed.
-    secrets = [
-      for key in nonsensitive(keys(var.BACKEND_SECRETS)) : {
-        name      = key
-        valueFrom = "${aws_secretsmanager_secret.backend.arn}:${key}::"
-      }
-    ]
+    secrets = concat(
+      [
+        for key in nonsensitive(keys(var.BACKEND_SECRETS)) : {
+          name      = key
+          valueFrom = "${aws_secretsmanager_secret.backend.arn}:${key}::"
+        }
+      ],
+      [
+        {
+          name      = local.database_username_env
+          valueFrom = "${local.database_secret_arn}:${local.database_username_key}::"
+        },
+        {
+          name      = local.database_password_env
+          valueFrom = "${local.database_secret_arn}:${local.database_password_key}::"
+        },
+      ]
+    )
 
     logConfiguration = {
       logDriver = "awslogs"

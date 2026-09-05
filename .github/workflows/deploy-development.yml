@@ -59,6 +59,15 @@ jobs:
     secrets:
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
+  test-migrations:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/test-migrations
+
   deploy-development-pr:
     runs-on: ubuntu-latest
     permissions:
@@ -68,6 +77,7 @@ jobs:
     needs:
       - reconcile-ephemeral-workspaces
       - backend
+      - test-migrations
 
     # The build is skipped for pull requests from forks, which hold no secrets
     # and so cannot assume the push role. Its output is then empty, which would
