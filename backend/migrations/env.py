@@ -3,7 +3,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from backend.src.db.schema import metadata
-from backend.src.dependencies import get_environment
+from backend.src.dependencies import get_database_settings
 from sqlalchemy import URL, pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -24,7 +24,7 @@ MIGRATION_LOCK_KEY: int = 4_919_202_501
 
 
 def database_url() -> URL:
-    return get_environment().database_url
+    return get_database_settings().url
 
 
 def run_migrations_offline() -> None:

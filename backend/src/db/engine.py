@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from ..dependencies import Environment, get_environment
+from ..dependencies import DatabaseSettings, get_database_settings
 
 """The connection pool and the session factory."""
 
@@ -24,16 +24,16 @@ def get_engine() -> AsyncEngine:
 
     Pool sizing is left at the SQLAlchemy defaults: `pool_size=5` plus
     `max_overflow=10`, so at most 15 connections per process.
-    
+
     A db.t4g.micro has 2 vCPU and 1 GB of memory, so it permits around 100.
     This gives us headroom for around 6 concurrent processes.
     https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html
     """
 
-    env: Environment = get_environment()
+    settings: DatabaseSettings = get_database_settings()
 
     return create_async_engine(
-        env.database_url,
+        settings.url,
         # The engine holds TCP connections open between requests. Anything that
         # kills them server-side leaves dead sockets in the pool that may still
         # be handed out. Pre-ping spends one trivial round trip per checkout to
