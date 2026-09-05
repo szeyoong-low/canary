@@ -33,7 +33,7 @@ def get_engine() -> AsyncEngine:
     settings: DatabaseSettings = get_database_settings()
 
     return create_async_engine(
-        settings.url,
+        settings.application_url,
         # The engine holds TCP connections open between requests. Anything that
         # kills them server-side leaves dead sockets in the pool that may still
         # be handed out. Pre-ping spends one trivial round trip per checkout to

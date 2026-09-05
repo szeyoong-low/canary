@@ -24,7 +24,7 @@ MIGRATION_LOCK_KEY: int = 4_919_202_501
 
 
 def database_url() -> URL:
-    return get_database_settings().url
+    return get_database_settings().owner_url
 
 
 def run_migrations_offline() -> None:
