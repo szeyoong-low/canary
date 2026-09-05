@@ -23,7 +23,7 @@ terraform {
 
   required_version = "~> 1.15"
 
-  // GitHub Actions does not invoke the Terraform binary, so the Terraform files.
+  // GitHub Actions does not invoke the Terraform binary, so the Terraform files
   // are not parsed. Pass as environment vars through GitHub CLI or workflow config.
   // This block allows local runs to be executed remotely against the HCP workspace 
   cloud {
@@ -31,7 +31,7 @@ terraform {
 
     workspaces {
       project = "Canary"
-      // `TF_WORKSPACE` must be set
+      name    = "production" // Just a placeholder. Set `TF_WORKSPACE` in HCP
     }
   }
 }
