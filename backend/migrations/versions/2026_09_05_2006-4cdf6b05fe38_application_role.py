@@ -33,7 +33,6 @@ GRANTS: dict[str, tuple[str, ...]] = {
     "blob_store": ("SELECT", "INSERT", "UPDATE"),
     "content_container": ("SELECT", "INSERT", "UPDATE"),
     "content_mount": ("SELECT", "INSERT", "UPDATE"),
-    
     # Views
     "app_user_live": ("SELECT", "INSERT", "UPDATE"),
     "report_live": ("SELECT", "INSERT", "UPDATE"),
@@ -41,12 +40,10 @@ GRANTS: dict[str, tuple[str, ...]] = {
     "blob_store_live": ("SELECT", "INSERT", "UPDATE"),
     "content_container_live": ("SELECT", "INSERT", "UPDATE"),
     "content_mount_live": ("SELECT", "INSERT", "UPDATE"),
-
     # Ledgers
     "platform_role_ledger": ("SELECT", "INSERT"),
     "report_role_ledger": ("SELECT", "INSERT"),
     "report_visibility": ("SELECT", "INSERT"),
-
     # Vocabularies
     "platform_role": ("SELECT",),
     "report_role": ("SELECT",),

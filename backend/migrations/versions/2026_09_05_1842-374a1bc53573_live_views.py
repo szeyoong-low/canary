@@ -54,13 +54,12 @@ LIVE_VIEWS: dict[str, tuple[str, str]] = {
 
 def upgrade() -> None:
     """Upgrade schema."""
-    
+
     for name, (table, predicate) in LIVE_VIEWS.items():
         # The f-string interpolation is safe here. These are hardcoded
-        # identifiers in a file we control, not user input. 
+        # identifiers in a file we control, not user input.
         op.execute(
-            f"CREATE VIEW {name} AS "
-            f"SELECT *, xmin FROM {table} WHERE {predicate}"
+            f"CREATE VIEW {name} AS SELECT *, xmin FROM {table} WHERE {predicate}"
         )
 
 
