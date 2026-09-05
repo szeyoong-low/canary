@@ -30,4 +30,4 @@ metadata: MetaData = MetaData(naming_convention=NAMING_CONVENTION)
 #
 # It sits at the bottom because they import `metadata` from here, so the
 # name has to exist before that module runs.
-from . import app_users, reports  # noqa: F401
+from . import app_users, content, reports  # noqa: F401
