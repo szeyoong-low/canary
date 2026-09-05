@@ -28,6 +28,6 @@ metadata: MetaData = MetaData(naming_convention=NAMING_CONVENTION)
 # only when its module is executed. Without this, `target_metadata` reaches
 # autogenerate empty and every existing table looks like one to drop.
 #
-# It sits at the bottom because `identity` imports `metadata` from here, so the
+# It sits at the bottom because they import `metadata` from here, so the
 # name has to exist before that module runs.
-from . import app_users  # noqa: F401
+from . import app_users, reports  # noqa: F401
