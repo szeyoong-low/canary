@@ -34,8 +34,8 @@ uv run alembic revision --autogenerate -m "<title>"
 uv run alembic upgrade base:head --sql
 
 # Test migrations
-uv run alembic upgrade head
-uv run alembic downgrade base
+uv run alembic upgrade head && \
+uv run alembic downgrade base && \
 uv run alembic upgrade head
 
 docker compose exec postgres psql -U canary_admin -d canary -c '\d app_user'
