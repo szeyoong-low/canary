@@ -28,6 +28,12 @@ COPY pyproject.toml uv.lock ./
 # This is equivalent to `npm ci`.
 RUN uv sync --frozen --no-dev
 
+# `uv run` reconciles the environment against the lockfile before every command,
+# which here means undoing the --no-dev above and reinstalling the dev group at
+# container start. Set as an environment variable rather than a --no-sync flag so
+# it covers any command after this.
+ENV UV_NO_SYNC=1
+
 # Copy source files from current directory on host to container working directory
 COPY . .
 
@@ -35,4 +41,9 @@ COPY . .
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=60s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
+# Migrates, then execs whatever CMD is. Kept apart from CMD so that the server
+# can be replaced on the command line without losing the migration step, and so
+# that `docker run <image> <anything>` still migrates first.
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uv", "run", "fastapi", "run"]
