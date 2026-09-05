@@ -61,8 +61,7 @@ platform_role = Table(
 # the row with the greatest `set_at`, and the rows behind it are the audit trail
 # admins will query.
 #
-# Immutability is a convention at this point. Enforcing it means revoking
-# UPDATE/DELETE from the application role, or a trigger.
+# Immutability is enforced by revoking UPDATE/DELETE from the application role.
 platform_role_ledger = Table(
     "platform_role_ledger",
     metadata,
