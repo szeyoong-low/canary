@@ -24,3 +24,19 @@ docker run -p 8000:8000 canary-backend
 ```
 
 Data persists across restarts in a named volume. Use `docker compose down --volumes` to drop the existing local database.
+
+## Migrations
+```bash
+# Auto-generate migration file
+uv run alembic revision --autogenerate -m "<title>"
+
+# Preview raw SQL DDL
+uv run alembic upgrade base:head --sql
+
+# Test migrations
+uv run alembic upgrade head
+uv run alembic downgrade base
+uv run alembic upgrade head
+
+docker compose exec postgres psql -U canary_admin -d canary -c '\d app_user'
+```
