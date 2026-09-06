@@ -44,12 +44,13 @@ async def provision_user(
     up to date. Returns the row either way.
 
     Just-in-time provisioning: the first authenticated request from a subject
-    creates the account, and every later one refreshes the name from the
-    identity provider.
-    """
+    creates the account. Callers reach this only after a read for that subject
+    missed, so the conflict path is the exception rather than the rule (either
+    a concurrent first request or a row the read could not see).
 
-    # Note this differs from `seed.seed_user`, which leaves `display_name` alone
-    # on conflict. It writes a placeholder that this function is meant to overwrite
+    Note this differs from `seed.seed_user`, which leaves `display_name` alone
+    on conflict. It writes a placeholder that this function is meant to overwrite.
+    """
 
     result = await session.execute(
         text(f"""
@@ -62,9 +63,6 @@ async def provision_user(
         {"subject": subject, "display_name": display_name},
     )
 
-    # DO UPDATE writes the row on every call, even when neither field changed,
-    # so each sign-in leaves a dead tuple for autovacuum. Adding a `WHERE` to
-    # the DO UPDATE would skip those, but it would also make the statement
-    # return no row in exactly the common case, forcing a second SELECT. Not
-    # worth it at this volume.
+    # The two rows the read cannot see are a soft-deleted user and the seeded
+    # administrator placeholder. Both are meant to be reclaimed here.
     return User.model_validate(result.one())

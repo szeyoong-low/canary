@@ -5,6 +5,9 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from httpx import codes
 
+from ..db.repositories.models import User
+from ..db.repositories.users import get_active_user_by_subject, provision_user
+from ..db.session import Session
 from .token import AccessToken, decode
 
 """Where a bearer token becomes a caller FastAPI can hand to a route."""
@@ -52,3 +55,37 @@ async def authenticate(
 
 # Routes declare this so the annotation reads as `caller: Caller`.
 Caller = Annotated[AccessToken, Depends(authenticate)]
+
+
+# Written when the identity provider gave us neither a name nor an email. Users
+# will be able to rename themselves, so a constant is enough.
+FALLBACK_DISPLAY_NAME = "New user"
+
+
+async def get_current_user(caller: Caller, session: Session) -> User:
+    """
+    Map the authenticated subject onto the local user row, creating it if this
+    is the first time we have seen this subject.
+
+    Just-in-time provisioning. Auth0 owns the user table and we only ever learn
+    of a user by them turning up with a valid token, so there is no sign-up hook
+    to write the row. The first authenticated request does it.
+    """
+
+    user: User | None = await get_active_user_by_subject(session, caller.subject)
+
+    if user is not None:
+        return user
+
+    return await provision_user(
+        session,
+        caller.subject,
+        caller.name or caller.email or FALLBACK_DISPLAY_NAME,
+    )
+
+
+# Note this opens a transaction that stays open for as long as the handler runs.
+# Only routes that touch the database should depend on it. Long-lived ones (the
+# agent) should keep depending on `authenticate` alone rather than pinning a
+# pooled connection for the length of a stream. The frontend gates this anyways.
+CurrentUser = Annotated[User, Depends(get_current_user)]
