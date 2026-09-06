@@ -9,6 +9,11 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 5.24"
     }
+
+    auth0 = {
+      source  = "auth0/auth0"
+      version = "~> 1.56"
+    }
   }
 
   required_version = "~> 1.15"
