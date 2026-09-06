@@ -20,6 +20,12 @@ variable "image_tag" {
 locals {
   backend_repository_url = data.tfe_outputs.global.nonsensitive_values.backend_repository_url
 
+  auth0_issuer   = data.tfe_outputs.global.nonsensitive_values.auth0_issuer
+  auth0_audience = data.tfe_outputs.global.nonsensitive_values.auth0_audience
+
+  auth0_issuer_env   = "AUTH0_ISSUER"
+  auth0_audience_env = "AUTH0_AUDIENCE"
+
   container_name = "backend"
 
   container_port = 8000 // fastapi binds 0.0.0.0:8000 by default
@@ -112,6 +118,14 @@ resource "aws_ecs_task_definition" "backend" {
       {
         name  = local.database_region_env
         value = data.aws_region.current.region
+      },
+      {
+        name  = local.auth0_issuer_env
+        value = local.auth0_issuer
+      },
+      {
+        name  = local.auth0_audience_env
+        value = local.auth0_audience
       },
     ]
 
