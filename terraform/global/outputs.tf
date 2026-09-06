@@ -22,3 +22,23 @@ output "cloudflare_zone_id" {
   description = "Zone that owns canary.markets, for each environment's own DNS record. Read from here rather than restated per workspace so the zone has one definition."
   value       = local.cloudflare_zone_id
 }
+
+output "auth0_issuer" {
+  description = "The `iss` claim the backend must require on every access token. Trailing slash included: Auth0 mints it that way and the comparison is exact."
+  value       = "https://${auth0_custom_domain.auth.domain}/"
+
+  // The domain attribute is known before Auth0 has certified anything, so the
+  // dependency has to be stated rather than implied through a reference.
+  // Without it a consumer could wire up an issuer that does not yet serve JWKS.
+  depends_on = [auth0_custom_domain_verification.auth]
+}
+
+output "auth0_audience" {
+  description = "The `aud` claim the backend must require, which is the API's identifier."
+  value       = auth0_resource_server.api.identifier
+}
+
+output "auth0_frontend_client_id" {
+  description = "For frontend's Auth0 SDK configuration. Identifies the client and does not authenticate it."
+  value       = auth0_client.frontend.client_id
+}

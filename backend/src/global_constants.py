@@ -13,6 +13,8 @@ DEC_PLACES_SHOWN: int = 3
 
 CONTENT_TYPE_HEADER: str = "Content-Type"
 
+AUTHORIZATION_HEADER: str = "Authorization"
+
 
 def column_selection_regex(
     column_name: str, tagged: Literal["tagged", "untagged", "any"]

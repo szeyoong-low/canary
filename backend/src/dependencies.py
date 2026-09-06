@@ -1,14 +1,16 @@
+"""Dependency injection as shown in https://fastapi.tiangolo.com/advanced/settings/"""
+
 from functools import cache
 from typing import Literal, Self
+from urllib.parse import urljoin
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
 
-"""Dependency injection as shown in https://fastapi.tiangolo.com/advanced/settings/"""
-
-
 DOTENV_FILE: str = ".env"
+
+SLASH = "/"
 
 
 class Environment(BaseSettings):
@@ -131,3 +133,43 @@ class DatabaseSettings(BaseSettings):
 @cache
 def get_database_settings() -> DatabaseSettings:
     return DatabaseSettings()  # pyright: ignore[reportCallIssue] (Initialised by pydantic_settings)
+
+
+class AuthSettings(BaseSettings):
+    """
+    What the backend needs for verifying access tokens.
+
+    Both values are public. The issuer is a hostname anyone can resolve and the
+    audience is an opaque identifier the frontend already sends in the clear, so
+    they belong in the task definition as plain variables. Trust comes from
+    Auth0's signature, which is verified against keys fetched from the issuer.
+    """
+
+    issuer: str  # The `iss` claim required on every token
+    audience: str  # The `aud` claim required on every token
+
+    model_config = SettingsConfigDict(
+        env_file=DOTENV_FILE, env_prefix="auth0_", extra="ignore"
+    )
+
+    @field_validator("issuer")
+    @classmethod
+    def ensure_trailing_slash(cls, issuer: str) -> str:
+        """Auth0 mints `iss` with a trailing slash and PyJWT compares the claim
+        as an exact string. Normalised rather than rejected."""
+        return issuer if issuer.endswith(SLASH) else issuer + SLASH
+
+    @property
+    def jwks_uri(self) -> str:
+        """Where the issuer publishes its public signing keys.
+
+        `.well-known/` is the standardised location for a host's machine-readable
+        metadata (RFC 8615); the JWKS path itself is the convention Auth0 follows.
+        """
+
+        return urljoin(self.issuer, ".well-known/jwks.json")
+
+
+@cache
+def get_auth_settings() -> AuthSettings:
+    return AuthSettings()  # pyright: ignore[reportCallIssue] (Initialised by pydantic_settings)

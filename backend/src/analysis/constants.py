@@ -1,11 +1,3 @@
-from collections.abc import Awaitable, Callable
-
-from httpx import AsyncClient
-from polars import LazyFrame
-
-from ..analysis.models import AnalysisFunction
-from ..global_types import Columns, Params
-
 """
 Contract of analysis function implementations
 
@@ -22,6 +14,14 @@ Returns: Awaitable LazyFrame with the analysis function and all its dependencies
         present as columns alinged on `keys`. Existing columns are unmodified.
         Must be defined with the async keyword.
 """
+
+from collections.abc import Awaitable, Callable
+
+from httpx import AsyncClient
+from polars import LazyFrame
+
+from ..analysis.models import AnalysisFunction
+from ..global_types import Columns, Params
 
 type AnalysisFunctionExecuter[T: AnalysisFunction] = Callable[
     [Awaitable[LazyFrame], T, Columns, Params, AsyncClient],

@@ -1,3 +1,5 @@
+"""Compute values for all entities"""
+
 from collections.abc import Awaitable
 
 from httpx import AsyncClient
@@ -6,8 +8,6 @@ from polars import LazyFrame, mean_horizontal
 from ..global_types import Column, Columns, Params
 from . import models
 from .steps import _apply_unary_aggregation
-
-"""Compute values for all entities"""
 
 # Column names
 GROUP_MEAN: Column = "group-mean"
