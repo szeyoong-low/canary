@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .src.agent import router as agent
+from .src.api.errors import register_error_handlers
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import CONTENT_TYPE_HEADER
@@ -43,6 +44,8 @@ app.add_middleware(
     allow_headers=[CONTENT_TYPE_HEADER],
     allow_methods=[HTTPMethod.GET, HTTPMethod.POST],
 )
+
+register_error_handlers(app)
 
 app.include_router(agent.router)
 app.include_router(terminal.router)
