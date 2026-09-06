@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .src.agent import router as agent
 from .src.api.errors import register_error_handlers
+from .src.api.preconditions import ETAG_HEADER, IF_MATCH_HEADER
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import CONTENT_TYPE_HEADER
@@ -37,11 +38,11 @@ env: Environment = get_environment()
 # Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests
 app.add_middleware(
     CORSMiddleware,
-    # Comma-separated list of origins allowed to call this API.
-    allow_origins=env.allow_origins.split(","),
-    # Allow all Vercel previews.
-    allow_origin_regex=env.allow_origin_regex,
-    allow_headers=[CONTENT_TYPE_HEADER],
+    allow_origins=env.allow_origins.split(","),  # Comma-separated list of origins allowed to call this API
+    allow_origin_regex=env.allow_origin_regex,  # Allow all development previews
+    allow_headers=[CONTENT_TYPE_HEADER, IF_MATCH_HEADER],
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
+    expose_headers=[ETAG_HEADER],
     allow_methods=[HTTPMethod.GET, HTTPMethod.POST],
 )
 
