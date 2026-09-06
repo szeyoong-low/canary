@@ -171,7 +171,7 @@ resource "auth0_custom_domain" "auth" {
 resource "cloudflare_dns_record" "auth0_custom_domain" {
   zone_id = local.cloudflare_zone_id
   type    = "CNAME"
-  name    = auth0_custom_domain.auth.verification[0].methods[0]["name"]
+  name    = auth0_custom_domain.auth.verification[0].methods[0]["domain"]
   content = auth0_custom_domain.auth.verification[0].methods[0]["record"]
   proxied = false // Auth0 terminates TLS for this hostname itself
   ttl     = 1
