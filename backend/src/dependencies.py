@@ -1,3 +1,5 @@
+"""Dependency injection as shown in https://fastapi.tiangolo.com/advanced/settings/"""
+
 from functools import cache
 from typing import Literal, Self
 from urllib.parse import urljoin
@@ -5,9 +7,6 @@ from urllib.parse import urljoin
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import URL
-
-"""Dependency injection as shown in https://fastapi.tiangolo.com/advanced/settings/"""
-
 
 DOTENV_FILE: str = ".env"
 

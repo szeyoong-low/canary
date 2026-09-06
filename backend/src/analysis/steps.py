@@ -1,10 +1,3 @@
-from collections.abc import Callable
-
-from polars import Expr, LazyFrame, col
-
-from ..global_constants import column_selection_regex
-from ..global_types import Column, ColumnOptional
-
 """
 Contract of a single step:
 
@@ -15,6 +8,13 @@ Inputs:
 
 Output: Extension of input LazyFrame with all pre-existing columns unmodified.
 """
+
+from collections.abc import Callable
+
+from polars import Expr, LazyFrame, col
+
+from ..global_constants import column_selection_regex
+from ..global_types import Column, ColumnOptional
 
 
 def _apply_unary_function(
