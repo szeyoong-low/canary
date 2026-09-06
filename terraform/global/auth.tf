@@ -29,10 +29,11 @@ locals {
   // so `dev-*-canary.low-szeyoong.workers.dev` is not expressible.
   // Acceptable because the account owning that subdomain is mine and it never
   // appears in the production client.
-  frontend_preview_origin = "https://*.low-szeyoong.workers.dev"
+  frontend_preview_origin  = "https://*.low-szeyoong.workers.dev"
+  frontend_production_apex = "https://canary.markets"
 
   frontend_origins = [
-    "https://canary.markets",
+    local.frontend_production_apex,
     "https://www.canary.markets",
     local.frontend_preview_origin,
     "http://localhost:5030",
@@ -192,4 +193,18 @@ resource "auth0_custom_domain_verification" "auth" {
   }
 
   depends_on = [cloudflare_dns_record.auth0_custom_domain]
+}
+
+
+// Tenant-wide branding
+resource "auth0_tenant" "canary" {
+  friendly_name = "Canary"
+  picture_url   = "${local.frontend_production_apex}/favicon.svg"
+  support_email = "low.szeyoong@gmail.com"
+
+  flags {
+    enable_custom_domain_in_emails = true
+  }
+
+  depends_on = [auth0_custom_domain_verification.auth]
 }
