@@ -1,3 +1,13 @@
+"""
+Puts the rows in place that the application cannot start without: the role
+vocabularies, the system user, and the first administrator.
+
+Idempotent, so it is safe to run against an environment that is already seeded.
+
+Run from `backend/` with the repository root on the import path:
+`SEED_ADMIN_SUBJECT=<subject> PYTHONPATH=.. uv run python -m backend.seed`.
+"""
+
 import asyncio
 import os
 
@@ -5,15 +15,6 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from ..src.dependencies import DatabaseSettings, get_database_settings
-
-"""
-Puts the rows in place that the application cannot start without: the role
-vocabularies, the system user, and the first administrator.
-
-Idempotent, so it is safe to run against an environment that is already seeded.
-Run with `uv run python -m backend.seed`.
-"""
-
 
 # `provider|id` is the shape of an Auth0 subject, and no Auth0 connection is
 # named `system`, so no login can ever produce this subject. That is what makes
@@ -139,6 +140,7 @@ async def grant_platform_role(
 async def seed() -> None:
     settings: DatabaseSettings = get_database_settings()
 
+    # The Auth0 sub claim for the person who should be the first admin
     admin_subject: str | None = os.environ.get(ADMIN_SUBJECT_VARIABLE)
 
     if not admin_subject:
