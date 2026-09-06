@@ -1,15 +1,18 @@
+# tflint-ignore: terraform_unused_declarations
 variable "AUTH0_DOMAIN" {
   type        = string
   description = "Canonical domain of the Auth0 tenant, not the custom domain. It is what addresses the Management API."
   sensitive   = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "AUTH0_CLIENT_ID" {
   type        = string
   description = "Client ID of the machine-to-machine application the Auth0 provider authenticates as. Created by hand in the Auth0 dashboard, because Terraform cannot create the thing it logs in with."
   sensitive   = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "AUTH0_CLIENT_SECRET" {
   type        = string
   description = "Secret of that machine-to-machine application. Rotating it in the Auth0 dashboard means re-setting this variable."
