@@ -80,14 +80,12 @@ async def seed_user(
     """
     Insert a user or revive one that was soft deleted.
 
-    `auth0_subject` carries a plain unique constraint so a soft-deleted row
-    still occupies the subject and a bare INSERT would fail. Clearing
-    `deleted_at` is the same behaviour just-in-time provisioning needs: a
-    returning user regains their identity, their roles, and their audit
-    trail rather than starting again as a new user.
-
     The display name is left alone on conflict.
     """
+
+    # `auth0_subject` carries a plain unique constraint so a soft-deleted row
+    # still occupies the subject and a bare INSERT would fail. Clearing
+    # `deleted_at` restores the user to their past roles, data, and audit trails.
 
     await connection.execute(
         text("""
@@ -105,14 +103,14 @@ async def grant_platform_role(
     """
     Record a platform role grant, unless that role is already in force.
 
-    The ledger is append-only and keyed partly on `set_at`, so nothing stops a
-    second run inserting another grant a few seconds later. It would be valid
-    and harmless to authorisation, which reads the latest row, but it would put
-    grants in the audit trail that nobody made.
-
     Written as one statement so the check and the insert cannot be separated by
     a concurrent writer.
     """
+
+    # The ledger is append-only and keyed partly on `set_at`, so nothing stops a
+    # second run inserting another grant a few seconds later. It would be valid
+    # and harmless to authorisation, which reads the latest row, but it would put
+    # grants in the audit trail that nobody made.
 
     await connection.execute(
         text("""
