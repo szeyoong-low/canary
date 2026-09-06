@@ -12,6 +12,7 @@
     "preview": "npm run build && vite preview"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.24.1",
     "@base-ui/react": "^1.7.0",
     "@tailwindcss/vite": "^4.3.3",
     "echarts": "^6.1.0",
