@@ -14,18 +14,17 @@ import os
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
+from ..src.db.repositories.platform_roles import (
+    DEFAULT_PLATFORM_ROLE,
+    SYSTEM_DISPLAY_NAME,
+    SYSTEM_SUBJECT,
+)
 from ..src.dependencies import DatabaseSettings, get_database_settings
-
-# `provider|id` is the shape of an Auth0 subject, and no Auth0 connection is
-# named `system`, so no login can ever produce this subject. That is what makes
-# the account non-assumable: it exists solely to be the grantor of the first grant.
-SYSTEM_SUBJECT = "system|canary"
-SYSTEM_DISPLAY_NAME = "Canary"
 
 ADMIN_SUBJECT_VARIABLE = "SEED_ADMIN_SUBJECT"
 
-# Overwritten by just-in-time provisioning when the administrator first signs in
-# and the real name arrives from the identity provider.
+# The seed runs before this person has ever signed in, so there is no real name
+# to write. This name stands until they rename themselves.
 ADMIN_PLACEHOLDER_DISPLAY_NAME = "Administrator"
 
 ADMIN_ROLE = "admin"
@@ -36,8 +35,8 @@ PLATFORM_ROLE_TABLE = "platform_role"
 # the rest. Higher outranks lower.
 PLATFORM_ROLES: dict[str, int] = {
     "suspended": 100,
-    "app_user": 200,
-    "admin": 300,
+    DEFAULT_PLATFORM_ROLE: 200,
+    ADMIN_ROLE: 300,
 }
 
 REPORT_ROLE_TABLE = "report_role"

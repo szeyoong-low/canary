@@ -49,7 +49,7 @@ async def provision_user(
     a concurrent first request or a row the read could not see).
 
     Note this differs from `seed.seed_user`, which leaves `display_name` alone
-    on conflict. It writes a placeholder that this function is meant to overwrite.
+    on conflict, because it only ever writes a placeholder.
     """
 
     result = await session.execute(
@@ -63,6 +63,6 @@ async def provision_user(
         {"subject": subject, "display_name": display_name},
     )
 
-    # The two rows the read cannot see are a soft-deleted user and the seeded
-    # administrator placeholder. Both are meant to be reclaimed here.
+    # The row the read cannot see is a soft-deleted user, whom the conflict
+    # clause revives.
     return User.model_validate(result.one())
