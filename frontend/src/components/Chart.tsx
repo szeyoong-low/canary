@@ -1,5 +1,4 @@
 import { type ECharts, type EChartsOption, init } from "echarts";
-// Can't tree-shake bundle as backend can return any chart.
 import { type RefObject, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 import { type Theme, useTheme } from "@/lib/themeContext";
