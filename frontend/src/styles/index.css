@@ -9,7 +9,7 @@
 
 :root {
   /* Colour palette */
-  --canary-theme-color: #ffc856;
+  --canary-theme-color: light-dark(#e0a81f, #ffc856);
   --text-color-primary: light-dark(var(--color-black), var(--color-white));
   --background-color-primary: light-dark(
     var(--color-white),
