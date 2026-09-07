@@ -37,6 +37,97 @@
   }
 }
 
+/* Toast (TODO: vet) */
+
+.ToastViewport {
+  --viewport-inset: 16px;
+  --viewport-max-width: 380px;
+
+  position: fixed;
+  bottom: var(--viewport-inset);
+  right: var(--viewport-inset);
+  /* Sized to its contents so the rest of the page stays clickable. */
+  width: min(
+    var(--viewport-max-width),
+    calc(100vw - 2 * var(--viewport-inset))
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* The sticky header sits at 10, so a toast must outrank it. */
+  z-index: 20;
+}
+
+.ToastRoot {
+  --root-border-radius: 10px;
+  --root-padding: 12px;
+
+  background-color: var(--background-color-secondary);
+  border: var(--border-width-primary) solid var(--border-color-primary);
+  border-radius: var(--root-border-radius);
+  padding: var(--root-padding);
+  display: flex;
+  align-items: start;
+  gap: var(--root-padding);
+  /* Base UI keeps a closing toast mounted until its animation ends. */
+  transition: opacity var(--transition-delay);
+  &[data-ending-style] {
+    opacity: 0;
+  }
+}
+
+.ToastTitle {
+  font-weight: 500;
+}
+
+.ToastClose {
+  cursor: pointer;
+  /* Nudges the icon onto the title's optical centre line. */
+  margin-block-start: 2px;
+}
+
+/* Toast types. The accent is carried on the root so any child can pick it up,
+   and defaults to the body colour for toasts raised without a known type. */
+.ToastRoot {
+  --toast-accent-color: var(--text-color-primary);
+
+  &[data-type="error"] {
+    --toast-accent-color: light-dark(
+      var(--color-red-700),
+      var(--color-red-400)
+    );
+  }
+  &[data-type="success"] {
+    --toast-accent-color: light-dark(
+      var(--color-green-700),
+      var(--color-green-400)
+    );
+  }
+  &[data-type="info"] {
+    --toast-accent-color: light-dark(
+      var(--color-blue-700),
+      var(--color-blue-400)
+    );
+  }
+}
+
+.ToastIcon {
+  color: var(--toast-accent-color);
+  /* Stops the icon shrinking when the description wraps to several lines. */
+  flex-shrink: 0;
+  /* Nudges the icon onto the title's optical centre line. */
+  margin-block-start: 2px;
+}
+
+.ToastContent {
+  /* Absorbs the leftover width so the close button is pushed to the far edge
+     rather than sitting immediately after a short title. */
+  flex-grow: 1;
+  /* Flex items refuse to shrink below their content's intrinsic width by
+     default, which would let a long unbroken string overflow the toast. */
+  min-width: 0;
+}
+
 /* Authentication */
 
 .AuthButton {

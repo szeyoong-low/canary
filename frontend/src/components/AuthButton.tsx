@@ -3,10 +3,14 @@ import { BounceLoader } from "react-spinners";
 import { type ClassNameProps } from "@/shared/types";
 import { canaryThemeColour } from "@/shared/constants";
 import { mergeClassName } from "@/lib/mergeClassName";
+import { useErrorToast } from "@/lib/useToast";
 
 export default function AuthButton({ className }: ClassNameProps) {
   const { isLoading, isAuthenticated, error, loginWithRedirect, logout } =
     useAuth0();
+
+  // Hooks cannot run conditionally, so this sits above the early returns below.
+  useErrorToast(error, { id: "auth-error", title: "Sign-in failed" });
 
   const buttonClassName: string = mergeClassName(className, "AuthButton");
 
@@ -42,7 +46,6 @@ export default function AuthButton({ className }: ClassNameProps) {
     <button
       className={buttonClassName}
       type="button"
-      title={error?.message} // TODO: Render a toast
       onClick={() => {
         void loginWithRedirect();
       }}
