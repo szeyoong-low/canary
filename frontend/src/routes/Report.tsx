@@ -2,7 +2,7 @@ import { type EChartsOption } from "echarts";
 import { type FetcherWithComponents, useFetcher } from "react-router";
 import { Chart, Prompt } from "@/components";
 
-export default function Ask() {
+export default function Report() {
   const fetcher: FetcherWithComponents<EChartsOption> =
     useFetcher<EChartsOption>();
 

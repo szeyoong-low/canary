@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 export default function Home() {
   return (
     <div className="flex justify-center">
@@ -6,7 +8,8 @@ export default function Home() {
           <span className="text-theme font-medium">Canary's</span> vision is to
           be an agentic Jupyter notebook for financial analysts. It turns your
           questions about market movements and trade flows into professional
-          reports with beautiful charts and insightful analysis.
+          reports with <Link to="/report/1">beautiful charts</Link> and
+          insightful analysis.
         </p>
         <p>
           For the latest progress and upcoming features, see the{" "}
