@@ -1,3 +1,5 @@
+/* Switch toggles */
+
 .SwitchRoot {
   --thumb-diameter: 20px;
   --root-border-width: 3px;
@@ -34,6 +36,14 @@
       var(--shadow-blur-radius) var(--color-gray-300);
   }
 }
+
+/* Authentication */
+
+.AuthButton {
+  cursor: pointer;
+}
+
+/* User text input */
 
 .PromptBox {
   --box-border-radius: 10px;
