@@ -70,7 +70,7 @@ resource "auth0_resource_server" "api" {
 
 
 resource "auth0_client" "frontend" {
-  name           = "canary-frontend"
+  name           = "Canary Terminal"
   app_type       = "spa"
   is_first_party = true
 
