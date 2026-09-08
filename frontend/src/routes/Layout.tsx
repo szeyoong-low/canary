@@ -27,6 +27,10 @@ export default function Layout() {
         <main>
           <Outlet />
         </main>
+        <footer className="flex items-center justify-center gap-6">
+          <a href="https://www.linkedin.com/in/szeyoong-low">Sze Yoong Low</a>
+          <a href="https://github.com/szeyoong-low/canary">GitHub repository</a>
+        </footer>
       </ToastProvider>
     </ThemeProvider>
   );

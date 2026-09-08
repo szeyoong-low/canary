@@ -10,11 +10,6 @@ export default function Home() {
           market movements and trade flows into professional reports with{" "}
           <Link to="/report/1">beautiful charts</Link> and insightful analysis.
         </p>
-        <p>
-          For the latest progress and upcoming features, see the{" "}
-          <a href="https://github.com/szeyoong-low/canary">GitHub repository</a>
-          .
-        </p>
       </div>
     </div>
   );
