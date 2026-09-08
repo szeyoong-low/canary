@@ -30,6 +30,8 @@
 
   /* Fonts */
   font-family: "Roboto", sans-serif;
+  --title-font-family: "Noto Serif", serif;
+
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;

@@ -30,7 +30,7 @@ footer {
 }
 
 .page-title {
-  font-family: "Noto Serif", serif;
+  font-family: var(--title-font-family);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
