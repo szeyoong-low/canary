@@ -135,11 +135,13 @@
 }
 
 /* Links */
-
 a,
 .emphasis {
-  color: var(--canary-theme-color);
   font-weight: var(--font-weight-medium);
+}
+
+.emphasis {
+  color: var(--canary-theme-color);
 }
 
 /* User text input */

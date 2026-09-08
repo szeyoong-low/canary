@@ -8,7 +8,10 @@ export default function Home() {
           <span className="emphasis">Canary's</span> vision is to be an agentic
           Jupyter notebook for financial analysts. It turns your questions about
           market movements and trade flows into professional reports with{" "}
-          <Link to="/report/1">beautiful charts</Link> and insightful analysis.
+          <Link to="/report/1" className="emphasis">
+            beautiful charts
+          </Link>{" "}
+          and insightful analysis.
         </p>
       </div>
     </div>
