@@ -14,9 +14,11 @@ export default function Layout() {
       <ToastProvider>
         <header className="flex items-center justify-center-safe">
           <title>{projectName}</title>
-          <h1 className="page-title font-medium font-stretch-30% text-3xl">
-            <Link to="/">{projectName}</Link>
-          </h1>
+          <Link to="/">
+            <h1 className="page-title font-stretch-30% text-3xl">
+              {projectName}
+            </h1>
+          </Link>
           <div className="absolute right-3 flex items-center gap-4 px-4">
             <ThemeToggle />
             <AuthButton />

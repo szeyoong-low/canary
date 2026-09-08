@@ -134,6 +134,14 @@
   cursor: pointer;
 }
 
+/* Links */
+
+a,
+.emphasis {
+  color: var(--canary-theme-color);
+  font-weight: var(--font-weight-medium);
+}
+
 /* User text input */
 
 .PromptBox {

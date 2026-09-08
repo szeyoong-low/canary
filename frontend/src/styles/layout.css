@@ -9,6 +9,7 @@ header {
 }
 
 .page-title {
+  color: var(--text-color-primary);
   font-family: "Noto Serif", serif;
   font-optical-sizing: auto;
   font-weight: 400;
