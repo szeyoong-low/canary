@@ -18,7 +18,7 @@ function Hero() {
       <h2>
         <div className="flex items-center">
           <span className="text-theme">Canary</span>
-          <img src="favicon.svg" alt="" className="HeroBird" />
+          <span className="HeroBird" />
         </div>
         crystallises <br />
         chaos <br />

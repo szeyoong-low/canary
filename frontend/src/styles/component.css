@@ -180,9 +180,14 @@ a,
 }
 
 .HeroBird {
-  display: inline;
+  /* The mask keeps only the SVG's alpha channel, discarding its baked-in
+     fill, so this background colour shows through the bird's shape. */
+  background-color: var(--canary-theme-color);
+  mask: url("/favicon.svg") center / contain no-repeat;
+  /* A masked element has no intrinsic size the way an <img> does, so the
+     box has to be stated. The favicon's viewBox is square. */
   height: 1em;
-  vertical-align: baseline;
+  aspect-ratio: 1;
 }
 
 .SectionDivider {
