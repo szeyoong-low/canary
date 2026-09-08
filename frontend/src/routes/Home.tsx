@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -32,6 +33,13 @@ function Hero() {
 function CallToAction() {
   return (
     <div className="flex flex-col gap-2">
+      <div className="CallToAction">
+        <div className="SlidingUnderline">
+          <Link to="/report/1">Tell a compelling story </Link>
+          <ArrowRight className="inline" />
+        </div>
+      </div>
+
       <p>
         <span className="emphasis">Canary</span> is an agentic Jupyter Notebook
         for financial analysts.
@@ -40,9 +48,6 @@ function CallToAction() {
         It turns your questions about market movements and trade flows into
         professional reports with compelling, elegant charts.
       </p>
-      <Link to="/report/1" className="CallToAction">
-        Create yours today
-      </Link>
     </div>
   );
 }
