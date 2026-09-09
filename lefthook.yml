@@ -1,9 +1,14 @@
 pre-commit:
   parallel: true
 
+  # `**` is lefthook's super-wildcard: it absorbs `/` too. The more familiar
+  # `backend/**/*.py` demands a second slash, so it silently skips files sitting
+  # directly in `backend/`. Globs are matched against the repo-relative path
+  # *before* `root` rewrites the paths passed to {staged_files}, hence the
+  # directory prefixes below despite `root` naming the same directory.
   jobs:
     - name: backend-ruff
-      glob: "backend/**/*.py"
+      glob: "backend/**.py"
       root: backend/
       stage_fixed: true
       run: uv run ruff check --fix {staged_files} && uv run ruff format {staged_files}
@@ -11,14 +16,14 @@ pre-commit:
     # ESLint first, Prettier last, so formatting has the final word on any
     # line ESLint rewrote.
     - name: frontend-eslint-prettier
-      glob: "frontend/**/*.{ts,tsx,js,jsx,css,html,json,md}"
+      glob: "frontend/**.{ts,tsx,js,jsx,css,html,json,md}"
       root: frontend/
       stage_fixed: true
       run: npx eslint --fix --no-error-on-unmatched-pattern {staged_files} && npx prettier --write --ignore-unknown {staged_files}
 
     # terraform.yml runs `fmt -check -recursive` over each root module.
     - name: terraform-fmt
-      glob: "terraform/**/*.{tf,tfvars}"
+      glob: "terraform/**.{tf,tfvars}"
       stage_fixed: true
       run: terraform fmt {staged_files}
 
