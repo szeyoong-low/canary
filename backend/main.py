@@ -57,7 +57,7 @@ register_error_handlers(app)
 # FastAPI caches dependency results per request, so no double work
 REQUIRES_AUTHENTICATION = [Depends(authenticate)]
 
-app.include_router(agent.router, dependencies=REQUIRES_AUTHENTICATION)
+app.include_router(agent.router)  #, dependencies=REQUIRES_AUTHENTICATION)
 app.include_router(terminal.router)  # Only for testing now, will be removed soon
 
 
