@@ -17,7 +17,7 @@ export default function Prompt({
         <textarea
           className="PromptTextarea"
           name={PROMPT_FIELD}
-          placeholder="Ask a question here"
+          placeholder="What are you curious about?"
         />
         <div className="self-end">
           {fetcher.state === "idle" ? (

@@ -35,7 +35,7 @@ function CallToAction() {
     <div className="flex flex-col gap-2">
       <div className="CallToAction">
         <div className="SlidingUnderline">
-          <Link to="/report/1">Tell a compelling story </Link>
+          <Link to="/report/1">Tell your compelling story </Link>
           <ArrowRight className="inline" />
         </div>
       </div>
