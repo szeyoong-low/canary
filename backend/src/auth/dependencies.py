@@ -6,6 +6,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from httpx import codes
 
 from ..db.repositories.models import User
+from ..db.repositories.platform_roles import (
+    DEFAULT_PLATFORM_ROLE,
+    grant_first_platform_role,
+)
 from ..db.repositories.users import get_active_user_by_subject, provision_user
 from ..db.session import Session
 from .token import AccessToken, decode
@@ -69,7 +73,8 @@ async def get_current_user(caller: Caller, session: Session) -> User:
 
     Just-in-time provisioning. Auth0 owns the user table and we only ever learn
     of a user by them turning up with a valid token, so there is no sign-up hook
-    to write the row. The first authenticated request does it.
+    to write the row. The first authenticated request does it, and hands the new
+    account its opening platform role.
     """
 
     user: User | None = await get_active_user_by_subject(session, caller.subject)
@@ -77,11 +82,15 @@ async def get_current_user(caller: Caller, session: Session) -> User:
     if user is not None:
         return user
 
-    return await provision_user(
+    user = await provision_user(
         session,
         caller.subject,
         caller.name or caller.email or FALLBACK_DISPLAY_NAME,
     )
+
+    await grant_first_platform_role(session, user.user_id, DEFAULT_PLATFORM_ROLE)
+
+    return user
 
 
 # Note this opens a transaction that stays open for as long as the handler runs.

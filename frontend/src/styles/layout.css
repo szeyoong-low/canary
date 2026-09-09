@@ -1,15 +1,36 @@
+/* Full-height column shell: header, growing main, footer. Both body and #root
+   need it, as the chain of flex parents must be unbroken from the viewport
+   down to the elements being stretched. */
+body,
+#root {
+  display: flex;
+  flex-direction: column;
+  /* dvh, not vh, so shrinking mobile browser chrome does not push the footer
+     below the fold. */
+  min-height: 100dvh;
+}
+
+header,
+footer {
+  width: 100%;
+  height: 70px;
+  background-color: var(--background-color-secondary);
+  border: 0 solid var(--border-color-primary);
+}
+
 header {
   position: sticky;
   top: 0;
   z-index: 10;
-  width: 100%;
-  height: 70px;
-  background-color: var(--background-color-secondary);
-  border-bottom: var(--border-width-primary) solid var(--border-color-primary);
+  border-bottom-width: var(--border-width-primary);
+}
+
+footer {
+  border-top-width: var(--border-width-primary);
 }
 
 .page-title {
-  font-family: "Noto Serif", serif;
+  font-family: var(--title-font-family);
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -18,4 +39,7 @@ header {
 main {
   position: relative;
   margin-block: 20px;
+  /* Absorbs the leftover height, so the footer rests at the bottom on short
+     pages and is pushed down by long ones. */
+  flex: 1;
 }

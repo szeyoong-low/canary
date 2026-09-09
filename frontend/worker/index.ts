@@ -1,4 +1,4 @@
-import { resolveAPIOrigin } from "./env.ts";
+import { AUTH0_CONFIG, resolveAPIOrigin } from "./env.ts";
 
 interface Env {
   ASSETS: Fetcher;
@@ -29,6 +29,7 @@ export default {
     const config: string = escapeForScriptTag(
       JSON.stringify({
         apiOrigin: resolveAPIOrigin(new URL(request.url).hostname),
+        auth0Config: AUTH0_CONFIG,
       }),
     );
 
