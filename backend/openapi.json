@@ -592,11 +592,6 @@
         "operationId": "create_new_report",
         "responses": {
           "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
             "description": "Successful Response",
             "headers": {
               "Location": {

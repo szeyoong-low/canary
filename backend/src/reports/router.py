@@ -17,6 +17,10 @@ DEFAULT_PAGINATION_PAGE_SIZE: int = 10
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
+    # The default `JSONResponse` would send the literal body `null` under a JSON
+    # content type, and advertise an untyped body in the schema. A bare
+    # `Response` sends neither, so the contract and the wire agree.
+    response_class=Response,
     # Declared to let the frontend's generated types expose `Location` as the
     # place the new report can be found.
     # https://fastapi.tiangolo.com/advanced/additional-responses/
@@ -68,7 +72,13 @@ def get_specific_report(report_id: UUID) -> types.ReportFull:
     )
 
 
-@router.patch(REPORT_ID_PATH_PARAM_SEGMENT, status_code=status.HTTP_204_NO_CONTENT)
+@router.patch(
+    REPORT_ID_PATH_PARAM_SEGMENT,
+    status_code=status.HTTP_204_NO_CONTENT,
+    # A 204 is already bodyless, but the default response class would still
+    # label it `application/json`. See `create_new_report` above.
+    response_class=Response,
+)
 def update_report_metadata(
     report_id: UUID, updated_metadata: types.ReportMetadata
 ) -> None:

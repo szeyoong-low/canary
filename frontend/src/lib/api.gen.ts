@@ -380,8 +380,6 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
-    /** @description Where the newly created report can be found. */
-    Location?: string;
     requestBody?: never;
     responses: {
       /** @description Successful Response */
@@ -407,11 +405,11 @@ export interface operations {
       /** @description Successful Response */
       201: {
         headers: {
+          /** @description Where the newly created report can be found. */
+          Location?: string;
           [name: string]: unknown;
         };
-        content: {
-          "application/json": unknown;
-        };
+        content?: never;
       };
     };
   };
