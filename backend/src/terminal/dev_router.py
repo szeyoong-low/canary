@@ -9,7 +9,7 @@ router = APIRouter(prefix="/dev/terminal")
 
 
 @router.post("/{tool_name}")
-async def asset_price_daily_handler(
+async def terminal_smoke_test(
     tool_name: str, args: Annotated[Any, Body()]
 ) -> ChartConfigModel:
     return (await TERMINAL_TOOLS_MAPPING[tool_name].ainvoke(args))["chart"]

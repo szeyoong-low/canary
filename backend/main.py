@@ -11,7 +11,8 @@ from .src.auth.dependencies import authenticate
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
-from .src.reports import ask_agent_handler as agent
+from .src.reports import dev_router as agent
+from .src.reports import router as reports
 from .src.terminal import dev_router as terminal
 
 
@@ -57,9 +58,10 @@ register_error_handlers(app)
 # FastAPI caches dependency results per request, so no double work
 REQUIRES_AUTHENTICATION = [Depends(authenticate)]
 
-app.include_router(agent.router)  # , dependencies=REQUIRES_AUTHENTICATION)
+app.include_router(reports.router)  # , dependencies=REQUIRES_AUTHENTICATION)
 
 if env.development:
+    app.include_router(agent.router)
     app.include_router(terminal.router)
 
 
