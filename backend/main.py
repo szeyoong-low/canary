@@ -12,7 +12,7 @@ from .src.auth.dependencies import authenticate
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
-from .src.terminal import router as terminal
+from .src.terminal import dev_router as terminal
 
 
 @asynccontextmanager
@@ -58,7 +58,9 @@ register_error_handlers(app)
 REQUIRES_AUTHENTICATION = [Depends(authenticate)]
 
 app.include_router(agent.router)  # , dependencies=REQUIRES_AUTHENTICATION)
-app.include_router(terminal.router)  # Only for testing now, will be removed soon
+
+if env.development:
+    app.include_router(terminal.router)
 
 
 @app.get("/health")
