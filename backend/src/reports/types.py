@@ -1,12 +1,26 @@
 from typing import Annotated, Literal
 
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import AfterValidator, BaseModel, ConfigDict
 
 from ..display.output_models import ChartConfigModel
-from ..validators.primitives import NonEmptyString, PositiveInt
+from ..validators.primitives import NonEmptyString
 
-type PageSizeParam = Annotated[PositiveInt, Query()]
+PAGE_SIZE_MIN: int = 1
+PAGE_SIZE_MAX: int = 100
+
+
+def _valid_page_size(n: int) -> int:
+    if PAGE_SIZE_MIN <= n <= PAGE_SIZE_MAX:
+        return n
+
+    raise ValueError(
+        f"Page size must be between {PAGE_SIZE_MIN} and {PAGE_SIZE_MAX} inclusive"
+    )
+
+
+type PageSizeParam = Annotated[int, Query(), AfterValidator(_valid_page_size)]
+
 # Must keep in sync with seed.__main__.py
 type MinimumReportRole = Annotated[
     Literal["viewer", "commenter", "editor", "owner"], Query()
