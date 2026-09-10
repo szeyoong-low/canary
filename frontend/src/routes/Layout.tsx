@@ -19,10 +19,7 @@ export default function Layout() {
               {projectName}
             </h1>
           </Link>
-          <div className="absolute right-3 flex items-center gap-4 px-4">
-            <ThemeToggle />
-            <AuthButton />
-          </div>
+          <UtilityButtons />
         </header>
         <main>
           <Outlet />
@@ -33,5 +30,14 @@ export default function Layout() {
         </footer>
       </ToastProvider>
     </ThemeProvider>
+  );
+}
+
+function UtilityButtons() {
+  return (
+    <div className="absolute right-3 flex items-center gap-4 px-4">
+      <ThemeToggle className="hidden md:block" />
+      <AuthButton />
+    </div>
   );
 }
