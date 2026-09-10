@@ -35,7 +35,7 @@ class ReportFull(BaseReport):
 
 class ReportMetadata(BaseModel):
     title: NonEmptyString | None = None
-    visibility: bool | None = None
+    public: bool | None = None
 
 
 class PromptBody(BaseModel):

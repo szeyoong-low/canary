@@ -1,32 +1,36 @@
-from typing import Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
+from ..global_constants import FRONTEND_BASE_URL, LOCATION_HEADER
 from . import types
 
-router = APIRouter(prefix="/reports")
+REPORTS_PATH_PREFIX: str = "/reports"
+
+router = APIRouter(prefix=REPORTS_PATH_PREFIX)
 
 REPORT_ID_PATH_PARAM_SEGMENT: str = "/{report_id}"
 
 DEFAULT_PAGINATION_PAGE_SIZE: int = 10
 
 
-@router.post("/")
-def create_new_report() -> UUID:
-    return uuid4()
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_new_report(response: Response) -> None:
+    response.headers[LOCATION_HEADER] = (
+        f"{FRONTEND_BASE_URL}{REPORTS_PATH_PREFIX}/{uuid4()}"
+    )
 
 
 @router.get("/previews")
 def get_report_previews(
-    visibility: Literal["public", "private", "any"] = "any",
+    public: bool | None = None,
     minimum_report_role: types.MinimumReportRole | None = None,
     cursor: UUID | None = None,
     page_size: types.PageSizeParam = DEFAULT_PAGINATION_PAGE_SIZE,
 ) -> list[types.ReportPreview]:
     print(
         {
-            "visibility": visibility,
+            "public": public,
             "minimum_report_role": minimum_report_role,
             "cursor": cursor,
             "page_size": page_size,

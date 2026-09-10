@@ -2,6 +2,7 @@ import jwt
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..dependencies import AuthSettings, get_auth_settings
+from ..global_constants import FRONTEND_BASE_URL
 from .jwks import get_jwks_client
 
 """Turn a bearer string into a subject"""
@@ -12,8 +13,7 @@ from .jwks import get_jwks_client
 # Must match `signing_algorithm` in terraform/global/auth.tf.
 SIGNING_ALGORITHM = "RS256"  # Asymmetric
 
-# Must match terraform/global/actions/profile-claims.js
-CLAIM_NAMESPACE = "https://canary.markets"
+CLAIM_NAMESPACE = FRONTEND_BASE_URL
 
 REQUIRED_CLAIMS = ["sub", "exp", "iat", "iss", "aud"]
 
