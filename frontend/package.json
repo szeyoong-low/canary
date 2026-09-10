@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:api": "npx -y openapi-typescript@7.13.0 ../backend/openapi.json -o src/lib/api.gen.ts",
     "compile": "tsc -b",
     "build": "npm run compile && vite build",
     "lint": "eslint --fix .",
