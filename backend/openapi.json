@@ -1,0 +1,832 @@
+{
+  "components": {
+    "schemas": {
+      "Axis": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "type": {
+            "enum": [
+              "value",
+              "category",
+              "time",
+              "log"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Axis",
+        "type": "object"
+      },
+      "ByteField": {
+        "type": "integer"
+      },
+      "ChartConfigModel": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Dataset"
+            },
+            "title": "Dataset",
+            "type": "array"
+          },
+          "legend": {
+            "$ref": "#/components/schemas/Legend",
+            "default": {
+              "data": []
+            }
+          },
+          "series": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "title": {
+            "$ref": "#/components/schemas/Title",
+            "default": {
+              "text": ""
+            }
+          },
+          "tooltip": {
+            "$ref": "#/components/schemas/Tooltip",
+            "default": {
+              "trigger": "item"
+            }
+          },
+          "xAxis": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Axis"
+            },
+            "title": "Xaxis",
+            "type": "array"
+          },
+          "yAxis": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Axis"
+            },
+            "title": "Yaxis",
+            "type": "array"
+          }
+        },
+        "title": "ChartConfigModel",
+        "type": "object"
+      },
+      "ColumnarDataset": {
+        "additionalProperties": {
+          "items": {},
+          "type": "array"
+        },
+        "type": "object"
+      },
+      "Dataset": {
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/DatasetType",
+            "default": {}
+          }
+        },
+        "title": "Dataset",
+        "type": "object"
+      },
+      "DatasetType": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/RowObjectDataset"
+          },
+          {
+            "$ref": "#/components/schemas/ColumnarDataset"
+          }
+        ]
+      },
+      "DisplayedContentContainer": {
+        "properties": {
+          "chart": {
+            "$ref": "#/components/schemas/ChartConfigModel"
+          },
+          "prose": {
+            "title": "Prose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chart",
+          "prose"
+        ],
+        "title": "DisplayedContentContainer",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HexColor": {
+        "type": "string"
+      },
+      "ItemStyle": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RGBA"
+              },
+              {
+                "$ref": "#/components/schemas/HexColor"
+              }
+            ],
+            "default": "#000",
+            "title": "Color"
+          }
+        },
+        "title": "ItemStyle",
+        "type": "object"
+      },
+      "Legend": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "default": [],
+            "items": {},
+            "title": "Data",
+            "type": "array"
+          }
+        },
+        "title": "Legend",
+        "type": "object"
+      },
+      "LineStyle": {
+        "additionalProperties": false,
+        "properties": {
+          "cap": {
+            "default": "butt",
+            "enum": [
+              "butt",
+              "round",
+              "square"
+            ],
+            "title": "Cap",
+            "type": "string"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RGBA"
+              },
+              {
+                "$ref": "#/components/schemas/HexColor"
+              }
+            ],
+            "default": "#000",
+            "title": "Color"
+          },
+          "dashOffset": {
+            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "default": 0
+          },
+          "join": {
+            "default": "bevel",
+            "enum": [
+              "bevel",
+              "round",
+              "miter"
+            ],
+            "title": "Join",
+            "type": "string"
+          },
+          "type": {
+            "default": "solid",
+            "enum": [
+              "solid",
+              "dashed",
+              "dotted"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "width": {
+            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "default": 2
+          }
+        },
+        "title": "LineStyle",
+        "type": "object"
+      },
+      "MinimumReportRole": {
+        "enum": [
+          "viewer",
+          "commenter",
+          "editor",
+          "owner"
+        ],
+        "type": "string"
+      },
+      "NonEmptyString": {
+        "type": "string"
+      },
+      "NonNegativeNumberField": {
+        "$ref": "#/components/schemas/Number"
+      },
+      "NormalisedFloatField": {
+        "type": "number"
+      },
+      "Number": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          }
+        ]
+      },
+      "Params": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "PromptBody": {
+        "additionalProperties": false,
+        "properties": {
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt"
+        ],
+        "title": "PromptBody",
+        "type": "object"
+      },
+      "RGBA": {
+        "additionalProperties": false,
+        "properties": {
+          "alpha": {
+            "$ref": "#/components/schemas/NormalisedFloatField",
+            "default": 1
+          },
+          "blue": {
+            "$ref": "#/components/schemas/ByteField",
+            "default": 0
+          },
+          "green": {
+            "$ref": "#/components/schemas/ByteField",
+            "default": 0
+          },
+          "red": {
+            "$ref": "#/components/schemas/ByteField",
+            "default": 0
+          }
+        },
+        "title": "RGBA",
+        "type": "object"
+      },
+      "ReportFull": {
+        "properties": {
+          "authors": {
+            "items": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            },
+            "title": "Authors",
+            "type": "array"
+          },
+          "content_containers": {
+            "items": {
+              "$ref": "#/components/schemas/DisplayedContentContainer"
+            },
+            "title": "Content Containers",
+            "type": "array"
+          },
+          "title": {
+            "$ref": "#/components/schemas/NonEmptyString"
+          }
+        },
+        "required": [
+          "title",
+          "authors",
+          "content_containers"
+        ],
+        "title": "ReportFull",
+        "type": "object"
+      },
+      "ReportMetadata": {
+        "properties": {
+          "public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NonEmptyString"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ReportMetadata",
+        "type": "object"
+      },
+      "ReportPreview": {
+        "properties": {
+          "authors": {
+            "items": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            },
+            "title": "Authors",
+            "type": "array"
+          },
+          "chart": {
+            "$ref": "#/components/schemas/ChartConfigModel"
+          },
+          "title": {
+            "$ref": "#/components/schemas/NonEmptyString"
+          }
+        },
+        "required": [
+          "title",
+          "authors",
+          "chart"
+        ],
+        "title": "ReportPreview",
+        "type": "object"
+      },
+      "RowObjectDataset": {
+        "items": {
+          "$ref": "#/components/schemas/Params"
+        },
+        "type": "array"
+      },
+      "Series": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "encode": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encode"
+          },
+          "itemStyle": {
+            "$ref": "#/components/schemas/ItemStyle",
+            "default": {
+              "color": "#000"
+            }
+          },
+          "lineStyle": {
+            "$ref": "#/components/schemas/LineStyle",
+            "default": {
+              "cap": "butt",
+              "color": "#000",
+              "dashOffset": 0,
+              "join": "bevel",
+              "type": "solid",
+              "width": 2
+            }
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "showSymbol": {
+            "default": true,
+            "title": "Showsymbol",
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SeriesType"
+          },
+          "yAxisIndex": {
+            "default": 0,
+            "title": "Yaxisindex",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "title": "Series",
+        "type": "object"
+      },
+      "SeriesType": {
+        "enum": [
+          "line",
+          "bar",
+          "pie",
+          "scatter",
+          "effectScatter",
+          "radar",
+          "tree",
+          "treemap",
+          "sunburst",
+          "boxplot",
+          "candlestick",
+          "heatmap",
+          "map",
+          "parallel",
+          "lines",
+          "graph",
+          "sankey",
+          "funnel",
+          "gauge",
+          "pictorialBar",
+          "themeRiver",
+          "chord",
+          "custom"
+        ],
+        "type": "string"
+      },
+      "Title": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "title": "Title",
+        "type": "object"
+      },
+      "Tooltip": {
+        "additionalProperties": false,
+        "properties": {
+          "trigger": {
+            "default": "item",
+            "enum": [
+              "item",
+              "axis",
+              "none"
+            ],
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "title": "Tooltip",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/reports/": {
+      "post": {
+        "operationId": "create_new_report_reports__post",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create New Report"
+      }
+    },
+    "/reports/previews": {
+      "get": {
+        "operationId": "get_report_previews_reports_previews_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "public",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Public"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minimum_report_role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MinimumReportRole"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Minimum Report Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportPreview"
+                  },
+                  "title": "Response Get Report Previews Reports Previews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Report Previews"
+      }
+    },
+    "/reports/{report_id}": {
+      "get": {
+        "operationId": "get_specific_report_reports__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportFull"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Specific Report"
+      },
+      "patch": {
+        "description": "Since metadata changes are very straightforward, a 204 is sufficient to\nconfirm success. No need to waste bandwidth returning the entire report.\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH",
+        "operationId": "update_report_metadata_reports__report_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportMetadata"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Report Metadata"
+      }
+    },
+    "/reports/{report_id}/contents": {
+      "post": {
+        "operationId": "add_generated_content_to_report_reports__report_id__contents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisplayedContentContainer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Generated Content To Report"
+      }
+    }
+  }
+}
