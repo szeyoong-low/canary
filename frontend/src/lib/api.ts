@@ -15,7 +15,7 @@ export async function getChartFromPrompt({
 
   const response: Response = await fetch(new URL(AGENT_PATH, apiOrigin), {
     method: POST,
-    body: JSON.stringify({ text: form_data.get(PROMPT_FIELD) }),
+    body: JSON.stringify({ prompt: form_data.get(PROMPT_FIELD) }),
     headers: agentHeaders,
   });
 
