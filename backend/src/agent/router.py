@@ -1,36 +1,15 @@
 from typing import cast
 
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
 from httpx import codes
 from langchain.messages import AnyMessage, HumanMessage, SystemMessage
 
 from ..terminal.utility import TerminalToolResult
 from .graph import MESSAGES, TERMINAL_TOOL_RESULT, AgentState, build_graph
-from .input_models import Prompt
 from .llm import PLANNING_SYSTEM_PROMPT
 
-router = APIRouter(prefix="/agent")
 
-
-# POST over GET (https://blog.postman.com/get-vs-post/#how-to-choose-between-get-and-post):
-# 1. GET requests are meant to pass data in the URLs which have practical length
-#    limits, making them unsuitable for highly detailed questions. It is better
-#    to pass the prompt in the request body. Also, prompts may contain sensitive
-#    details (e.g. frequently mentioned securities may give away an investor's
-#    positions).
-# 2. GET is meant to be a safe, idempotent resource retrieval. Prompts to AI
-#    agents are neither "safe" nor idempotent (each call may cost money, hit
-#    rate limits, or produce a different result). POST is meant for submitting
-#    data to be processed.
-# 3. Since charts will be saved to a user's account, the request changes server
-#    state.
-# This is idiomatic: Cloudflare (https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/)
-# and AWS (https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html)
-# do this.
-
-
-@router.post("/")
-async def ask_agent_handler(prompt: Prompt) -> TerminalToolResult:
+async def invoke_agent(prompt: str) -> TerminalToolResult:
     """Answer a natural language question (in request body) with a chart."""
 
     final_state: AgentState = cast(
@@ -39,7 +18,7 @@ async def ask_agent_handler(prompt: Prompt) -> TerminalToolResult:
             {
                 MESSAGES: [
                     SystemMessage(PLANNING_SYSTEM_PROMPT),
-                    HumanMessage(prompt.text),
+                    HumanMessage(prompt),
                 ]
             }
         ),
