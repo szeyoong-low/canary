@@ -380,6 +380,8 @@ export interface operations {
       path?: never;
       cookie?: never;
     };
+    /** @description Where the newly created report can be found. */
+    Location?: string;
     requestBody?: never;
     responses: {
       /** @description Successful Response */

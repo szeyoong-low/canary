@@ -14,7 +14,26 @@ REPORT_ID_PATH_PARAM_SEGMENT: str = "/{report_id}"
 DEFAULT_PAGINATION_PAGE_SIZE: int = 10
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    # Declared to let the frontend's generated types expose `Location` as the
+    # place the new report can be found.
+    # https://fastapi.tiangolo.com/advanced/additional-responses/
+    responses={
+        status.HTTP_201_CREATED: {
+            "headers": {
+                LOCATION_HEADER: {
+                    "description": "Where the newly created report can be found.",
+                    # Not `format: uri` because generators render both as
+                    # `string` and the extra keyword suggests a validation
+                    # this API does not perform.
+                    "schema": {"type": "string"},
+                }
+            }
+        }
+    },
+)
 def create_new_report(response: Response) -> None:
     response.headers[LOCATION_HEADER] = (
         f"{FRONTEND_BASE_URL}{REPORTS_PATH_PREFIX}/{uuid4()}"
