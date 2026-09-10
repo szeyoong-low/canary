@@ -4,7 +4,7 @@ from functools import partial, reduce
 
 from httpx import AsyncClient
 from langchain_core.tools import BaseTool, tool
-from polars import LazyFrame, col, concat
+from polars import DataFrame, LazyFrame, col, concat
 from polars.selectors import float as pl_float
 
 from ..analysis.models import AnalysisFunction
@@ -14,7 +14,6 @@ from ..analysis.utility import (
     validate_and_sort_analysis_functions,
 )
 from ..display.charts import DISPLAY_HIERARCHY, DISPLAY_SERIES
-from ..display.output_models import ChartConfigModel
 from ..global_constants import DEC_PLACES_SHOWN, column_selection_regex
 from ..global_types import Columns, as_awaitable
 from ..loaders.constants import METRIC_GROUP_BASE_METRICS, METRIC_GROUP_KEYS
@@ -25,11 +24,11 @@ from .schemas import (
     MarketCompositionParams,
     MarketCompositionSchema,
 )
-from .utility import _get_shown_columns
+from .utility import TerminalToolResult, _get_shown_columns
 
 
 @tool(args_schema=AssetPriceDailySchema)
-async def asset_price_daily(**kwargs) -> ChartConfigModel:
+async def asset_price_daily(**kwargs) -> TerminalToolResult:
     """
     Analyse daily price summary for one or more financial assets (stocks,
     indices, forex, cryptocurrencies, commodities) over a date range.
@@ -123,11 +122,16 @@ async def asset_price_daily(**kwargs) -> ChartConfigModel:
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_SERIES[params.display](data_output, keys, params.symbol)
+    dataset: DataFrame = data_output.collect()
+
+    return {
+        "chart": DISPLAY_SERIES[params.display](dataset, keys, params.symbol),
+        "dataset": dataset.to_dict(as_series=False),
+    }
 
 
 @tool(args_schema=MarketCompositionSchema)
-async def market_composition(**kwargs) -> ChartConfigModel:
+async def market_composition(**kwargs) -> TerminalToolResult:
     """
     Drill down a snapshot of public market (stocks, mutual funds,
     exchange-traded funds) to aggregate a metric on multiple dimensions.
@@ -194,9 +198,14 @@ async def market_composition(**kwargs) -> ChartConfigModel:
             .with_columns(pl_float().round(DEC_PLACES_SHOWN))
         )
 
-    return DISPLAY_HIERARCHY[params.display](
-        data_output, params.drilldown, params.aggregate_col, params.colour_col
-    )
+    dataset: DataFrame = data_output.collect()
+
+    return {
+        "chart": DISPLAY_HIERARCHY[params.display](
+            dataset, params.drilldown, params.aggregate_col, params.colour_col
+        ),
+        "dataset": dataset.to_dict(as_series=False),
+    }
 
 
 # Bound to the model in the planning node and executed by the LangGraph tool node.

@@ -12,4 +12,4 @@ router = APIRouter(prefix="/dev/terminal")
 async def asset_price_daily_handler(
     tool_name: str, args: Annotated[Any, Body()]
 ) -> ChartConfigModel:
-    return await TERMINAL_TOOLS_MAPPING[tool_name].ainvoke(args)
+    return (await TERMINAL_TOOLS_MAPPING[tool_name].ainvoke(args))["chart"]

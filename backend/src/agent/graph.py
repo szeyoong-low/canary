@@ -11,17 +11,17 @@ from pydantic import ValidationError
 
 from ..display.output_models import ChartConfigModel
 from ..global_types import DataProcessingError, ImplementationError
-from ..terminal.tools import TERMINAL_TOOLS_MAPPING
+from ..terminal.tools import TERMINAL_TOOLS_MAPPING, TerminalToolResult
 from .llm import planning_node_llm
 
 # Keys of the AgentState TypedDict
 MESSAGES: str = "messages"
-CHART_CONFIG: str = "chart_config"
+TERMINAL_TOOL_RESULT: str = "terminal_tool_result"
 
 
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add]  # Chat history, reduce by appending
-    chart_config: ChartConfigModel
+    terminal_tool_result: ChartConfigModel
 
 
 async def _planning_node(state: AgentState) -> dict:
@@ -54,9 +54,7 @@ async def _tool_node(state: AgentState) -> dict:
         # Passing the arguments alone (not the whole call) returns the tool's
         # own value; passing the call would return a ToolMessage and discard
         # the objects we need.
-        chart_config: ChartConfigModel = await tool_selected.ainvoke(
-            tool_call[TOOL_ARGS]
-        )
+        result: TerminalToolResult = await tool_selected.ainvoke(tool_call[TOOL_ARGS])
     except (DataProcessingError, ImplementationError, ValidationError) as e:
         return {
             MESSAGES: [
@@ -70,11 +68,11 @@ async def _tool_node(state: AgentState) -> dict:
     return {
         MESSAGES: [
             ToolMessage(
-                content=f"{tool_call[TOOL_NAME]} returned a chart: {chart_config.title.text}",
+                content=f"{tool_call[TOOL_NAME]} returned a chart: {result['chart'].title.text}",
                 tool_call_id=tool_call[TOOL_ID],
             )
         ],
-        CHART_CONFIG: chart_config,
+        TERMINAL_TOOL_RESULT: result,
     }
 
 
