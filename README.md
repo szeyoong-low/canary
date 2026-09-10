@@ -5,7 +5,6 @@
     <tr>
         <td width="500" align="center"><img src="public/Landing-page.png" alt="Landing page for unauthenticated users" width="500"/></td>
         <td width="500" align="center"><img src="public/report-page-top.png" alt="Report page (top)" width="500"/></td>
-        <td width="500" align="center"><img src="public/report-page-bottom.png" alt="Report page (bottom)" width="500"/></td>
     </tr>
 <table>
 
