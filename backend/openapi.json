@@ -573,7 +573,7 @@
   "paths": {
     "/health": {
       "get": {
-        "operationId": "health_health_get",
+        "operationId": "health",
         "responses": {
           "200": {
             "content": {
@@ -589,7 +589,7 @@
     },
     "/reports/": {
       "post": {
-        "operationId": "create_new_report_reports__post",
+        "operationId": "create_new_report",
         "responses": {
           "201": {
             "content": {
@@ -605,7 +605,7 @@
     },
     "/reports/previews": {
       "get": {
-        "operationId": "get_report_previews_reports_previews_get",
+        "operationId": "get_report_previews",
         "parameters": [
           {
             "in": "query",
@@ -675,7 +675,7 @@
                   "items": {
                     "$ref": "#/components/schemas/ReportPreview"
                   },
-                  "title": "Response Get Report Previews Reports Previews Get",
+                  "title": "Response Get Report Previews",
                   "type": "array"
                 }
               }
@@ -698,7 +698,7 @@
     },
     "/reports/{report_id}": {
       "get": {
-        "operationId": "get_specific_report_reports__report_id__get",
+        "operationId": "get_specific_report",
         "parameters": [
           {
             "in": "path",
@@ -737,7 +737,7 @@
       },
       "patch": {
         "description": "Since metadata changes are very straightforward, a 204 is sufficient to\nconfirm success. No need to waste bandwidth returning the entire report.\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH",
-        "operationId": "update_report_metadata_reports__report_id__patch",
+        "operationId": "update_report_metadata",
         "parameters": [
           {
             "in": "path",
@@ -780,7 +780,7 @@
     },
     "/reports/{report_id}/contents": {
       "post": {
-        "operationId": "add_generated_content_to_report_reports__report_id__contents_post",
+        "operationId": "add_generated_content_to_report",
         "parameters": [
           {
             "in": "path",

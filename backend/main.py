@@ -4,6 +4,7 @@ from http import HTTPMethod
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 
 from .src.api.errors import register_error_handlers
 from .src.api.preconditions import ETAG_HEADER, IF_MATCH_HEADER
@@ -30,7 +31,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     await get_engine().dispose()
 
 
-app: FastAPI = FastAPI(lifespan=lifespan)
+def generate_operation_id(route: APIRoute) -> str:
+    """Names an endpoint in the OpenAPI schema.
+
+    FastAPI's default mangles the path into the name, giving
+    `get_specific_report_reports__report_id__get`, which becomes the method name
+    in any generated client. `route.name` is the endpoint function's own name,
+    so the frontend reads back the same names this file declares.
+
+    Names must be unique across every router. FastAPI warns about duplicates at
+    startup rather than failing quietly; should that ever bite, tag the routers
+    and prefix the tag here.
+    https://fastapi.tiangolo.com/advanced/generate-clients/
+    """
+
+    return route.name
+
+
+app: FastAPI = FastAPI(
+    lifespan=lifespan, generate_unique_id_function=generate_operation_id
+)
 
 env: Environment = get_environment()
 
