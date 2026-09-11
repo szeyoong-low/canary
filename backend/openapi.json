@@ -563,12 +563,6 @@
         "title": "ValidationError",
         "type": "object"
       }
-    },
-    "securitySchemes": {
-      "HTTPBearer": {
-        "scheme": "bearer",
-        "type": "http"
-      }
     }
   },
   "info": {
@@ -609,11 +603,6 @@
             }
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Create New Report"
       }
     },
@@ -707,11 +696,6 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Get Report Previews"
       }
     },
@@ -752,11 +736,6 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Get Specific Report"
       },
       "patch": {
@@ -799,11 +778,6 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Update Report Metadata"
       }
     },
@@ -854,11 +828,6 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Add Generated Content To Report"
       }
     }

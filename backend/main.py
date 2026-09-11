@@ -2,13 +2,12 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from http import HTTPMethod
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
 from .src.api.errors import register_error_handlers
 from .src.api.preconditions import ETAG_HEADER, IF_MATCH_HEADER
-from .src.auth.dependencies import authenticate
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
@@ -72,13 +71,7 @@ app.add_middleware(
 
 register_error_handlers(app)
 
-# Applied to every route the router carries, so a new endpoint is authenticated.
-# by existing here rather than by remembering to ask. `/health` below is exempt
-# by not being on a router at all.
-# FastAPI caches dependency results per request, so no double work
-REQUIRES_AUTHENTICATION = [Depends(authenticate)]
-
-app.include_router(reports.router, dependencies=REQUIRES_AUTHENTICATION)
+app.include_router(reports.router)
 
 if env.development:
     app.include_router(agent.router)
