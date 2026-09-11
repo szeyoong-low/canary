@@ -27,15 +27,15 @@ Check out [the project wiki](https://github.com/szeyoong-low/canary/wiki) for de
 ## Tech stack 
 | Layer | Choice |
 |---|---|
-| Frontend | React (Compiler), TypeScript, Vite, React Router, Apache ECharts, Zod, OpenAPI Fetch, Tailwind CSS, Base UI |
-| Backend | FastAPI, Python 3.12, httpx, Pydantic, OpenAPI TypeScript |
+| Frontend | React (Compiler), TypeScript, Vite, React Router, Apache ECharts, Zod, OpenAPI TypeScript + Fetch, Tailwind CSS, Base UI |
+| Backend | FastAPI, Python 3.12, httpx, Pydantic |
 | Data sources | Financial Modelling Prep |
 | Data pipeline | Polars |
 | Database | PostgreSQL, SQLAlchemy, asyncpg, Alembic, dbeaver, AWS boto3 SDK |
 | Authentication | Auth0, pyjwt |
 | AI agent | LangGraph, OpenRouter |
 | Deployment | AWS, Cloudflare Workers, Terraform, Docker |
-| DevOps | Git, GitHub Actions, npm, uv, Ruff, ESLint, Prettier, Lefthook |
+| DevOps | Git, GitHub Actions, npm, uv, Ruff, ESLint, Prettier, Lefthook, Bash, jq |
 | Testing | pytest asyncio, unittest mock, Postman |
 | Coding agent | Claude Code (Skills, MCP) |
 | Design & diagramming | Figma, Mermaid, Lucidchart |
