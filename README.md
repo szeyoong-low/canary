@@ -27,8 +27,8 @@ Check out [the project wiki](https://github.com/szeyoong-low/canary/wiki) for de
 ## Tech stack 
 | Layer | Choice |
 |---|---|
-| Frontend | React (Compiler), TypeScript, Vite, React Router, Apache ECharts, Tailwind CSS, Base UI, Zod |
-| Backend | FastAPI, Python 3.12, httpx, Pydantic |
+| Frontend | React (Compiler), TypeScript, Vite, React Router, Apache ECharts, Zod, OpenAPI Fetch, Tailwind CSS, Base UI |
+| Backend | FastAPI, Python 3.12, httpx, Pydantic, OpenAPI TypeScript |
 | Data sources | Financial Modelling Prep |
 | Data pipeline | Polars |
 | Database | PostgreSQL, SQLAlchemy, asyncpg, Alembic, dbeaver, AWS boto3 SDK |
