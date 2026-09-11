@@ -1,7 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import text
+from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .models import PlatformRole
 
 # The non-assumable account that grants what nobody else can. `provider|id` is
 # the shape of an Auth0 subject and no Auth0 connection is named `system`, so no
@@ -41,3 +43,25 @@ async def grant_first_platform_role(
             "granted_by": SYSTEM_SUBJECT,
         },
     )
+
+
+async def get_current_platform_role(
+    session: AsyncSession, user_id: UUID
+) -> PlatformRole | None:
+    """The role this user holds now: the most recent row in their grant history."""
+
+    row: Row | None = (
+        await session.execute(
+            text("""
+                SELECT ledger.role, vocabulary.precedence
+                FROM platform_role_ledger AS ledger
+                JOIN platform_role AS vocabulary ON vocabulary.role = ledger.role
+                WHERE ledger.granted_to_user_id = :user_id
+                ORDER BY ledger.set_at DESC
+                LIMIT 1
+            """),
+            {"user_id": user_id},
+        )
+    ).one_or_none()
+
+    return PlatformRole.model_validate(row) if row is not None else None

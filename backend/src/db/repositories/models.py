@@ -58,3 +58,17 @@ class BlobBlock(VersionedRecord):
     size_bytes: int
     created_at: datetime
     content_last_modified_at: datetime
+
+
+class ReportAccess(DatabaseRecord):
+    report_id: UUID
+    public: bool
+    # `None` means no grant was ever made: an anonymous caller, but equally a
+    # signed-in one nobody has shared this report with.
+    role: str | None
+    precedence: int | None
+
+
+class PlatformRole(DatabaseRecord):
+    role: str
+    precedence: int

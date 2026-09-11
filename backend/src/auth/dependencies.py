@@ -4,10 +4,12 @@ import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from httpx import codes
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..db.repositories.models import User
+from ..db.repositories.models import PlatformRole, User
 from ..db.repositories.platform_roles import (
     DEFAULT_PLATFORM_ROLE,
+    get_current_platform_role,
     grant_first_platform_role,
 )
 from ..db.repositories.users import get_active_user_by_subject, provision_user
@@ -28,7 +30,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 AUTHENTICATE_HEADER = "WWW-Authenticate"
 
 
-def _unauthorised(detail: str, *, token_supplied: bool) -> HTTPException:
+def unauthorised(detail: str, *, token_supplied: bool) -> HTTPException:
     """
     A 401 shaped the way RFC 6750 asks for (https://www.rfc-editor.org/rfc/rfc6750#section-3)
     Error messages should be uninformative, otherwise attackers can probe defences.
@@ -45,16 +47,39 @@ def _unauthorised(detail: str, *, token_supplied: bool) -> HTTPException:
     )
 
 
-async def authenticate(
+async def authenticate_optionally(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
-) -> AccessToken:
+) -> AccessToken | None:
+    """
+    Identify the caller if they offered a token, and let them through
+    anonymously if they did not.
+
+    Note the asymmetry: no token is a visitor, but a token that fails
+    verification is still a 401. Degrading a rejected token to anonymous would
+    show a signed-in user the logged-out view of their own report with nothing
+    to tell them their session had expired.
+    """
+
     if credentials is None:
-        raise _unauthorised("Not authenticated", token_supplied=False)
+        return None
 
     try:
         return decode(credentials.credentials)
     except jwt.InvalidTokenError:
-        raise _unauthorised("Invalid or expired token", token_supplied=True)
+        raise unauthorised("Invalid or expired token", token_supplied=True)
+
+
+type OptionalCaller = Annotated[AccessToken | None, Depends(authenticate_optionally)]
+
+
+async def authenticate(caller: OptionalCaller) -> AccessToken:
+    """The same check, for routes where being anonymous is not allowed."""
+
+    # FastAPI resolves each dependency once per request, so no duplicate work
+    if caller is None:
+        raise unauthorised("Not authenticated", token_supplied=False)
+
+    return caller
 
 
 # Routes declare this so the annotation reads as `caller: Caller`.
@@ -66,10 +91,10 @@ type Caller = Annotated[AccessToken, Depends(authenticate)]
 FALLBACK_DISPLAY_NAME = "New user"
 
 
-async def get_current_user(caller: Caller, session: Session) -> User:
+async def _resolve_user(session: AsyncSession, caller: AccessToken) -> User:
     """
-    Map the authenticated subject onto the local user row, creating it if this
-    is the first time we have seen this subject.
+    Map an authenticated subject onto the local user row, creating it if this is
+    the first time we have seen this subject.
 
     Just-in-time provisioning. Auth0 owns the user table and we only ever learn
     of a user by them turning up with a valid token, so there is no sign-up hook
@@ -93,8 +118,35 @@ async def get_current_user(caller: Caller, session: Session) -> User:
     return user
 
 
+async def get_current_user(caller: Caller, session: Session) -> User:
+    return await _resolve_user(session, caller)
+
+
 # Note this opens a transaction that stays open for as long as the handler runs.
 # Only routes that touch the database should depend on it. Long-lived ones (the
 # agent) should keep depending on `authenticate` alone rather than pinning a
 # pooled connection for the length of a stream. The frontend gates this anyways.
 type CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def get_current_user_or_none(
+    caller: OptionalCaller, session: Session
+) -> User | None:
+    """The local user row for whoever is calling, or `None` for a visitor."""
+    return None if caller is None else await _resolve_user(session, caller)
+
+
+type OptionalUser = Annotated[User | None, Depends(get_current_user_or_none)]
+
+
+async def resolve_platform_role(
+    user: OptionalUser, session: Session
+) -> PlatformRole | None:
+    """What the caller may do on the platform itself. `None` for a visitor who is
+    not signed in."""
+    return (
+        None if user is None else await get_current_platform_role(session, user.user_id)
+    )
+
+
+type CallerPlatformRole = Annotated[PlatformRole | None, Depends(resolve_platform_role)]
