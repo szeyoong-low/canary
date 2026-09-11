@@ -9,7 +9,7 @@ from .engine import get_session_factory
 """One database transaction per request, scoped by a FastAPI dependency."""
 
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
+async def get_db_session() -> AsyncGenerator[AsyncSession]:
     """
     Hand a handler a session that is already inside a transaction, and settle
     that transaction on the way out.
@@ -37,4 +37,4 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-type Session = Annotated[AsyncSession, Depends(get_session)]
+type DBSession = Annotated[AsyncSession, Depends(get_db_session)]

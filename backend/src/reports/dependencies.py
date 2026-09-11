@@ -9,7 +9,7 @@ from ..auth.dependencies import OptionalUser, unauthorised
 from ..db.repositories.models import ReportAccess
 from ..db.repositories.report_access import get_report_access
 from ..db.repositories.report_roles import get_precedence
-from ..db.session import Session
+from ..db.session import DBSession
 from .policy import IMPLICIT_PUBLIC_ROLE, is_permitted
 from .types import ReportRole
 
@@ -17,7 +17,7 @@ from .types import ReportRole
 
 
 async def resolve_report_access(
-    report_id: UUID, user: OptionalUser, session: Session
+    report_id: UUID, user: OptionalUser, session: DBSession
 ) -> ReportAccess:
     """Gather everything a route needs to decide what this caller may do with this
     report. `report_id` is a path parameter"""
@@ -51,7 +51,7 @@ def require_report_role(
     """
 
     async def guard(
-        access: CallerReportAccess, user: OptionalUser, session: Session
+        access: CallerReportAccess, user: OptionalUser, session: DBSession
     ) -> ReportAccess:
         if is_permitted(
             access,

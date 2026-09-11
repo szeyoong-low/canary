@@ -13,7 +13,7 @@ from ..db.repositories.platform_roles import (
     grant_first_platform_role,
 )
 from ..db.repositories.users import get_active_user_by_subject, provision_user
-from ..db.session import Session
+from ..db.session import DBSession
 from .token import AccessToken, decode
 
 """Where a bearer token becomes a caller FastAPI can hand to a route."""
@@ -118,7 +118,7 @@ async def _resolve_user(session: AsyncSession, caller: AccessToken) -> User:
     return user
 
 
-async def get_current_user(caller: Caller, session: Session) -> User:
+async def get_current_user(caller: Caller, session: DBSession) -> User:
     return await _resolve_user(session, caller)
 
 
@@ -130,7 +130,7 @@ type CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 async def get_current_user_or_none(
-    caller: OptionalCaller, session: Session
+    caller: OptionalCaller, session: DBSession
 ) -> User | None:
     """The local user row for whoever is calling, or `None` for a visitor."""
     return None if caller is None else await _resolve_user(session, caller)
@@ -140,7 +140,7 @@ type OptionalUser = Annotated[User | None, Depends(get_current_user_or_none)]
 
 
 async def resolve_platform_role(
-    user: OptionalUser, session: Session
+    user: OptionalUser, session: DBSession
 ) -> PlatformRole | None:
     """What the caller may do on the platform itself. `None` for a visitor who is
     not signed in."""
