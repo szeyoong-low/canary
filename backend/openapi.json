@@ -244,13 +244,7 @@
         "type": "object"
       },
       "MinimumReportRole": {
-        "enum": [
-          "viewer",
-          "commenter",
-          "editor",
-          "owner"
-        ],
-        "type": "string"
+        "$ref": "#/components/schemas/ReportRole"
       },
       "NonEmptyString": {
         "type": "string"
@@ -390,6 +384,15 @@
         ],
         "title": "ReportPreview",
         "type": "object"
+      },
+      "ReportRole": {
+        "enum": [
+          "viewer",
+          "commenter",
+          "editor",
+          "owner"
+        ],
+        "type": "string"
       },
       "RowObjectDataset": {
         "items": {

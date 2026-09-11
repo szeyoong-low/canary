@@ -218,8 +218,7 @@ export interface components {
             /** @default 2 */
             width: components["schemas"]["NonNegativeNumberField"];
         };
-        /** @enum {string} */
-        MinimumReportRole: "viewer" | "commenter" | "editor" | "owner";
+        MinimumReportRole: components["schemas"]["ReportRole"];
         NonEmptyString: string;
         NonNegativeNumberField: components["schemas"]["Number"];
         NormalisedFloatField: number;
@@ -264,6 +263,8 @@ export interface components {
             chart: components["schemas"]["ChartConfigModel"];
             title: components["schemas"]["NonEmptyString"];
         };
+        /** @enum {string} */
+        ReportRole: "viewer" | "commenter" | "editor" | "owner";
         RowObjectDataset: components["schemas"]["Params"][];
         /** Series */
         Series: {
