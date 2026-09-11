@@ -90,4 +90,4 @@ def require_if_match(
     return version
 
 
-RequiredVersion = Annotated[int, Depends(require_if_match)]
+type RequiredVersion = Annotated[int, Depends(require_if_match)]

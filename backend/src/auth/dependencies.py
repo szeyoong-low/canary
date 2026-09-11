@@ -58,7 +58,7 @@ async def authenticate(
 
 
 # Routes declare this so the annotation reads as `caller: Caller`.
-Caller = Annotated[AccessToken, Depends(authenticate)]
+type Caller = Annotated[AccessToken, Depends(authenticate)]
 
 
 # Written when the identity provider gave us neither a name nor an email. Users
@@ -97,4 +97,4 @@ async def get_current_user(caller: Caller, session: Session) -> User:
 # Only routes that touch the database should depend on it. Long-lived ones (the
 # agent) should keep depending on `authenticate` alone rather than pinning a
 # pooled connection for the length of a stream. The frontend gates this anyways.
-CurrentUser = Annotated[User, Depends(get_current_user)]
+type CurrentUser = Annotated[User, Depends(get_current_user)]
