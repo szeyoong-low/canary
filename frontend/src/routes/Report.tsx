@@ -1,3 +1,4 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { type EChartsOption } from "echarts";
 import { ChevronDown } from "lucide-react";
@@ -7,6 +8,7 @@ import { Chart, Prompt } from "@/components";
 export default function Report() {
   const fetcher: FetcherWithComponents<EChartsOption> =
     useFetcher<EChartsOption>();
+  const { isAuthenticated } = useAuth0();
 
   return (
     <div className="flex justify-center">
@@ -14,7 +16,7 @@ export default function Report() {
         <PreviewDisclaimer />
 
         {fetcher.data === undefined ? (
-          <Prompt fetcher={fetcher} />
+          isAuthenticated && <Prompt fetcher={fetcher} />
         ) : (
           <Chart config={fetcher.data} />
         )}
