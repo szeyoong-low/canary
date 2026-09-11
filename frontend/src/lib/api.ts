@@ -6,7 +6,7 @@ import {
   MissingRefreshTokenError,
 } from "@auth0/auth0-spa-js";
 import { apiOrigin } from "@/lib/env";
-import { auth0ClientContext } from "@/lib/auth0";
+import { auth0ClientContext, loginWithReturn } from "@/lib/auth0";
 import { AGENT_PATH, POST, PROMPT_FIELD } from "@/shared/constants";
 
 const REAUTHENTICATION_CODES: ReadonlySet<string> = new Set([
@@ -42,7 +42,7 @@ export async function getChartFromPrompt({
 
     // Leaves the page, so nothing below this runs. The `throw` is unreachable at
     // runtime and exists to tell TypeScript the function ends here.
-    await auth0Client.loginWithRedirect();
+    await loginWithReturn();
     throw error;
   }
 

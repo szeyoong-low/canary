@@ -31,3 +31,14 @@ export const auth0Client: Auth0Client = new Auth0Client({
 // throw rather than silently fall back to an unauthenticated client.
 export const auth0ClientContext: RouterContext<Auth0Client> =
   createContext<Auth0Client>();
+
+// Sends the user to the login page, remembering where they were so they can be
+// put back there afterwards. `appState` is round-tripped by Auth0 and handed
+// back to `onRedirectCallback` (see main.tsx), which does the actual navigating.
+export async function loginWithReturn(): Promise<void> {
+  await auth0Client.loginWithRedirect({
+    appState: {
+      returnTo: window.location.pathname + window.location.search,
+    },
+  });
+}

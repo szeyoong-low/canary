@@ -4,10 +4,10 @@ import { type ClassNameProps } from "@/shared/types";
 import { canaryThemeColour } from "@/shared/constants";
 import { mergeClassName } from "@/lib/mergeClassName";
 import { useErrorToast } from "@/lib/useToast";
+import { loginWithReturn } from "@/lib/auth0";
 
 export default function AuthButton({ className }: ClassNameProps) {
-  const { isLoading, isAuthenticated, error, loginWithRedirect, logout } =
-    useAuth0();
+  const { isLoading, isAuthenticated, error, logout } = useAuth0();
 
   // Hooks cannot run conditionally, so this sits above the early returns below.
   useErrorToast(error, { id: "auth-error", title: "Sign-in failed" });
@@ -47,7 +47,7 @@ export default function AuthButton({ className }: ClassNameProps) {
       className={buttonClassName}
       type="button"
       onClick={() => {
-        void loginWithRedirect();
+        void loginWithReturn();
       }}
     >
       Sign in
