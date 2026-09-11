@@ -21,7 +21,7 @@ environ["DEVELOPMENT"] = "false"
 
 # Deliberately not at the top of the file: it must follow the two statements
 # above, which it reads at import time.
-from backend.main import app
+from backend.main import app  # type: ignore
 
 
 def main() -> None:

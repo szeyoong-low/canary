@@ -2,8 +2,8 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from backend.src.db.schema import metadata
-from backend.src.dependencies import get_database_settings
+from backend.src.db.schema import metadata  # type: ignore
+from backend.src.dependencies import get_database_settings  # type: ignore
 from sqlalchemy import URL, pool, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
