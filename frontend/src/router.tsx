@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterContextProvider } from "react-router";
 import { Error, Home, Layout, Report } from "@/routes";
 import { auth0Client, auth0ClientContext } from "@/lib/auth0";
-import { getChartFromPrompt } from "./lib/api";
+import { getChartFromPrompt } from "@/lib/api";
 
 export default createBrowserRouter(
   [
