@@ -7,6 +7,7 @@ import {
 } from "@auth0/auth0-spa-js";
 import { apiOrigin } from "@/lib/env";
 import { auth0ClientContext, loginWithReturn } from "@/lib/auth0";
+import { clearPromptDraft } from "@/lib/promptDraft";
 import { AGENT_PATH, POST, PROMPT_FIELD } from "@/shared/constants";
 
 const REAUTHENTICATION_CODES: ReadonlySet<string> = new Set([
@@ -64,6 +65,10 @@ export async function getChartFromPrompt({
       `Server error: ${String(response.status)}: ${response.statusText}`,
     );
   }
+
+  // Only once the prompt has actually produced a chart so that it exists in
+  // after an expired session or failed request
+  clearPromptDraft();
 
   // No validation will be done on the client's side. The backend is my own,
   // and output validation using Pydantic was already done there.
