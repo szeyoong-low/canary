@@ -2,8 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Auth0Provider, type AppState } from "@auth0/auth0-react";
 import { RouterProvider } from "react-router/dom";
+import { QueryClientProvider } from "@tanstack/react-query";
 import router from "@/router";
 import { auth0Client } from "@/lib/auth0";
+import { queryClient } from "@/lib/queryClient";
 import "@/styles/index.css";
 
 const rootElement: HTMLElement | null = document.getElementById("root");
@@ -23,7 +25,9 @@ function onRedirectCallback(appState?: AppState): void {
 createRoot(rootElement).render(
   <StrictMode>
     <Auth0Provider client={auth0Client} onRedirectCallback={onRedirectCallback}>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </Auth0Provider>
   </StrictMode>,
 );

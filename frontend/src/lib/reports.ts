@@ -1,10 +1,12 @@
 import { type EChartsOption } from "echarts";
+import { queryOptions } from "@tanstack/react-query";
 import createClient from "openapi-fetch";
 import { redirect, type ActionFunctionArgs } from "react-router";
 import type { components, paths } from "@/lib/api.gen";
 import { apiOrigin } from "@/lib/env";
 import { getAccessToken } from "@/lib/auth0";
 import { clearPromptDraft } from "@/lib/promptDraft";
+import { APIError } from "@/shared/types";
 
 // Headers must be built per call as a shared Headers instance would hold
 // one user's token for the lifetime of the browser bundle, including after
@@ -47,38 +49,26 @@ export async function createBlankReport({
 
   // TODO: make schema document the error shape
   if (!response.ok) {
-    throw new Error(
-      `Error: ${String(response.status)}: ${response.statusText}`,
-    );
+    throw new APIError(response);
   }
 
   return redirect(response.headers.get(LOCATION_HEADER_KEY) ?? "/");
 }
 
-export async function getFullReport({
-  params,
-  context,
-}: ActionFunctionArgs): Promise<Report> {
-  // Guaranteed by the route segment. Just for type narrowing.
-  if (!params.reportID) {
-    throw new Error("Missing `reportID` route parameter.");
-  }
-
+export async function getFullReport(reportID: string): Promise<Report> {
   const { data, error, response } = await api.GET("/reports/{report_id}", {
     headers: {
-      Authorization: `${BEARER} ${await getAccessToken(context)}`,
+      Authorization: `${BEARER} ${await getAccessToken()}`,
     },
     params: {
       path: {
-        report_id: params.reportID,
+        report_id: reportID,
       },
     },
   });
 
   if (error) {
-    throw new Error(
-      `Error: ${String(response.status)}: ${response.statusText}`,
-    );
+    throw new APIError(response);
   }
 
   return {
@@ -90,32 +80,48 @@ export async function getFullReport({
   };
 }
 
-export async function getChartFromPrompt({
-  request,
-  context,
-}: ActionFunctionArgs): Promise<EChartsOption> {
-  const form_data: FormData = await request.formData();
+// The key every cache entry for a single report is filed under.
+export function reportQueryKey(reportID: string): readonly unknown[] {
+  return ["reports", reportID];
+}
 
-  const response: Response = await fetch(new URL("/dev/agent/", apiOrigin), {
-    method: "POST",
-    body: JSON.stringify({ prompt: form_data.get("prompt") }),
-    headers: new Headers({
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${await getAccessToken(context)}`,
-    }),
+// Pairs the key with its fetcher so the two can never drift apart.
+export function reportQueryOptions(reportID: string) {
+  return queryOptions({
+    queryKey: reportQueryKey(reportID),
+    queryFn: () => getFullReport(reportID),
   });
+}
 
-  if (!response.ok) {
-    throw new Error(
-      `Server error: ${String(response.status)}: ${response.statusText}`,
-    );
+const APPEND_TO_END = null;
+
+// Returns the saved container so the caller can place it in the cached report
+// exactly as a refetch would have returned it.
+export async function generateReportContent(
+  reportID: string,
+  prompt: string,
+): Promise<ContentContainerType> {
+  const { data, error, response } = await api.POST(
+    "/reports/{report_id}/contents",
+    {
+      headers: {
+        Authorization: `${BEARER} ${await getAccessToken()}`,
+      },
+      params: {
+        path: { report_id: reportID },
+        query: { position: APPEND_TO_END },
+      },
+      body: { prompt },
+    },
+  );
+
+  if (error) {
+    throw new APIError(response);
   }
 
-  // Only once the prompt has actually produced a chart so that it exists in
-  // after an expired session or failed request
+  // Only once the prompt has actually produced a chart, so the draft survives
+  // an expired session or a failed request.
   clearPromptDraft();
 
-  // No validation will be done on the client's side. The backend is my own,
-  // and output validation using Pydantic was already done there.
-  return (await response.json()) as EChartsOption;
+  return { ...data, chart: data.chart as EChartsOption | null };
 }

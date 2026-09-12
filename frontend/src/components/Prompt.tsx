@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { type EChartsOption } from "echarts";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { type FetcherWithComponents } from "react-router";
 import { BounceLoader } from "react-spinners";
 import { canaryThemeColour } from "@/shared/constants";
 import { PROMPT_FORM_FIELD } from "@/lib/reports";
 import { readPromptDraft, writePromptDraft } from "@/lib/promptDraft";
 
 export default function Prompt({
-  fetcher,
+  onSubmit,
+  isPending,
 }: {
-  fetcher: FetcherWithComponents<EChartsOption>;
+  onSubmit: (prompt: string) => void;
+  isPending: boolean;
 }) {
   // Read once at mount (not on every render) and never set afterwards, so
   // the textarea stays uncontrolled and typing costs no re-renders
@@ -20,7 +20,20 @@ export default function Prompt({
     <div className="w-full">
       <AskCanary />
 
-      <fetcher.Form method="POST" className="PromptBox">
+      <form
+        className="PromptBox"
+        onSubmit={(event) => {
+          // Without a router form action, the browser would navigate away on
+          // submit. The mutation owns the request instead.
+          event.preventDefault();
+
+          const formData = new FormData(event.currentTarget);
+          const prompt: FormDataEntryValue | null =
+            formData.get(PROMPT_FORM_FIELD);
+
+          onSubmit(typeof prompt === "string" ? prompt : "");
+        }}
+      >
         <textarea
           className="PromptTextarea"
           name={PROMPT_FORM_FIELD}
@@ -34,7 +47,7 @@ export default function Prompt({
           }}
         />
         <div className="self-end">
-          {fetcher.state === "idle" ? (
+          {!isPending ? (
             <button className="cursor-pointer" type="submit">
               <ArrowRight />
             </button>
@@ -46,7 +59,7 @@ export default function Prompt({
             />
           )}
         </div>
-      </fetcher.Form>
+      </form>
     </div>
   );
 }

@@ -1,23 +1,67 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Collapsible } from "@base-ui/react/collapsible";
-import { type EChartsOption } from "echarts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown } from "lucide-react";
+import { useParams } from "react-router";
+import { BounceLoader } from "react-spinners";
+import { ContentContainer, Prompt } from "@/components";
+import { canaryThemeColour } from "@/shared/constants";
 import {
-  type FetcherWithComponents,
-  useFetcher,
-  useLoaderData,
-} from "react-router";
-import { Chart, ContentContainer, Prompt } from "@/components";
-import { type getFullReport } from "@/lib/reports";
+  generateReportContent,
+  reportQueryKey,
+  reportQueryOptions,
+  type ContentContainerType,
+  type Report as ReportType,
+} from "@/lib/reports";
 
 export default function Report() {
-  // The route loader has already resolved before this renders, so the report
-  // is always present. No loading branch is needed.
-  const report = useLoaderData<typeof getFullReport>();
+  // Guaranteed by the route segment; the check only narrows the type.
+  const { reportID } = useParams();
+  if (!reportID) {
+    throw new Error("Missing `reportID` route parameter.");
+  }
 
-  const fetcher: FetcherWithComponents<EChartsOption> =
-    useFetcher<EChartsOption>();
   const { isAuthenticated } = useAuth0();
+
+  // The component now owns fetching, so unlike with a route loader it must
+  // render the pending and error states itself.
+  const {
+    data: report,
+    isPending,
+    isError,
+    error,
+  } = useQuery(reportQueryOptions(reportID));
+
+  const queryClient = useQueryClient();
+
+  const generate = useMutation({
+    mutationFn: (prompt: string) => generateReportContent(reportID, prompt),
+
+    // Writes the saved container straight into the cached report instead of
+    // invalidating it
+    onSuccess: (container: ContentContainerType) => {
+      queryClient.setQueryData(
+        reportQueryKey(reportID),
+        (previous: ReportType | undefined) =>
+          previous && {
+            ...previous,
+            content_containers: [...previous.content_containers, container],
+          },
+      );
+    },
+  });
+
+  if (isPending) {
+    return (
+      <div className="flex justify-center py-20">
+        <BounceLoader color={canaryThemeColour} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    throw error;
+  }
 
   return (
     <div className="flex justify-center">
@@ -33,10 +77,13 @@ export default function Report() {
 
         <PreviewDisclaimer />
 
-        {fetcher.data === undefined ? (
-          isAuthenticated && <Prompt fetcher={fetcher} />
-        ) : (
-          <Chart config={fetcher.data} />
+        {isAuthenticated && (
+          <Prompt
+            onSubmit={(prompt: string) => {
+              generate.mutate(prompt);
+            }}
+            isPending={generate.isPending}
+          />
         )}
       </div>
     </div>

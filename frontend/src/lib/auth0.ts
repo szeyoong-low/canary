@@ -63,15 +63,20 @@ export function needsReauthentication(error: unknown): boolean {
   );
 }
 
+// `context` is how router actions receive a (possibly stand-in) client.
+// Components have no router context, so they call this with no argument and
+// get the module singleton.
 export async function getAccessToken(
-  context: Readonly<RouterContextProvider>,
+  context?: Readonly<RouterContextProvider>,
 ): Promise<string> {
-  const auth0Client: Auth0Client = context.get(auth0ClientContext);
+  const client: Auth0Client = context
+    ? context.get(auth0ClientContext)
+    : auth0Client;
 
   try {
     // Serves the cached token when it is still valid, and silently redeems the
     // refresh token when it is not.
-    return await auth0Client.getTokenSilently();
+    return await client.getTokenSilently();
   } catch (error: unknown) {
     if (!needsReauthentication(error)) {
       throw error;
