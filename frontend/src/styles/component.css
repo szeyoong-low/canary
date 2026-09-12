@@ -269,3 +269,8 @@ a,
   margin-bottom: 0.5rem;
   position: relative;
 }
+
+/* Report layout */
+.ReportTitle {
+  font-family: var(--title-font-family);
+}

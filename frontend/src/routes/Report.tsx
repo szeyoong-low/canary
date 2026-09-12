@@ -46,7 +46,7 @@ export default function Report() {
 function Masthead({ title, authors }: { title: string; authors: string[] }) {
   return (
     <header className="w-full flex flex-col items-center">
-      <h2 className="text-xl font-medium">{title}</h2>
+      <h2 className="text-xl font-medium ReportTitle">{title}</h2>
       <p className="text-sm opacity-70">{authors.join(", ")}</p>
     </header>
   );
