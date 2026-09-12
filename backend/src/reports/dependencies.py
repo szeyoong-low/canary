@@ -10,10 +10,39 @@ from ..db.repositories.models import ReportAccess
 from ..db.repositories.report_access import get_report_access
 from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
-from .policy import IMPLICIT_PUBLIC_ROLE, is_permitted
 from .types import ReportRole
 
 """Resolving a caller's standing on one report, and enforcing it."""
+
+
+"""Turning what a caller holds into whether they may act.
+
+Deliberately pure and synchronous, like `auth.token`, so the rule that decides
+who may read and write a report can be tested exhaustively with plain values
+and no database, no HTTP and no event loop.
+"""
+
+# What being public is worth. A published report is readable by anyone, which
+# is the same thing as everyone holding this role on it.
+IMPLICIT_PUBLIC_ROLE = "viewer"
+
+_UNGRANTED_PRECEDENCE = 0  # No grant at all
+
+
+def _is_permitted(
+    access: ReportAccess, minimum_precedence: int, public_role_precedence: int
+) -> bool:
+    """Whether the caller clears the bar an action sets."""
+    granted: int = access.precedence or _UNGRANTED_PRECEDENCE
+
+    # The higher of what they were granted and what the report gives away by
+    # being public. Note this means publishing a report overrides an explicit
+    # `revoked` grant for reading.
+    effective_precedence: int = (
+        max(granted, public_role_precedence) if access.public else granted
+    )
+
+    return effective_precedence >= minimum_precedence
 
 
 async def resolve_report_access(
@@ -53,7 +82,7 @@ def require_report_role(
     async def guard(
         access: CallerReportAccess, user: OptionalUser, session: DBSession
     ) -> ReportAccess:
-        if is_permitted(
+        if _is_permitted(
             access,
             await get_precedence(session, REPORT_ROLE_TABLE, minimum_role),
             await get_precedence(session, REPORT_ROLE_TABLE, IMPLICIT_PUBLIC_ROLE),
