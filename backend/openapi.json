@@ -842,7 +842,7 @@
           {
             "in": "query",
             "name": "position",
-            "required": true,
+            "required": false,
             "schema": {
               "anyOf": [
                 {

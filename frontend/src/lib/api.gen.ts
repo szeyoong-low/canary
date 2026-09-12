@@ -507,8 +507,8 @@ export interface operations {
     };
     add_generated_content_to_report: {
         parameters: {
-            query: {
-                position: components["schemas"]["NonNegativeInt"] | null;
+            query?: {
+                position?: components["schemas"]["NonNegativeInt"] | null;
             };
             header?: never;
             path: {

@@ -163,9 +163,9 @@ def update_report_metadata(
 )
 async def add_generated_content_to_report(
     report_id: UUID,
-    position: NonNegativeInt | None,
     prompt_body: types.PromptBody,
     session: DBSession,
+    position: NonNegativeInt | None = None,
 ) -> types.DisplayedContentContainer:
     result: TerminalToolResult = await invoke_agent(prompt_body.prompt)
 
