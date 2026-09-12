@@ -1,4 +1,5 @@
 from typing import Annotated, Literal
+from uuid import UUID
 
 from fastapi import Query
 from pydantic import AfterValidator, BaseModel, ConfigDict
@@ -28,6 +29,10 @@ type MinimumReportRole = Annotated[ReportRole, Query()]
 
 
 class DisplayedContentContainer(BaseModel):
+    # Exposed so clients can identify a container across refetches.
+    # Positions are not stable, since containers can be reordered and
+    # unmounted into the report's recycling bin.
+    container_id: UUID
     chart: ChartConfigModel
     prose: str
 

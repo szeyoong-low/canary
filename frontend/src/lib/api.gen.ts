@@ -169,6 +169,11 @@ export interface components {
         /** DisplayedContentContainer */
         DisplayedContentContainer: {
             chart: components["schemas"]["ChartConfigModel"];
+            /**
+             * Container Id
+             * Format: uuid
+             */
+            container_id: string;
             /** Prose */
             prose: string;
         };

@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Response, status
 
@@ -124,6 +124,9 @@ def add_generated_content_to_report(
         }
     )
     return types.DisplayedContentContainer(
+        # Placeholder while this endpoint is a stub. The real value is the
+        # uuidv7 Postgres assigns to `content_container.container_id`.
+        container_id=uuid4(),
         chart=types.ChartConfigModel(),
         prose="",
     )

@@ -126,12 +126,18 @@
           "chart": {
             "$ref": "#/components/schemas/ChartConfigModel"
           },
+          "container_id": {
+            "format": "uuid",
+            "title": "Container Id",
+            "type": "string"
+          },
           "prose": {
             "title": "Prose",
             "type": "string"
           }
         },
         "required": [
+          "container_id",
           "chart",
           "prose"
         ],
