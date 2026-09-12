@@ -1,11 +1,13 @@
 from collections.abc import Sequence
-from json import dumps
 from typing import Any
 from uuid import UUID
 
+from pydantic import BaseModel
+from pydantic_core import to_json
 from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...global_types import DatasetType
 from .exceptions import MissingVersionError, NotFoundError, StaleWriteError
 from .models import BlobBlock, ReportContentContainer, TextBlock
 
@@ -186,7 +188,7 @@ async def update_text_block(
     return TextBlock.model_validate(row)
 
 
-def _serialise_blob(payload: Any) -> tuple[str, int]:
+def _serialise_blob(payload: BaseModel | DatasetType) -> tuple[str, int]:
     """
     Render a blob payload the way both write paths need it: as a string, with
     its byte count.
@@ -198,9 +200,9 @@ def _serialise_blob(payload: Any) -> tuple[str, int]:
     but not exactly this. Just a preview figure.
     """
 
-    serialised: str = dumps(payload, separators=(",", ":"))  # For most compact JSON
+    serialised: bytes = to_json(payload)
 
-    return serialised, len(serialised.encode())
+    return serialised.decode(), len(serialised)
 
 
 _UPDATE_BLOB = _versioned_update(
@@ -214,7 +216,10 @@ _UPDATE_BLOB = _versioned_update(
 
 
 async def update_blob_block(
-    session: AsyncSession, blob_id: UUID, payload: Any, version: int
+    session: AsyncSession,
+    blob_id: UUID,
+    payload: BaseModel | DatasetType,
+    version: int,
 ) -> BlobBlock:
     """
     Replace a blob block's payload, provided nobody has written it since
@@ -373,8 +378,8 @@ _CREATE_MOUNTED_CONTAINER = """
 async def create_mounted_container(
     session: AsyncSession,
     report_id: UUID,
-    chart: Any,
-    dataset: Any,
+    chart: BaseModel,
+    dataset: DatasetType,
     prose: str,
     position: int | None = None,
 ) -> UUID:
