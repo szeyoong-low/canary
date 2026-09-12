@@ -1,12 +1,15 @@
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
 from ...src.auth.dependencies import CurrentUser
-from ..db.repositories.reports import create_report
+from ..db.repositories.models import ReportContentContainer, ReportHeader
+from ..db.repositories.report_contents import get_report_containers
+from ..db.repositories.reports import create_report, get_report_header
 from ..db.session import DBSession
 from ..global_constants import LOCATION_HEADER
 from . import types
+from .dependencies import require_report_role
 
 REPORTS_PATH_PREFIX: str = "/reports"
 
@@ -15,6 +18,9 @@ router = APIRouter(prefix=REPORTS_PATH_PREFIX)
 REPORT_ID_PATH_PARAM_SEGMENT: str = "/{report_id}"
 
 DEFAULT_PAGINATION_PAGE_SIZE: int = 10
+
+# Public reports grant it implicitly
+READER_ROLE: types.ReportRole = "viewer"
 
 
 @router.post(
@@ -42,7 +48,7 @@ DEFAULT_PAGINATION_PAGE_SIZE: int = 10
     },
 )
 async def create_new_report(
-    response: Response, user: CurrentUser, session: DBSession
+    user: CurrentUser, session: DBSession, response: Response
 ) -> None:
     """
     Open an empty report owned by the caller and private to them.
@@ -78,13 +84,36 @@ def get_report_previews(
     return []
 
 
-@router.get(REPORT_ID_PATH_PARAM_SEGMENT)
-def get_specific_report(report_id: UUID) -> types.ReportFull:
-    print(report_id)
+@router.get(
+    REPORT_ID_PATH_PARAM_SEGMENT,
+    dependencies=[Depends(require_report_role(READER_ROLE))],
+)
+async def get_specific_report(report_id: UUID, session: DBSession) -> types.ReportFull:
+    """
+    Read one report in full: its metadata and every container mounted in it.
+
+    A report that does not exist, or that this caller may not read, never
+    reaches this body. The guard above answers both.
+    """
+
+    # They are awaited in sequence, not gathered, as a session is a single
+    # connection and cannot run two statements at once.
+    header: ReportHeader = await get_report_header(session, report_id)
+    containers: list[ReportContentContainer] = await get_report_containers(
+        session, report_id
+    )
+
     return types.ReportFull(
-        title="foo",
-        authors=["foo"],
-        content_containers=[],
+        title=header.title,
+        authors=header.authors,
+        content_containers=[
+            types.DisplayedContentContainer(
+                container_id=container.container_id,
+                chart=types.ChartConfigModel.model_validate(container.chart),
+                prose=container.prose,
+            )
+            for container in containers
+        ],
     )
 
 

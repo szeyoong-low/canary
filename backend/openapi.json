@@ -722,6 +722,7 @@
     },
     "/reports/{report_id}": {
       "get": {
+        "description": "Read one report in full: its metadata and every container mounted in it.\n\nA report that does not exist, or that this caller may not read, never\nreaches this body. The guard above answers both.",
         "operationId": "get_specific_report",
         "parameters": [
           {
@@ -757,6 +758,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Get Specific Report"
       },
       "patch": {

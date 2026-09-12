@@ -5,7 +5,10 @@ from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...global_types import ImplementationError
+from .exceptions import NotFoundError
+from .models import ReportHeader
 from .platform_roles import SYSTEM_SUBJECT
+from .role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 
 """Every query that touches `report` and its two ledgers."""
 
@@ -76,3 +79,70 @@ async def create_report(
         )
 
     return row.report_id
+
+
+MINIMUM_AUTHOR_ROLE: str = "editor"
+
+# Note this differs from the LATERAL subqueries in `report_access`, which narrow
+# to one known user before taking the latest row. Here every grantee is wanted,
+# so there is no single id to correlate on.
+#
+# The whole aggregate hangs off a LATERAL so it can see `report.report_id`, and
+# is LEFT joined so that a report whose owners have all been soft deleted still
+# comes back (with no authors) rather than vanishing.
+_REPORT_HEADER = """
+    SELECT
+        report.report_id,
+        report.title,
+        -- `array_agg` over no rows is NULL, not an empty array.
+        COALESCE(authors.display_names, ARRAY[]::text[]) AS authors
+    FROM report_live AS report
+
+    LEFT JOIN LATERAL (
+        SELECT array_agg(author.display_name ORDER BY current_grant.set_at)
+            AS display_names
+        FROM (
+            SELECT DISTINCT ON (ledger.granted_to_user_id)
+                ledger.granted_to_user_id, ledger.role, ledger.set_at
+            FROM report_role_ledger AS ledger
+            WHERE ledger.report_id = report.report_id
+            ORDER BY ledger.granted_to_user_id, ledger.set_at DESC
+        ) AS current_grant
+
+        -- Inner join removes grants to users who no longer exist
+        JOIN app_user_live AS author
+            ON author.user_id = current_grant.granted_to_user_id
+
+        JOIN report_role ON report_role.role = current_grant.role
+
+        WHERE report_role.precedence >= :minimum_precedence
+    ) AS authors ON TRUE
+
+    WHERE report.report_id = :report_id
+"""
+
+
+async def get_report_header(session: AsyncSession, report_id: UUID) -> ReportHeader:
+    """
+    Read a report's title and the display names of everyone who can currently
+    change its content, oldest grant first.
+
+    Raises `NotFoundError` if the report does not exist or has been soft deleted.
+    """
+
+    row: Row | None = (
+        await session.execute(
+            text(_REPORT_HEADER),
+            {
+                "report_id": report_id,
+                "minimum_precedence": await get_precedence(
+                    session, REPORT_ROLE_TABLE, MINIMUM_AUTHOR_ROLE
+                ),
+            },
+        )
+    ).one_or_none()
+
+    if row is None:
+        raise NotFoundError(f"No report with id {report_id}.")
+
+    return ReportHeader.model_validate(row)

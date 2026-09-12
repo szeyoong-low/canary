@@ -68,7 +68,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Specific Report */
+        /**
+         * Get Specific Report
+         * @description Read one report in full: its metadata and every container mounted in it.
+         *
+         *     A report that does not exist, or that this caller may not read, never
+         *     reaches this body. The guard above answers both.
+         */
         get: operations["get_specific_report"];
         put?: never;
         post?: never;

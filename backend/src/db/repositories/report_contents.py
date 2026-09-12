@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from json import dumps
 from typing import Any
 from uuid import UUID
@@ -6,9 +7,10 @@ from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .exceptions import MissingVersionError, NotFoundError, StaleWriteError
-from .models import BlobBlock, TextBlock
+from .models import BlobBlock, ReportContentContainer, TextBlock
 
-"""Every query that touches `text_store` and `blob_store`."""
+"""Every query that touches `text_store` and `blob_store`, and the
+containers and mounts that point at them."""
 
 # Spelled out rather than `SELECT *`, so that adding a column to a table does
 # not silently feed an extra field.
@@ -226,3 +228,49 @@ async def update_blob_block(
     )
 
     return BlobBlock.model_validate(row)
+
+
+# One row per mounted container, with both payloads already resolved.
+#
+# `content_mount_live` is the live view, so it carries only rows whose
+# `position` is set: containers in the recycling bin are filtered out before
+# anything else is joined, and the ORDER BY below is over a column that cannot
+# be NULL.
+#
+# Every join is INNER. A container whose chart or prose has been soft deleted is
+# broken rather than partial, and dropping it is better than returning a card
+# with a hole in it. The consequence is that deleting one block hides the whole
+# container, which is the intended reading of these tables: blocks are not
+# reusable and a container owns all three.
+_REPORT_CONTAINERS = """
+    SELECT
+        container.container_id,
+        chart.payload AS chart,
+        prose.payload AS prose
+    FROM content_mount_live AS mount
+
+    JOIN content_container_live AS container
+        ON container.container_id = mount.container_id
+    JOIN blob_store_live AS chart ON chart.blob_id = container.chart_id
+    JOIN text_store_live AS prose ON prose.text_id = container.prose_id
+
+    WHERE mount.report_id = :report_id
+    ORDER BY mount.position
+"""
+
+
+async def get_report_containers(
+    session: AsyncSession, report_id: UUID
+) -> list[ReportContentContainer]:
+    """
+    Read every container mounted in a report, in the order they are displayed.
+
+    An empty list is an ordinary answer. Whether it exists is a separate
+    question, answered by the dependency.
+    """
+
+    rows: Sequence[Row] = (
+        await session.execute(text(_REPORT_CONTAINERS), {"report_id": report_id})
+    ).all()
+
+    return [ReportContentContainer.model_validate(row) for row in rows]

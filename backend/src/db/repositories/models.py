@@ -72,3 +72,29 @@ class ReportAccess(DatabaseRecord):
 class PlatformRole(DatabaseRecord):
     role: str
     precedence: int
+
+
+class ReportHeader(DatabaseRecord):
+    """A report's own row, plus the display names of whoever can currently
+    change its content.
+
+    Authors are folded in here rather than fetched separately because they are
+    one aggregated value per report, not a collection the caller pages through.
+    """
+
+    report_id: UUID
+    title: str
+    # Display names, not ids: nothing downstream links to a user yet, and they
+    # are not unique, so duplicates are possible and harmless.
+    authors: list[str]
+
+
+class ReportContentContainer(DatabaseRecord):
+    """One container, with the payloads of the blocks it points at
+    already resolved."""
+
+    container_id: UUID
+    # Whatever the driver decoded the JSONB into, exactly as `BlobBlock.payload`.
+    # This layer does not know a chart config from any other object.
+    chart: Any
+    prose: str
