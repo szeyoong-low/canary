@@ -1,7 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useParams } from "react-router";
 import { BounceLoader } from "react-spinners";
 import { ContentContainer, Prompt } from "@/components";
@@ -66,7 +66,11 @@ export default function Report() {
   return (
     <div className="flex justify-center">
       <div className="mx-10 sm:w-150 md:w-175 flex flex-col items-center gap-y-5">
-        <Masthead title={report.title} authors={report.authors} />
+        <Masthead
+          title={report.title}
+          authors={report.authors}
+          publiclyVisible={report.public}
+        />
 
         {report.content_containers.map((container) => (
           <ContentContainer
@@ -90,10 +94,31 @@ export default function Report() {
   );
 }
 
-function Masthead({ title, authors }: { title: string; authors: string[] }) {
+function Masthead({
+  title,
+  authors,
+  publiclyVisible,
+}: {
+  title: string;
+  authors: string[];
+  publiclyVisible: boolean;
+}) {
+  const VisibilityIcon = publiclyVisible ? Eye : EyeOff;
+  const visibilityLabel = publiclyVisible ? "Public" : "Private";
+
   return (
     <header className="w-full flex flex-col items-center">
-      <h2 className="text-xl font-medium ReportTitle">{title}</h2>
+      <div className="flex items-center gap-x-2">
+        <h2 className="text-xl font-medium ReportTitle">{title}</h2>
+        <span
+          role="img"
+          aria-label={visibilityLabel}
+          title={visibilityLabel}
+          className="shrink-0 opacity-70"
+        >
+          <VisibilityIcon size="1em" />
+        </span>
+      </div>
       <p className="text-sm opacity-70">{authors.join(", ")}</p>
     </header>
   );
