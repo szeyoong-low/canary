@@ -2,7 +2,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Request, Response, status
 
-from ..global_constants import FRONTEND_BASE_URL, LOCATION_HEADER
+from ..global_constants import LOCATION_HEADER
 from . import types
 
 REPORTS_PATH_PREFIX: str = "/reports"
@@ -39,9 +39,8 @@ DEFAULT_PAGINATION_PAGE_SIZE: int = 10
     },
 )
 def create_new_report(request: Request, response: Response) -> None:
-    response.headers[LOCATION_HEADER] = (
-        f"{request.headers.get('origin', FRONTEND_BASE_URL)}{REPORTS_PATH_PREFIX}/{uuid4()}"
-    )
+    # React router can handle relative paths
+    response.headers[LOCATION_HEADER] = f"{REPORTS_PATH_PREFIX}/{uuid4()}"
 
 
 @router.get("/previews")

@@ -1,7 +1,10 @@
 import { createBrowserRouter, RouterContextProvider } from "react-router";
-import { Error, Home, Layout, Report } from "@/routes";
+import { Error, Home, Layout, Report, ReportCreation } from "@/routes";
 import { auth0Client, auth0ClientContext } from "@/lib/auth0";
-import { getChartFromPrompt } from "@/lib/reports";
+import { createBlankReport, getChartFromPrompt } from "@/lib/reports";
+
+const REPORT_BROWSER_PATH: string = "reports";
+const REPORT_ID_BROWSER_PATH_PARAM: string = ":reportID";
 
 export default createBrowserRouter(
   [
@@ -11,7 +14,12 @@ export default createBrowserRouter(
       children: [
         { index: true, Component: Home },
         {
-          path: "report/:reportID",
+          path: REPORT_BROWSER_PATH,
+          Component: ReportCreation,
+          action: createBlankReport,
+        },
+        {
+          path: `${REPORT_BROWSER_PATH}/${REPORT_ID_BROWSER_PATH_PARAM}`,
           Component: Report,
           action: getChartFromPrompt,
         },

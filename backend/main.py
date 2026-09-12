@@ -8,7 +8,11 @@ from fastapi.routing import APIRoute
 
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
-from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
+from .src.global_constants import (
+    AUTHORIZATION_HEADER,
+    CONTENT_TYPE_HEADER,
+    LOCATION_HEADER,
+)
 from .src.reports import dev_router as agent
 from .src.reports import router as reports
 from .src.reports.errors import register_error_handlers
@@ -65,7 +69,7 @@ app.add_middleware(
     allow_origin_regex=env.allow_origin_regex,  # Allow all development previews
     allow_headers=[AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER, IF_MATCH_HEADER],
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
-    expose_headers=[ETAG_HEADER],
+    expose_headers=[ETAG_HEADER, LOCATION_HEADER],
     allow_methods=[HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PATCH],
 )
 
