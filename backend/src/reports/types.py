@@ -8,6 +8,11 @@ from ..display.output_models import ChartConfigModel
 from ..global_constants import ReportRoleName
 from ..validators.primitives import NonEmptyString
 
+
+class StrictBaseModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
 PAGE_SIZE_MIN: int = 1
 PAGE_SIZE_MAX: int = 100
 
@@ -54,12 +59,13 @@ class ReportFull(BaseReport):
     content_containers: list[DisplayedContentContainer]
 
 
-class ReportMetadata(BaseModel):
-    title: NonEmptyString | None = None
-    public: bool | None = None
+class ReportTitle(StrictBaseModel):
+    title: NonEmptyString
 
 
-class PromptBody(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class ReportVisibility(StrictBaseModel):
+    public: bool
 
+
+class PromptBody(StrictBaseModel):
     prompt: str

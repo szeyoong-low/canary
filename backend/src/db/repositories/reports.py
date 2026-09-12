@@ -146,3 +146,71 @@ async def get_report_header(session: AsyncSession, report_id: UUID) -> ReportHea
         raise NotFoundError(f"No report with id {report_id}.")
 
     return ReportHeader.model_validate(row)
+
+
+# The base table rather than `report_live`, since writes are kept off the views,
+# and `deleted_at` is checked here instead.
+#
+# `RETURNING` so the statement reports whether it matched anything: an UPDATE
+# that hits no row is not an error to Postgres, only an empty result.
+_RENAME_REPORT = """
+    UPDATE report SET title = :title
+    WHERE report_id = :report_id AND deleted_at IS NULL
+    RETURNING report_id
+"""
+
+
+async def rename_report(session: AsyncSession, report_id: UUID, title: str) -> None:
+    """
+    Replace a report's title.
+
+    Raises `NotFoundError` if the report does not exist or has been soft deleted.
+    """
+
+    row: Row | None = (
+        await session.execute(
+            text(_RENAME_REPORT), {"report_id": report_id, "title": title}
+        )
+    ).one_or_none()
+
+    if row is None:
+        raise NotFoundError(f"No report with id {report_id}.")
+
+
+# The SELECT source rather than VALUES so that a soft deleted report inserts no
+# row at all, which the caller then turns into a 404. A bare VALUES would have
+# nothing to filter on and would happily record a flip on a dead report.
+_SET_REPORT_VISIBILITY = """
+    INSERT INTO report_visibility (report_id, set_by_user_id, public)
+    SELECT report.report_id, :set_by_user_id, :public
+    FROM report
+    WHERE report.report_id = :report_id AND report.deleted_at IS NULL
+    RETURNING report_id
+"""
+
+
+async def set_report_visibility(
+    session: AsyncSession, report_id: UUID, public: bool, set_by_user_id: UUID
+) -> None:
+    """
+    Record whether a report is readable by anyone, and who decided that.
+
+    Writing the same value twice is harmless: it adds a second row saying the
+    same thing, which is the history being honest about what was asked.
+
+    Raises `NotFoundError` if the report does not exist or has been soft deleted.
+    """
+
+    row: Row | None = (
+        await session.execute(
+            text(_SET_REPORT_VISIBILITY),
+            {
+                "report_id": report_id,
+                "public": public,
+                "set_by_user_id": set_by_user_id,
+            },
+        )
+    ).one_or_none()
+
+    if row is None:
+        raise NotFoundError(f"No report with id {report_id}.")

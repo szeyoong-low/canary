@@ -81,8 +81,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update Report Metadata */
-        patch: operations["update_report_metadata"];
+        patch?: never;
         trace?: never;
     };
     "/reports/{report_id}/contents": {
@@ -96,6 +95,52 @@ export interface paths {
         put?: never;
         /** Add Generated Content To Report */
         post: operations["add_generated_content_to_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report_id}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rename Specific Report
+         * @description Retitle a report.
+         *
+         *     A 204 is enough to confirm it: the caller already knows the title it sent,
+         *     so returning the report again would only waste bandwidth.
+         */
+        put: operations["rename_specific_report"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report_id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Publish Or Unpublish Report
+         * @description Publish a report to everyone, or take it private again.
+         *
+         *     The caller is recorded alongside the flip: `report_visibility` is an
+         *     append-only history, and who published a report is part of what it answers.
+         */
+        put: operations["publish_or_unpublish_report"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -265,12 +310,6 @@ export interface components {
             public: boolean;
             title: components["schemas"]["NonEmptyString"];
         };
-        /** ReportMetadata */
-        ReportMetadata: {
-            /** Public */
-            public?: boolean | null;
-            title?: components["schemas"]["NonEmptyString"] | null;
-        };
         /** ReportPreview */
         ReportPreview: {
             /** Authors */
@@ -280,6 +319,15 @@ export interface components {
         };
         /** @enum {string} */
         ReportRoleName: "viewer" | "commenter" | "editor" | "owner";
+        /** ReportTitle */
+        ReportTitle: {
+            title: components["schemas"]["NonEmptyString"];
+        };
+        /** ReportVisibility */
+        ReportVisibility: {
+            /** Public */
+            public: boolean;
+        };
         RowObjectDataset: components["schemas"]["Params"][];
         /** Series */
         Series: {
@@ -469,39 +517,6 @@ export interface operations {
             };
         };
     };
-    update_report_metadata: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                report_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReportMetadata"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     add_generated_content_to_report: {
         parameters: {
             query?: {
@@ -527,6 +542,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["DisplayedContentContainer"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_specific_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportTitle"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_or_unpublish_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportVisibility"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -76,7 +76,7 @@ app.add_middleware(
     allow_headers=[AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER, IF_MATCH_HEADER],
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
     expose_headers=[ETAG_HEADER, LOCATION_HEADER],
-    allow_methods=[HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PATCH],
+    allow_methods=[HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PUT],
 )
 
 register_error_handlers(app)

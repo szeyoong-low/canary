@@ -362,33 +362,6 @@
         "title": "ReportFull",
         "type": "object"
       },
-      "ReportMetadata": {
-        "properties": {
-          "public": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Public"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/NonEmptyString"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "title": "ReportMetadata",
-        "type": "object"
-      },
       "ReportPreview": {
         "properties": {
           "authors": {
@@ -421,6 +394,33 @@
           "owner"
         ],
         "type": "string"
+      },
+      "ReportTitle": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/NonEmptyString"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ReportTitle",
+        "type": "object"
+      },
+      "ReportVisibility": {
+        "additionalProperties": false,
+        "properties": {
+          "public": {
+            "title": "Public",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "public"
+        ],
+        "title": "ReportVisibility",
+        "type": "object"
       },
       "RowObjectDataset": {
         "items": {
@@ -786,47 +786,6 @@
           }
         ],
         "summary": "Get Specific Report"
-      },
-      "patch": {
-        "operationId": "update_report_metadata",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "report_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Report Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReportMetadata"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update Report Metadata"
       }
     },
     "/reports/{report_id}/contents": {
@@ -898,6 +857,104 @@
           }
         ],
         "summary": "Add Generated Content To Report"
+      }
+    },
+    "/reports/{report_id}/title": {
+      "put": {
+        "description": "Retitle a report.\n\nA 204 is enough to confirm it: the caller already knows the title it sent,\nso returning the report again would only waste bandwidth.",
+        "operationId": "rename_specific_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportTitle"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rename Specific Report"
+      }
+    },
+    "/reports/{report_id}/visibility": {
+      "put": {
+        "description": "Publish a report to everyone, or take it private again.\n\nThe caller is recorded alongside the flip: `report_visibility` is an\nappend-only history, and who published a report is part of what it answers.",
+        "operationId": "publish_or_unpublish_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportVisibility"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Publish Or Unpublish Report"
       }
     }
   }
