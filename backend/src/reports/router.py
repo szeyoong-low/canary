@@ -109,7 +109,11 @@ async def get_specific_report(report_id: UUID, session: DBSession) -> types.Repo
         content_containers=[
             types.DisplayedContentContainer(
                 container_id=container.container_id,
-                chart=types.ChartConfigModel.model_validate(container.chart),
+                chart=(
+                    types.ChartConfigModel.model_validate(container.chart)
+                    if container.chart is not None
+                    else None
+                ),
                 prose=container.prose,
             )
             for container in containers

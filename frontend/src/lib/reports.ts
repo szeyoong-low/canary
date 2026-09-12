@@ -26,7 +26,7 @@ export type ContentContainerType = Omit<
   components["schemas"]["DisplayedContentContainer"],
   "chart"
 > & {
-  chart: EChartsOption;
+  chart: EChartsOption | null;
 };
 
 export type Report = Omit<
@@ -85,7 +85,7 @@ export async function getFullReport({
     ...data,
     content_containers: data.content_containers.map((container) => ({
       ...container,
-      chart: container.chart as EChartsOption,
+      chart: container.chart as EChartsOption | null,
     })),
   };
 }

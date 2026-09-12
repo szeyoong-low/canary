@@ -237,11 +237,12 @@ async def update_blob_block(
 # anything else is joined, and the ORDER BY below is over a column that cannot
 # be NULL.
 #
-# Every join is INNER. A container whose chart or prose has been soft deleted is
-# broken rather than partial, and dropping it is better than returning a card
-# with a hole in it. The consequence is that deleting one block hides the whole
-# container, which is the intended reading of these tables: blocks are not
-# reusable and a container owns all three.
+# The container join is INNER, the two block joins are LEFT. The container is
+# the thing being listed, so it must survive. A block that has been soft deleted
+# comes back as NULL and the caller renders the container without it.
+#
+# Note `chart_id` and `prose_id` are still NOT NULL in the schema. NULL here
+# means the row the pointer leads to is gone, never that it was unset.
 _REPORT_CONTAINERS = """
     SELECT
         container.container_id,
@@ -251,8 +252,8 @@ _REPORT_CONTAINERS = """
 
     JOIN content_container_live AS container
         ON container.container_id = mount.container_id
-    JOIN blob_store_live AS chart ON chart.blob_id = container.chart_id
-    JOIN text_store_live AS prose ON prose.text_id = container.prose_id
+    LEFT JOIN blob_store_live AS chart ON chart.blob_id = container.chart_id
+    LEFT JOIN text_store_live AS prose ON prose.text_id = container.prose_id
 
     WHERE mount.report_id = :report_id
     ORDER BY mount.position

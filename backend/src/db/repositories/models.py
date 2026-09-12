@@ -91,10 +91,14 @@ class ReportHeader(DatabaseRecord):
 
 class ReportContentContainer(DatabaseRecord):
     """One container, with the payloads of the blocks it points at
-    already resolved."""
+    already resolved.
+
+    Either payload may be `None`, meaning that block has been soft deleted. The
+    container outlives its blocks, so a half-empty one is a state to render.
+    """
 
     container_id: UUID
     # Whatever the driver decoded the JSONB into, exactly as `BlobBlock.payload`.
     # This layer does not know a chart config from any other object.
-    chart: Any
-    prose: str
+    chart: Any | None
+    prose: str | None

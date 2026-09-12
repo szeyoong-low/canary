@@ -124,7 +124,14 @@
       "DisplayedContentContainer": {
         "properties": {
           "chart": {
-            "$ref": "#/components/schemas/ChartConfigModel"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartConfigModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "container_id": {
             "format": "uuid",
@@ -132,8 +139,15 @@
             "type": "string"
           },
           "prose": {
-            "title": "Prose",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prose"
           }
         },
         "required": [

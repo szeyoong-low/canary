@@ -174,14 +174,14 @@ export interface components {
         DatasetType: components["schemas"]["RowObjectDataset"] | components["schemas"]["ColumnarDataset"];
         /** DisplayedContentContainer */
         DisplayedContentContainer: {
-            chart: components["schemas"]["ChartConfigModel"];
+            chart: components["schemas"]["ChartConfigModel"] | null;
             /**
              * Container Id
              * Format: uuid
              */
             container_id: string;
             /** Prose */
-            prose: string;
+            prose: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

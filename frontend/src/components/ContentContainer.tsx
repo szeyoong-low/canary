@@ -6,11 +6,17 @@ export default function ContentContainer({
 }: {
   container: ContentContainerType;
 }) {
+  // Each block is rendered only if it is still there. A container outlives the
+  // blocks it points at, so one of these being absent is an ordinary state.
   return (
     <section className="flex w-full flex-col items-center gap-y-3">
-      <p className="w-full text-sm">{container.prose}</p>
+      {container.prose !== null && (
+        <p className="w-full text-sm">{container.prose}</p>
+      )}
 
-      <Chart config={container.chart} className="w-full" />
+      {container.chart !== null && (
+        <Chart config={container.chart} className="w-full" />
+      )}
     </section>
   );
 }

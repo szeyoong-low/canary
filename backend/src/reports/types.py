@@ -33,8 +33,10 @@ class DisplayedContentContainer(BaseModel):
     # Positions are not stable, since containers can be reordered and
     # unmounted into the report's recycling bin.
     container_id: UUID
-    chart: ChartConfigModel
-    prose: str
+    # Both nullable: a block can be deleted while its container stays mounted,
+    # and the client shows what is left rather than the container disappearing.
+    chart: ChartConfigModel | None
+    prose: str | None
 
 
 class BaseReport(BaseModel):
