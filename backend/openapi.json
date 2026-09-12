@@ -566,6 +566,12 @@
         "title": "ValidationError",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
     }
   },
   "info": {
@@ -592,6 +598,7 @@
     },
     "/reports/": {
       "post": {
+        "description": "Open an empty report owned by the caller and private to them.\n\nNothing is returned but the `Location` of the new report, which is all the\nfrontend needs to navigate to it. The report it would find there is empty,\nso sending it would be sending nothing.",
         "operationId": "create_new_report",
         "responses": {
           "201": {
@@ -606,6 +613,11 @@
             }
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Create New Report"
       }
     },
