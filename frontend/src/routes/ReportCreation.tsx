@@ -1,4 +1,5 @@
 import { useFetcher } from "react-router";
+import { OptionCard } from "@/components";
 
 export default function ReportCreation() {
   const fetcher = useFetcher();
@@ -6,16 +7,16 @@ export default function ReportCreation() {
   const isCreating: boolean = fetcher.state !== "idle";
 
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col gap-y-5 items-center">
       <fetcher.Form method="post">
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="rounded-xl border px-6 py-4 disabled:opacity-50"
-        >
+        <OptionCard type="submit" pending={isCreating}>
           {isCreating ? "Creating..." : "Create blank report"}
-        </button>
+        </OptionCard>
       </fetcher.Form>
+
+      <OptionCard type="button" disabled>
+        Start from a template
+      </OptionCard>
     </div>
   );
 }
