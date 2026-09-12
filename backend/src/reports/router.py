@@ -1,7 +1,10 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Response, status
 
+from ...src.auth.dependencies import CurrentUser
+from ..db.repositories.reports import create_report
+from ..db.session import DBSession
 from ..global_constants import LOCATION_HEADER
 from . import types
 
@@ -38,9 +41,23 @@ DEFAULT_PAGINATION_PAGE_SIZE: int = 10
         }
     },
 )
-def create_new_report(request: Request, response: Response) -> None:
+async def create_new_report(
+    response: Response, user: CurrentUser, session: DBSession
+) -> None:
+    """
+    Open an empty report owned by the caller and private to them.
+
+    Nothing is returned but the `Location` of the new report, which is all the
+    frontend needs to navigate to it.
+    """
+
+    report_id: UUID = await create_report(
+        session,
+        user.user_id,
+    )
+
     # React router can handle relative paths
-    response.headers[LOCATION_HEADER] = f"{REPORTS_PATH_PREFIX}/{uuid4()}"
+    response.headers[LOCATION_HEADER] = f"{REPORTS_PATH_PREFIX}/{report_id}"
 
 
 @router.get("/previews")

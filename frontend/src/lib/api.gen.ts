@@ -35,8 +35,7 @@ export interface paths {
          * @description Open an empty report owned by the caller and private to them.
          *
          *     Nothing is returned but the `Location` of the new report, which is all the
-         *     frontend needs to navigate to it. The report it would find there is empty,
-         *     so sending it would be sending nothing.
+         *     frontend needs to navigate to it.
          */
         post: operations["create_new_report"];
         delete?: never;
