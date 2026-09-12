@@ -35,7 +35,7 @@ def upgrade() -> None:
     op.create_table(
         "blob_store",
         sa.Column(
-            "blob_id", sa.BigInteger(), sa.Identity(always=False), nullable=False
+            "blob_id", sa.UUID(), server_default=sa.text("uuidv7()"), nullable=False
         ),
         sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column(
@@ -65,7 +65,7 @@ def upgrade() -> None:
     op.create_table(
         "text_store",
         sa.Column(
-            "text_id", sa.BigInteger(), sa.Identity(always=False), nullable=False
+            "text_id", sa.UUID(), server_default=sa.text("uuidv7()"), nullable=False
         ),
         sa.Column("payload", sa.Text(), nullable=False),
         sa.Column("size_bytes", sa.BigInteger(), nullable=False),
@@ -90,11 +90,14 @@ def upgrade() -> None:
     op.create_table(
         "content_container",
         sa.Column(
-            "container_id", sa.BigInteger(), sa.Identity(always=False), nullable=False
+            "container_id",
+            sa.UUID(),
+            server_default=sa.text("uuidv7()"),
+            nullable=False,
         ),
-        sa.Column("chart_id", sa.BigInteger(), nullable=False),
-        sa.Column("prose_id", sa.BigInteger(), nullable=False),
-        sa.Column("dataset_id", sa.BigInteger(), nullable=False),
+        sa.Column("chart_id", sa.UUID(), nullable=False),
+        sa.Column("prose_id", sa.UUID(), nullable=False),
+        sa.Column("dataset_id", sa.UUID(), nullable=False),
         sa.Column(
             "created_at",
             postgresql.TIMESTAMP(timezone=True),
@@ -125,7 +128,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "content_mount",
-        sa.Column("container_id", sa.BigInteger(), nullable=False),
+        sa.Column("container_id", sa.UUID(), nullable=False),
         sa.Column("report_id", sa.UUID(), nullable=False),
         sa.Column("position", sa.BigInteger(), nullable=True),
         sa.CheckConstraint(

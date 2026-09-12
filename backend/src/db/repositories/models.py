@@ -38,7 +38,7 @@ class VersionedRecord(DatabaseRecord):
 
 
 class TextBlock(VersionedRecord):
-    text_id: int
+    text_id: UUID
     payload: str
     size_bytes: int
     created_at: datetime
@@ -50,7 +50,7 @@ type BlobType = Literal["chart", "dataset"]
 
 
 class BlobBlock(VersionedRecord):
-    blob_id: int
+    blob_id: UUID
     # Whatever the driver decoded the JSONB into. The repository is not the
     # layer that knows a chart config from a dataset; it stores and returns.
     payload: Any
