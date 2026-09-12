@@ -1,7 +1,7 @@
 import { type EChartsOption } from "echarts";
 import createClient from "openapi-fetch";
 import { redirect, type ActionFunctionArgs } from "react-router";
-import type { paths } from "@/lib/api.gen";
+import type { components, paths } from "@/lib/api.gen";
 import { apiOrigin } from "@/lib/env";
 import { getAccessToken } from "@/lib/auth0";
 import { clearPromptDraft } from "@/lib/promptDraft";
@@ -11,6 +11,7 @@ import { clearPromptDraft } from "@/lib/promptDraft";
 // they sign out.
 
 const LOCATION_HEADER_KEY: string = "Location";
+const BEARER: string = "Bearer";
 
 // Typed against the backend's OpenAPI schema: paths, methods and bodies are
 // checked at compile time. Safe to share as it only carries the origin.
@@ -21,10 +22,11 @@ export async function createBlankReport({
 }: ActionFunctionArgs): Promise<Response> {
   const { response } = await api.POST("/reports/", {
     headers: {
-      Authorization: `Bearer ${await getAccessToken(context)}`,
+      Authorization: `${BEARER} ${await getAccessToken(context)}`,
     },
   });
 
+  // TODO: make schema document the error shape
   if (!response.ok) {
     throw new Error(
       `Error: ${String(response.status)}: ${response.statusText}`,
@@ -32,6 +34,35 @@ export async function createBlankReport({
   }
 
   return redirect(response.headers.get(LOCATION_HEADER_KEY) ?? "/");
+}
+
+export async function getFullReport({
+  params,
+  context,
+}: ActionFunctionArgs): Promise<components["schemas"]["ReportFull"]> {
+  // Guaranteed by the route segment. Just for type narrowing.
+  if (!params.reportID) {
+    throw new Error("Missing `reportID` route parameter.");
+  }
+
+  const { data, error, response } = await api.GET("/reports/{report_id}", {
+    headers: {
+      Authorization: `${BEARER} ${await getAccessToken(context)}`,
+    },
+    params: {
+      path: {
+        report_id: params.reportID,
+      },
+    },
+  });
+
+  if (error) {
+    throw new Error(
+      `Error: ${String(response.status)}: ${response.statusText}`,
+    );
+  }
+
+  return data;
 }
 
 export async function getChartFromPrompt({

@@ -1,7 +1,11 @@
 import { createBrowserRouter, RouterContextProvider } from "react-router";
 import { Error, Home, Layout, Report, ReportCreation } from "@/routes";
 import { auth0Client, auth0ClientContext } from "@/lib/auth0";
-import { createBlankReport, getChartFromPrompt } from "@/lib/reports";
+import {
+  createBlankReport,
+  getFullReport,
+  getChartFromPrompt,
+} from "@/lib/reports";
 
 const REPORT_BROWSER_PATH: string = "reports";
 const REPORT_ID_BROWSER_PATH_PARAM: string = ":reportID";
@@ -21,6 +25,7 @@ export default createBrowserRouter(
         {
           path: `${REPORT_BROWSER_PATH}/${REPORT_ID_BROWSER_PATH_PARAM}`,
           Component: Report,
+          loader: getFullReport,
           action: getChartFromPrompt,
         },
       ],
