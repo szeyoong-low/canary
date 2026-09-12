@@ -67,7 +67,7 @@ async def create_report(
                 "system_subject": SYSTEM_SUBJECT,
             },
         )
-    ).one()
+    ).one_or_none()
 
     if row is None:
         raise ImplementationError(
