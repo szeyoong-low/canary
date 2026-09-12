@@ -3,11 +3,11 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     ForeignKey,
-    Identity,
     Table,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ENUM, JSONB, TIMESTAMP, UUID
 
@@ -19,7 +19,12 @@ from . import metadata
 text_store = Table(
     "text_store",
     metadata,
-    Column("text_id", BigInteger, Identity(), primary_key=True),
+    Column(
+        "text_id",
+        UUID(),
+        primary_key=True,
+        server_default=text("uuidv7()"),
+    ),
     Column("payload", Text, nullable=False),
     # Written by the application, just a cached value for displaying a preview.
     # A generated column would keep it honest, but `blob_store` cannot have one
@@ -51,7 +56,12 @@ BLOB_TYPE = ENUM("chart", "dataset", name="blob_type", metadata=metadata)
 blob_store = Table(
     "blob_store",
     metadata,
-    Column("blob_id", BigInteger, Identity(), primary_key=True),
+    Column(
+        "blob_id",
+        UUID(),
+        primary_key=True,
+        server_default=text("uuidv7()"),
+    ),
     Column("payload", JSONB, nullable=False),
     # A native Postgres ENUM. Not a lookup table, unlike the role vocabularies.
     # `ALTER TYPE ... ADD VALUE` extends it later, but values cannot be dropped
@@ -87,10 +97,15 @@ blob_store = Table(
 content_container = Table(
     "content_container",
     metadata,
-    Column("container_id", BigInteger, Identity(), primary_key=True),
-    Column("chart_id", BigInteger, ForeignKey("blob_store.blob_id"), nullable=False),
-    Column("prose_id", BigInteger, ForeignKey("text_store.text_id"), nullable=False),
-    Column("dataset_id", BigInteger, ForeignKey("blob_store.blob_id"), nullable=False),
+    Column(
+        "container_id",
+        UUID(),
+        primary_key=True,
+        server_default=text("uuidv7()"),
+    ),
+    Column("chart_id", UUID(), ForeignKey("blob_store.blob_id"), nullable=False),
+    Column("prose_id", UUID(), ForeignKey("text_store.text_id"), nullable=False),
+    Column("dataset_id", UUID(), ForeignKey("blob_store.blob_id"), nullable=False),
     Column(
         "created_at",
         TIMESTAMP(timezone=True),
@@ -126,7 +141,7 @@ content_mount = Table(
     metadata,
     Column(
         "container_id",
-        BigInteger,
+        UUID(),
         ForeignKey("content_container.container_id"),
         primary_key=True,
     ),

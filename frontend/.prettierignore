@@ -1,0 +1,4 @@
+# Generated from backend/openapi.json by `npm run generate:api`. Formatting it
+# would fight the generator, which rewrites the file wholesale on every run.
+# Outcome will be non-deterministic since the jobs are run in parallel.
+src/lib/api.gen.ts

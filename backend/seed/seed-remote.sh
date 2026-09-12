@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -euo pipefail
+
 network="$(aws ecs describe-services \
   --cluster "cluster-$SEED_ENVIRONMENT" \
   --services "backend-$SEED_ENVIRONMENT" \

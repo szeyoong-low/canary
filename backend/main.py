@@ -2,17 +2,22 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from http import HTTPMethod
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 
-from .src.agent import router as agent
-from .src.api.errors import register_error_handlers
-from .src.api.preconditions import ETAG_HEADER, IF_MATCH_HEADER
-from .src.auth.dependencies import authenticate
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
-from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
-from .src.terminal import router as terminal
+from .src.global_constants import (
+    AUTHORIZATION_HEADER,
+    CONTENT_TYPE_HEADER,
+    LOCATION_HEADER,
+)
+from .src.reports import dev_router as agent
+from .src.reports import router as reports
+from .src.reports.errors import register_error_handlers
+from .src.reports.optimistic_locking import ETAG_HEADER, IF_MATCH_HEADER
+from .src.terminal import dev_router as terminal
 
 
 @asynccontextmanager
@@ -29,7 +34,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     await get_engine().dispose()
 
 
-app: FastAPI = FastAPI(lifespan=lifespan)
+def generate_operation_id(route: APIRoute) -> str:
+    """Names an endpoint in the OpenAPI schema.
+
+    FastAPI's default mangles the path into the name, giving
+    `get_specific_report_reports__report_id__get`, which becomes the method name
+    in any generated client. `route.name` is the endpoint function's own name,
+    so the frontend reads back the same names this file declares.
+
+    Names must be unique across every router. FastAPI warns about duplicates at
+    startup rather than failing quietly; should that ever bite, tag the routers
+    and prefix the tag here.
+    https://fastapi.tiangolo.com/advanced/generate-clients/
+    """
+
+    return route.name
+
+
+app: FastAPI = FastAPI(
+    lifespan=lifespan, generate_unique_id_function=generate_operation_id
+)
 
 env: Environment = get_environment()
 
@@ -45,20 +69,17 @@ app.add_middleware(
     allow_origin_regex=env.allow_origin_regex,  # Allow all development previews
     allow_headers=[AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER, IF_MATCH_HEADER],
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
-    expose_headers=[ETAG_HEADER],
-    allow_methods=[HTTPMethod.GET, HTTPMethod.POST],
+    expose_headers=[ETAG_HEADER, LOCATION_HEADER],
+    allow_methods=[HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PATCH],
 )
 
 register_error_handlers(app)
 
-# Applied to every route the router carries, so a new endpoint is authenticated.
-# by existing here rather than by remembering to ask. `/health` below is exempt
-# by not being on a router at all.
-# FastAPI caches dependency results per request, so no double work
-REQUIRES_AUTHENTICATION = [Depends(authenticate)]
+app.include_router(reports.router)
 
-app.include_router(agent.router)  # , dependencies=REQUIRES_AUTHENTICATION)
-app.include_router(terminal.router)  # Only for testing now, will be removed soon
+if env.development:
+    app.include_router(agent.router)
+    app.include_router(terminal.router)
 
 
 @app.get("/health")

@@ -1,5 +1,6 @@
 from json import dumps
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,7 +45,7 @@ def _select_list(columns: tuple[str, ...], table_alias: str = "") -> str:
     )
 
 
-async def get_active_text_block(session: AsyncSession, text_id: int) -> TextBlock:
+async def get_active_text_block(session: AsyncSession, text_id: UUID) -> TextBlock:
     """Read one prose block, with the version a later update must present."""
 
     row: Row | None = (
@@ -63,7 +64,7 @@ async def get_active_text_block(session: AsyncSession, text_id: int) -> TextBloc
     return TextBlock.model_validate(row)
 
 
-async def get_active_blob_block(session: AsyncSession, blob_id: int) -> BlobBlock:
+async def get_active_blob_block(session: AsyncSession, blob_id: UUID) -> BlobBlock:
     """Read one chart or dataset block, with its version."""
 
     row: Row | None = (
@@ -160,7 +161,7 @@ _UPDATE_TEXT = _versioned_update(
 
 
 async def update_text_block(
-    session: AsyncSession, text_id: int, payload: str, version: int
+    session: AsyncSession, text_id: UUID, payload: str, version: int
 ) -> TextBlock:
     """
     Replace a prose block's payload, provided nobody has written it since
@@ -194,7 +195,7 @@ _UPDATE_BLOB = _versioned_update(
 
 
 async def update_blob_block(
-    session: AsyncSession, blob_id: int, payload: Any, version: int
+    session: AsyncSession, blob_id: UUID, payload: Any, version: int
 ) -> BlobBlock:
     """
     Replace a blob block's payload, provided nobody has written it since

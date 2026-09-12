@@ -19,7 +19,18 @@ pre-commit:
       glob: "frontend/**.{ts,tsx,js,jsx,css,html,json,md}"
       root: frontend/
       stage_fixed: true
-      run: npx eslint --fix --no-error-on-unmatched-pattern {staged_files} && npx prettier --write --ignore-unknown {staged_files}
+      run: npx eslint --fix --no-error-on-unmatched-pattern --no-warn-ignored {staged_files} && npx prettier --write --ignore-unknown {staged_files}
+
+    # Regenerates the published contract and the TypeScript derived from it.
+    # Any Python file can change the schema, not just the routers.
+    # Files are added explicitly as they may not be staged.
+    - name: api-contract
+      glob: "backend/**.py"
+      run: |
+        set -e
+        (cd backend && uv run python export_openapi.py)
+        (cd frontend && npm run generate:api)
+        git add backend/openapi.json frontend/src/lib/api.gen.ts
 
     # terraform.yml runs `fmt -check -recursive` over each root module.
     - name: terraform-fmt

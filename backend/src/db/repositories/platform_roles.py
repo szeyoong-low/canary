@@ -1,7 +1,10 @@
+from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import text
+from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .models import PlatformRole
 
 # The non-assumable account that grants what nobody else can. `provider|id` is
 # the shape of an Auth0 subject and no Auth0 connection is named `system`, so no
@@ -9,8 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 SYSTEM_SUBJECT = "system|canary"
 SYSTEM_DISPLAY_NAME = "Canary"
 
+# Must keep in sync with seed.__main__.py
+type PlatformRoleName = Literal["suspended", "app_user", "admin"]
+
 # What a newly provisioned account starts as: an ordinary signed-in user.
-DEFAULT_PLATFORM_ROLE = "app_user"
+DEFAULT_PLATFORM_ROLE: PlatformRoleName = "app_user"
 
 
 async def grant_first_platform_role(
@@ -41,3 +47,25 @@ async def grant_first_platform_role(
             "granted_by": SYSTEM_SUBJECT,
         },
     )
+
+
+async def get_current_platform_role(
+    session: AsyncSession, user_id: UUID
+) -> PlatformRole | None:
+    """The role this user holds now: the most recent row in their grant history."""
+
+    row: Row | None = (
+        await session.execute(
+            text("""
+                SELECT ledger.role, vocabulary.precedence
+                FROM platform_role_ledger AS ledger
+                JOIN platform_role AS vocabulary ON vocabulary.role = ledger.role
+                WHERE ledger.granted_to_user_id = :user_id
+                ORDER BY ledger.set_at DESC
+                LIMIT 1
+            """),
+            {"user_id": user_id},
+        )
+    ).one_or_none()
+
+    return PlatformRole.model_validate(row) if row is not None else None

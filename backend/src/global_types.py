@@ -9,6 +9,12 @@ type Columns = Collection[str]
 type Entities = Collection[str]
 
 
+type RowObjectDataset = list[Params]  #  Polars `to_dicts`
+type ColumnarDataset = dict[str, list]  # Polars `to_dict`
+# Columnar preferred: no repeated key strings, easier CSV conversion
+type DatasetType = RowObjectDataset | ColumnarDataset
+
+
 async def as_awaitable[T](x: T) -> T:
     """Wrapper for already fulfilled awaitable"""
     return x

@@ -5,6 +5,9 @@ from .global_types import Column
 
 type MetricGroup = Literal["asset-price-daily", "market-composition"]
 
+# Must match terraform/global/actions/profile-claims.js
+FRONTEND_BASE_URL: str = "https://canary.markets"
+
 ENTITY_TAG_SEPARATOR: str = "/"
 
 ENTITY_TAG_REGEX: str = f"[^{ENTITY_TAG_SEPARATOR}]+{ENTITY_TAG_SEPARATOR}"
@@ -14,6 +17,8 @@ DEC_PLACES_SHOWN: int = 3
 CONTENT_TYPE_HEADER: str = "Content-Type"
 
 AUTHORIZATION_HEADER: str = "Authorization"
+
+LOCATION_HEADER: str = "Location"
 
 
 def column_selection_regex(

@@ -1,4 +1,4 @@
-from polars import DataFrame, LazyFrame
+from polars import DataFrame
 
 from ..global_types import Column, ColumnOptional, Params
 from .output_models import ChartConfigModel, Dataset, Series
@@ -6,10 +6,8 @@ from .output_models import ChartConfigModel, Dataset, Series
 """Initialise a chart config model with a dataset"""
 
 
-def _serialise_series(data: LazyFrame) -> ChartConfigModel:
-    return ChartConfigModel(
-        dataset=[Dataset(source=data.collect().to_dict(as_series=False))]
-    )
+def _serialise_series(data: DataFrame) -> ChartConfigModel:
+    return ChartConfigModel(dataset=[Dataset(source=data.to_dict(as_series=False))])
 
 
 HIERARCHY_NAME_FIELD: str = "name"
@@ -18,7 +16,7 @@ HIERARCHY_CHILDREN_FIELD: str = "children"
 
 
 def _serialise_hierarchy(
-    data: LazyFrame,
+    data: DataFrame,
     drilldown: list[Column],
     aggregate_col: Column,
     colour_col: ColumnOptional = None,
@@ -28,7 +26,7 @@ def _serialise_hierarchy(
         series=[
             Series(
                 type="treemap",  # Do not rely on this behaviour! Caller should set
-                data=_build_nodes(data.collect(), drilldown, aggregate_col, colour_col),
+                data=_build_nodes(data, drilldown, aggregate_col, colour_col),
             )
         ],
     )

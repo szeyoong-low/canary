@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Literal
 
-from polars import LazyFrame
+from polars import DataFrame
 
 from ..global_constants import DATE_KEY
 from ..global_types import Column, ColumnOptional, Columns, Entities
@@ -17,21 +17,21 @@ type HierarchyDisplayName = Literal["treemap"]
 Contract of display functions for Series charts
 
 Input:
-    - data (LazyFrame): Wide frame whose every column should be displayed.
+    - data (DataFrame): Wide frame whose every column should be displayed.
     - keys (Columns)
     - entities (Entities)
 
 Output: EChartsModel with all fields populated
 """
 
-type DisplaySeries = Callable[[LazyFrame, Columns, Entities], ChartConfigModel]
+type DisplaySeries = Callable[[DataFrame, Columns, Entities], ChartConfigModel]
 
 TIME_SERIES_ALLOWED_KEYS: Columns = {
     DATE_KEY,
 }
 
 
-def time_series(data: LazyFrame, keys: Columns, entities: Entities) -> ChartConfigModel:
+def time_series(data: DataFrame, keys: Columns, entities: Entities) -> ChartConfigModel:
 
     chart_config: ChartConfigModel = _serialise_series(data)
 
@@ -57,7 +57,7 @@ DISPLAY_SERIES: dict[SeriesDisplayName, DisplaySeries] = {
 Contract of display functions for Hierarchical charts
 
 Input:
-    - data (LazyFrame): Wide frame whose every column should be displayed on
+    - data (DataFrame): Wide frame whose every column should be displayed on
         hover. Should have been drilled down and aggregated, so there should be
         only one row for each entity at the lowest drilldown.
     - drilldown (list[Column]): Columns used to create hierarchy, where the
@@ -73,12 +73,12 @@ Output: EChartsModel with all fields populated
 """
 
 type DisplayHierarchy = Callable[
-    [LazyFrame, list[Column], Column, ColumnOptional], ChartConfigModel
+    [DataFrame, list[Column], Column, ColumnOptional], ChartConfigModel
 ]
 
 
 def treemap(
-    data: LazyFrame,
+    data: DataFrame,
     drilldown: list[Column],
     aggregate_col: Column,
     colour_col: ColumnOptional,

@@ -29,10 +29,13 @@ class Environment(BaseSettings):
     fmp_api_key: str
     fmp_base_url: str
 
-    # Agent
+    # LLM
     openrouter_api_key: str
     planning_node_model: str
     planning_node_provider: str
+
+    # Dev endpoints
+    development: bool = False
 
     model_config = SettingsConfigDict(env_file=DOTENV_FILE, extra="ignore")
 

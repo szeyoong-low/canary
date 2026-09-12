@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from ..global_types import Params
+from ..global_types import DatasetType
 from .fields import ByteField, HexColor, NonNegativeNumberField, NormalisedFloatField
 
 # Will not use generic types to enforce that lists are homogeneous:
@@ -31,9 +31,7 @@ class Title(EChartsBaseModel):
 
 
 class Dataset(EChartsBaseModel):
-    # Row-objects: to_dicts
-    # Columnar: to_dict (preferred: no repeated key strings, easier CSV conversion)
-    source: list[Params] | dict[str, list] = {}
+    source: DatasetType = {}
 
 
 class Tooltip(EChartsBaseModel):

@@ -128,6 +128,46 @@
   min-width: 0;
 }
 
+/* Option cards */
+
+.OptionCard {
+  --card-width: 16rem;
+  --card-min-height: 4rem;
+  --card-border-radius: 0.75rem;
+  --card-padding: 1rem;
+  --card-inactive-opacity: 0.5;
+  --card-active-opacity: 1;
+
+  width: var(--card-width);
+  min-height: var(--card-min-height);
+
+  /* To centre the text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  border: var(--border-width-primary) solid var(--border-color-primary);
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+
+  cursor: pointer;
+  transition: background-color var(--transition-delay);
+  &:hover:not(:disabled) {
+    background-color: var(--background-color-secondary);
+  }
+
+  &:disabled {
+    opacity: var(--card-inactive-opacity);
+    cursor: not-allowed;
+  }
+
+  &[data-pending] {
+    opacity: var(--card-active-opacity);
+    cursor: progress;
+  }
+}
+
 /* Authentication */
 
 .AuthButton {
