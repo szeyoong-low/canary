@@ -1,11 +1,15 @@
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Response, status
 
-from ...src.auth.dependencies import CurrentUser
 from ..agent.invoke import invoke_agent
-from ..auth.dependencies import require_platform_role
-from ..db.repositories.models import ReportContentContainer, ReportHeader
+from ..auth.dependencies import CurrentUser, require_platform_role
+from ..db.repositories.models import (
+    ReportAccess,
+    ReportContentContainer,
+    ReportHeader,
+)
 from ..db.repositories.report_contents import (
     create_mounted_container,
     get_report_containers,
@@ -93,11 +97,12 @@ def get_report_previews(
     return []
 
 
-@router.get(
-    REPORT_ID_PATH_PARAM_SEGMENT,
-    dependencies=[Depends(require_report_role(READER_ROLE))],
-)
-async def get_specific_report(report_id: UUID, session: DBSession) -> types.ReportFull:
+@router.get(REPORT_ID_PATH_PARAM_SEGMENT)
+async def get_specific_report(
+    report_id: UUID,
+    session: DBSession,
+    access: Annotated[ReportAccess, Depends(require_report_role(READER_ROLE))],
+) -> types.ReportFull:
     """
     Read one report in full: its metadata and every container mounted in it.
 
@@ -114,6 +119,7 @@ async def get_specific_report(report_id: UUID, session: DBSession) -> types.Repo
 
     return types.ReportFull(
         title=header.title,
+        public=access.public,
         authors=header.authors,
         content_containers=[
             types.DisplayedContentContainer(
@@ -140,11 +146,9 @@ async def get_specific_report(report_id: UUID, session: DBSession) -> types.Repo
 def update_report_metadata(
     report_id: UUID, updated_metadata: types.ReportMetadata
 ) -> None:
-    """
-    Since metadata changes are very straightforward, a 204 is sufficient to
-    confirm success. No need to waste bandwidth returning the entire report.
-    https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH
-    """
+    # Since metadata changes are very straightforward, a 204 is sufficient to
+    # confirm success. No need to waste bandwidth returning the entire report.
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH
 
     print(
         {

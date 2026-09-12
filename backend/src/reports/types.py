@@ -50,6 +50,7 @@ class ReportPreview(BaseReport):
 
 
 class ReportFull(BaseReport):
+    public: bool
     content_containers: list[DisplayedContentContainer]
 
 

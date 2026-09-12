@@ -81,12 +81,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update Report Metadata
-         * @description Since metadata changes are very straightforward, a 204 is sufficient to
-         *     confirm success. No need to waste bandwidth returning the entire report.
-         *     https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH
-         */
+        /** Update Report Metadata */
         patch: operations["update_report_metadata"];
         trace?: never;
     };
@@ -266,6 +261,8 @@ export interface components {
             authors: components["schemas"]["NonEmptyString"][];
             /** Content Containers */
             content_containers: components["schemas"]["DisplayedContentContainer"][];
+            /** Public */
+            public: boolean;
             title: components["schemas"]["NonEmptyString"];
         };
         /** ReportMetadata */
