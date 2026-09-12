@@ -7,7 +7,7 @@ from ..db.repositories.exceptions import (
     NotFoundError,
     StaleWriteError,
 )
-from .preconditions import ETAG_HEADER, format_etag
+from .optimistic_locking import ETAG_HEADER, format_etag
 
 """Decides what a repository failure looks like over HTTP.
 

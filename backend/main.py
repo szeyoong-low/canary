@@ -6,13 +6,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
-from .src.api.errors import register_error_handlers
-from .src.api.preconditions import ETAG_HEADER, IF_MATCH_HEADER
 from .src.db.engine import get_engine, verify_connection
 from .src.dependencies import Environment, get_environment
 from .src.global_constants import AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER
 from .src.reports import dev_router as agent
 from .src.reports import router as reports
+from .src.reports.errors import register_error_handlers
+from .src.reports.optimistic_locking import ETAG_HEADER, IF_MATCH_HEADER
 from .src.terminal import dev_router as terminal
 
 
