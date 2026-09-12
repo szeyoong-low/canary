@@ -1,33 +1,28 @@
 import { type EChartsOption } from "echarts";
+import createClient from "openapi-fetch";
 import { redirect, type ActionFunctionArgs } from "react-router";
+import type { paths } from "@/lib/api.gen";
 import { apiOrigin } from "@/lib/env";
 import { getAccessToken } from "@/lib/auth0";
 import { clearPromptDraft } from "@/lib/promptDraft";
-import {
-  AGENT_PATH,
-  POST,
-  PROMPT_FIELD,
-  REPORT_API_PATH,
-} from "@/shared/constants";
 
 // Headers must be built per call as a shared Headers instance would hold
 // one user's token for the lifetime of the browser bundle, including after
 // they sign out.
-const JSON_HEADER: Record<string, string> = {
-  "Content-Type": "application/json",
-};
 
 const LOCATION_HEADER_KEY: string = "Location";
+
+// Typed against the backend's OpenAPI schema: paths, methods and bodies are
+// checked at compile time. Safe to share as it only carries the origin.
+const api = createClient<paths>({ baseUrl: apiOrigin });
 
 export async function createBlankReport({
   context,
 }: ActionFunctionArgs): Promise<Response> {
-  const response: Response = await fetch(new URL(REPORT_API_PATH, apiOrigin), {
-    method: POST,
-    headers: new Headers({
-      ...JSON_HEADER,
+  const { response } = await api.POST("/reports/", {
+    headers: {
       Authorization: `Bearer ${await getAccessToken(context)}`,
-    }),
+    },
   });
 
   if (!response.ok) {
@@ -45,13 +40,11 @@ export async function getChartFromPrompt({
 }: ActionFunctionArgs): Promise<EChartsOption> {
   const form_data: FormData = await request.formData();
 
-  const response: Response = await fetch(new URL(AGENT_PATH, apiOrigin), {
-    method: POST,
-    body: JSON.stringify({ prompt: form_data.get(PROMPT_FIELD) }),
-    // Built per call: a shared Headers instance would hold one user's token for
-    // the lifetime of the page, including after they sign out.
+  const response: Response = await fetch(new URL("/dev/agent/", apiOrigin), {
+    method: "POST",
+    body: JSON.stringify({ prompt: form_data.get("prompt") }),
     headers: new Headers({
-      ...JSON_HEADER,
+      "Content-Type": "application/json",
       Authorization: `Bearer ${await getAccessToken(context)}`,
     }),
   });
