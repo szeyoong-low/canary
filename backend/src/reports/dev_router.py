@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from ..agent.router import invoke_agent
+from ..agent.invoke import invoke_agent
 from ..display.output_models import ChartConfigModel
 from .types import PromptBody
 
