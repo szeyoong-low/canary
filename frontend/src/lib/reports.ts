@@ -13,6 +13,8 @@ import { clearPromptDraft } from "@/lib/promptDraft";
 const LOCATION_HEADER_KEY: string = "Location";
 const BEARER: string = "Bearer";
 
+export const PROMPT_FORM_FIELD: string = "prompt";
+
 // Typed against the backend's OpenAPI schema: paths, methods and bodies are
 // checked at compile time. Safe to share as it only carries the origin.
 const api = createClient<paths>({ baseUrl: apiOrigin });

@@ -3,7 +3,8 @@ import { type EChartsOption } from "echarts";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { type FetcherWithComponents } from "react-router";
 import { BounceLoader } from "react-spinners";
-import { canaryThemeColour, PROMPT_FIELD } from "@/shared/constants";
+import { canaryThemeColour } from "@/shared/constants";
+import { PROMPT_FORM_FIELD } from "@/lib/reports";
 import { readPromptDraft, writePromptDraft } from "@/lib/promptDraft";
 
 export default function Prompt({
@@ -22,7 +23,7 @@ export default function Prompt({
       <fetcher.Form method="POST" className="PromptBox">
         <textarea
           className="PromptTextarea"
-          name={PROMPT_FIELD}
+          name={PROMPT_FORM_FIELD}
           placeholder="What are you curious about?"
           // Restores a draft left behind by a sign-in redirect
           defaultValue={restoredDraft}
