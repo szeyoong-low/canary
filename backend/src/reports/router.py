@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Response, status
 
@@ -6,7 +6,10 @@ from ...src.auth.dependencies import CurrentUser
 from ..agent.invoke import invoke_agent
 from ..auth.dependencies import require_platform_role
 from ..db.repositories.models import ReportContentContainer, ReportHeader
-from ..db.repositories.report_contents import get_report_containers
+from ..db.repositories.report_contents import (
+    create_mounted_container,
+    get_report_containers,
+)
 from ..db.repositories.reports import create_report, get_report_header
 from ..db.session import DBSession
 from ..global_constants import LOCATION_HEADER, PlatformRoleName, ReportRoleName
@@ -162,13 +165,21 @@ async def add_generated_content_to_report(
     report_id: UUID,
     position: NonNegativeInt | None,
     prompt_body: types.PromptBody,
+    session: DBSession,
 ) -> types.DisplayedContentContainer:
     result: TerminalToolResult = await invoke_agent(prompt_body.prompt)
 
+    container_id: UUID = await create_mounted_container(
+        session,
+        report_id,
+        result["chart"],
+        result["dataset"],
+        prompt_body.prompt,
+        position,
+    )
+
     return types.DisplayedContentContainer(
-        # Placeholder while this endpoint is a stub. The real value is the
-        # uuidv7 Postgres assigns to `content_container.container_id`.
-        container_id=uuid4(),
+        container_id=container_id,
         chart=result["chart"],
         prose=prompt_body.prompt,
     )

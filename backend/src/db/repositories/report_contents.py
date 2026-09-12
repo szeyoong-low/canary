@@ -186,6 +186,23 @@ async def update_text_block(
     return TextBlock.model_validate(row)
 
 
+def _serialise_blob(payload: Any) -> tuple[str, int]:
+    """
+    Render a blob payload the way both write paths need it: as a string, with
+    its byte count.
+
+    Serialised here rather than left to the driver
+    - asyncpg expects a string for a JSONB parameter
+    - the byte count must be of something concrete
+    Postgres re-serialises JSONB on the way in, so the stored size is close to
+    but not exactly this. Just a preview figure.
+    """
+
+    serialised: str = dumps(payload, separators=(",", ":"))  # For most compact JSON
+
+    return serialised, len(serialised.encode())
+
+
 _UPDATE_BLOB = _versioned_update(
     "blob_store",
     "blob_id",
@@ -209,12 +226,7 @@ async def update_blob_block(
     Raises: `NotFoundError`, `StaleWriteError`, `MissingVersionError`
     """
 
-    # Serialised here rather than left to the driver
-    # - asyncpg expects a string for a JSONB parameter
-    # - the byte count below must be of something concrete
-    # Postgres re-serialises JSONB on the way in, so the stored size is close to
-    # but not exactly this. Just a preview figure.
-    serialised: str = dumps(payload, separators=(",", ":"))  # For most compact JSON
+    serialised, size_bytes = _serialise_blob(payload)
 
     row: Row = await _execute_versioned_update(
         session,
@@ -222,7 +234,7 @@ async def update_blob_block(
         {
             "row_id": blob_id,
             "payload": serialised,
-            "size_bytes": len(serialised.encode()),
+            "size_bytes": size_bytes,
             "version": version,
         },
     )
@@ -275,3 +287,132 @@ async def get_report_containers(
     ).all()
 
     return [ReportContentContainer.model_validate(row) for row in rows]
+
+
+# Serialised writers per report. Taken as its own statement, before the insert
+# below, because a lock acquired inside a CTE comes too late. Every CTE of one
+# statement reads the same snapshot, so a sibling CTE's `MAX(position)` would
+# already have been computed against the pre-lock view of the table.
+#
+# The base table rather than `report_live`, since writes are kept off the views,
+# and `deleted_at` is checked here instead.
+_LOCK_REPORT = """
+    SELECT report_id FROM report
+    WHERE report_id = :report_id AND deleted_at IS NULL
+    FOR UPDATE
+"""
+
+
+# `shifted` and `touched` are referenced by nothing. That is fine and
+# deliberate: Postgres runs every data-modifying CTE exactly once and to
+# completion, whether or not the primary query reads its output.
+# https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-MODIFYING
+#
+# Two NULL behaviours carry the "append" case, so there is no branching here:
+#
+#   - `LEAST` ignores NULL arguments, so a NULL `:position` collapses to
+#     `MAX + 1`, and a `:position` past the end is clamped to the same.
+#   - `position >= NULL` is NULL, never true, so nothing shifts on an append.
+#     A too-large `:position` likewise matches no rows.
+#
+# The shift and the mount INSERT briefly agree on one slot, since neither CTE
+# sees the other's writes. Legal only because the unique constraint on
+# (report_id, position) is DEFERRABLE INITIALLY DEFERRED, checked at COMMIT.
+_CREATE_MOUNTED_CONTAINER = """
+    WITH slot AS (
+        SELECT LEAST(
+            CAST(:position AS bigint), COALESCE(MAX(position) + 1, 0)
+        ) AS position
+        FROM content_mount_live
+        WHERE report_id = :report_id
+    ),
+    shifted AS (
+        UPDATE content_mount
+        SET position = position + 1
+        -- The raw parameter, not `slot.position`: the rows to move are the ones
+        -- at or after where the caller asked, and clamping has no effect on
+        -- which of them match.
+        WHERE report_id = :report_id AND position >= CAST(:position AS bigint)
+    ),
+    touched AS (
+        -- The denormalised cache on `report`, which the schema makes whoever
+        -- writes a block responsible for bumping in the same transaction.
+        UPDATE report
+        SET content_last_modified_at = now()
+        WHERE report_id = :report_id
+    ),
+    new_chart AS (
+        INSERT INTO blob_store (payload, type, size_bytes)
+        VALUES (CAST(:chart AS jsonb), 'chart', :chart_size)
+        RETURNING blob_id
+    ),
+    new_dataset AS (
+        INSERT INTO blob_store (payload, type, size_bytes)
+        VALUES (CAST(:dataset AS jsonb), 'dataset', :dataset_size)
+        RETURNING blob_id
+    ),
+    new_prose AS (
+        INSERT INTO text_store (payload, size_bytes)
+        VALUES (:prose, :prose_size)
+        RETURNING text_id
+    ),
+    new_container AS (
+        INSERT INTO content_container (chart_id, prose_id, dataset_id)
+        -- CROSS JOIN because each arm is a single row with nothing to join on.
+        SELECT new_chart.blob_id, new_prose.text_id, new_dataset.blob_id
+        FROM new_chart CROSS JOIN new_prose CROSS JOIN new_dataset
+        RETURNING container_id
+    )
+    INSERT INTO content_mount (container_id, report_id, position)
+    SELECT new_container.container_id, :report_id, slot.position
+    FROM new_container CROSS JOIN slot
+    RETURNING container_id
+"""
+
+
+async def create_mounted_container(
+    session: AsyncSession,
+    report_id: UUID,
+    chart: Any,
+    dataset: Any,
+    prose: str,
+    position: int | None = None,
+) -> UUID:
+    """
+    Store a chart, its dataset, and its prose as a new container, and mount that
+    container in a report.
+
+    `position` is 0-indexed. Given one, the container takes that slot and
+    everything from there down shifts one place later. Omitted, or beyond the
+    last mounted container, it is appended at the end instead.
+
+    Raises `NotFoundError` if the report does not exist or has been soft deleted.
+    """
+
+    locked: Row | None = (
+        await session.execute(text(_LOCK_REPORT), {"report_id": report_id})
+    ).one_or_none()
+
+    if locked is None:
+        raise NotFoundError(f"No report with id {report_id}.")
+
+    chart_payload, chart_size = _serialise_blob(chart)
+    dataset_payload, dataset_size = _serialise_blob(dataset)
+
+    row: Row = (
+        await session.execute(
+            text(_CREATE_MOUNTED_CONTAINER),
+            {
+                "report_id": report_id,
+                "position": position,
+                "chart": chart_payload,
+                "chart_size": chart_size,
+                "dataset": dataset_payload,
+                "dataset_size": dataset_size,
+                "prose": prose,
+                "prose_size": len(prose.encode()),
+            },
+        )
+    ).one()  # Exactly one row: the report is locked and the inserts are fixed
+
+    return row.container_id
