@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Unwinds the remote database to REVISION, then re-applies every revision above
 # it. For when a migration has been edited in place. Alembic keys on the revision
