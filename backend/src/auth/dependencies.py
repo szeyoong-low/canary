@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 import jwt
@@ -9,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db.repositories.models import PlatformRole, User
 from ..db.repositories.platform_roles import (
     DEFAULT_PLATFORM_ROLE,
+    PlatformRoleName,
     get_current_platform_role,
     grant_first_platform_role,
 )
+from ..db.repositories.role_vocabulary import PLATFORM_ROLE_TABLE, get_precedence
 from ..db.repositories.users import get_active_user_by_subject, provision_user
 from ..db.session import DBSession
 from .token import AccessToken, decode
@@ -150,3 +153,39 @@ async def resolve_platform_role(
 
 
 type CallerPlatformRole = Annotated[PlatformRole | None, Depends(resolve_platform_role)]
+
+
+def require_platform_role(
+    minimum_role: PlatformRoleName,
+) -> Callable[..., Awaitable[PlatformRole]]:
+    """
+    Build a dependency that lets a caller through only if they hold at least
+    `minimum_role` on the platform, and returns that role so the route does not
+    have to ask for it twice.
+
+    A factory for the same reason as `reports.dependencies.require_report_role`:
+    a FastAPI dependency takes only what injection can give it, so the one thing
+    that varies per route has to be closed over.
+
+    Used as:
+        role: Annotated[PlatformRole, Depends(require_platform_role("admin"))]
+
+    There is no equivalent of `reports.policy` here because platform standing
+    has only one source. A caller either holds a role outranking the bar or they
+    do not, so the rule is the comparison below and nothing more.
+    """
+
+    async def guard(role: CallerPlatformRole, session: DBSession) -> PlatformRole:
+        if role is None:
+            raise unauthorised("Not authenticated", token_supplied=False)
+
+        if role.precedence < await get_precedence(
+            session, PLATFORM_ROLE_TABLE, minimum_role
+        ):
+            raise HTTPException(
+                codes.FORBIDDEN, f"Requires at least the {minimum_role} role"
+            )
+
+        return role
+
+    return guard

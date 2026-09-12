@@ -8,7 +8,7 @@ from httpx import codes
 from ..auth.dependencies import OptionalUser, unauthorised
 from ..db.repositories.models import ReportAccess
 from ..db.repositories.report_access import get_report_access
-from ..db.repositories.report_roles import get_precedence
+from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
 from .policy import IMPLICIT_PUBLIC_ROLE, is_permitted
 from .types import ReportRole
@@ -55,8 +55,8 @@ def require_report_role(
     ) -> ReportAccess:
         if is_permitted(
             access,
-            await get_precedence(session, minimum_role),
-            await get_precedence(session, IMPLICIT_PUBLIC_ROLE),
+            await get_precedence(session, REPORT_ROLE_TABLE, minimum_role),
+            await get_precedence(session, REPORT_ROLE_TABLE, IMPLICIT_PUBLIC_ROLE),
         ):
             return access
 

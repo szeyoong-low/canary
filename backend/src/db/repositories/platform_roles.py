@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import Row, text
@@ -11,8 +12,11 @@ from .models import PlatformRole
 SYSTEM_SUBJECT = "system|canary"
 SYSTEM_DISPLAY_NAME = "Canary"
 
+# Must keep in sync with seed.__main__.py
+type PlatformRoleName = Literal["suspended", "app_user", "admin"]
+
 # What a newly provisioned account starts as: an ordinary signed-in user.
-DEFAULT_PLATFORM_ROLE = "app_user"
+DEFAULT_PLATFORM_ROLE: PlatformRoleName = "app_user"
 
 
 async def grant_first_platform_role(
