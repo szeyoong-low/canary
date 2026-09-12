@@ -2,8 +2,9 @@ import { useState } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { BounceLoader } from "react-spinners";
 import { canaryThemeColour } from "@/shared/constants";
-import { PROMPT_FORM_FIELD } from "@/lib/reports";
 import { readPromptDraft, writePromptDraft } from "@/lib/promptDraft";
+
+const PROMPT_FORM_FIELD: string = "prompt";
 
 export default function Prompt({
   onSubmit,

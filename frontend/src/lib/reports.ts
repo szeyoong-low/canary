@@ -15,8 +15,6 @@ import { APIError } from "@/shared/types";
 const LOCATION_HEADER_KEY: string = "Location";
 const BEARER: string = "Bearer";
 
-export const PROMPT_FORM_FIELD: string = "prompt";
-
 // Typed against the backend's OpenAPI schema: paths, methods and bodies are
 // checked at compile time. Safe to share as it only carries the origin.
 const api = createClient<paths>({ baseUrl: apiOrigin });
@@ -124,4 +122,43 @@ export async function generateReportContent(
   clearPromptDraft();
 
   return { ...data, chart: data.chart as EChartsOption | null };
+}
+
+export async function renameReport(reportID: string, newTitle: string) {
+  const { error, response } = await api.PUT("/reports/{report_id}/title", {
+    headers: {
+      Authorization: `${BEARER} ${await getAccessToken()}`,
+    },
+    params: {
+      path: { report_id: reportID },
+    },
+    body: {
+      title: newTitle,
+    },
+  });
+
+  if (error) {
+    throw new APIError(response);
+  }
+}
+
+export async function updateReportVisibility(
+  reportID: string,
+  publiclyVisible: boolean,
+) {
+  const { error, response } = await api.PUT("/reports/{report_id}/visibility", {
+    headers: {
+      Authorization: `${BEARER} ${await getAccessToken()}`,
+    },
+    params: {
+      path: { report_id: reportID },
+    },
+    body: {
+      public: publiclyVisible,
+    },
+  });
+
+  if (error) {
+    throw new APIError(response);
+  }
 }
