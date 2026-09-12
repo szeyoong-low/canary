@@ -264,10 +264,13 @@
         "type": "object"
       },
       "MinimumReportRole": {
-        "$ref": "#/components/schemas/ReportRole"
+        "$ref": "#/components/schemas/ReportRoleName"
       },
       "NonEmptyString": {
         "type": "string"
+      },
+      "NonNegativeInt": {
+        "type": "integer"
       },
       "NonNegativeNumberField": {
         "$ref": "#/components/schemas/Number"
@@ -405,7 +408,7 @@
         "title": "ReportPreview",
         "type": "object"
       },
-      "ReportRole": {
+      "ReportRoleName": {
         "enum": [
           "viewer",
           "commenter",
@@ -835,6 +838,22 @@
               "title": "Report Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "position",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/NonNegativeInt"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Position"
+            }
           }
         ],
         "requestBody": {
@@ -869,6 +888,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Add Generated Content To Report"
       }
     }

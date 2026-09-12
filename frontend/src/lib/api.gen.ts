@@ -235,8 +235,9 @@ export interface components {
             /** @default 2 */
             width: components["schemas"]["NonNegativeNumberField"];
         };
-        MinimumReportRole: components["schemas"]["ReportRole"];
+        MinimumReportRole: components["schemas"]["ReportRoleName"];
         NonEmptyString: string;
+        NonNegativeInt: number;
         NonNegativeNumberField: components["schemas"]["Number"];
         NormalisedFloatField: number;
         Number: number;
@@ -281,7 +282,7 @@ export interface components {
             title: components["schemas"]["NonEmptyString"];
         };
         /** @enum {string} */
-        ReportRole: "viewer" | "commenter" | "editor" | "owner";
+        ReportRoleName: "viewer" | "commenter" | "editor" | "owner";
         RowObjectDataset: components["schemas"]["Params"][];
         /** Series */
         Series: {
@@ -506,7 +507,9 @@ export interface operations {
     };
     add_generated_content_to_report: {
         parameters: {
-            query?: never;
+            query: {
+                position: components["schemas"]["NonNegativeInt"] | null;
+            };
             header?: never;
             path: {
                 report_id: string;

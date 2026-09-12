@@ -10,7 +10,7 @@ from ..db.repositories.models import ReportAccess
 from ..db.repositories.report_access import get_report_access
 from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
-from .types import ReportRole
+from ..global_constants import ReportRoleName
 
 """Resolving a caller's standing on one report, and enforcing it."""
 
@@ -62,7 +62,7 @@ CallerReportAccess = Annotated[ReportAccess, Depends(resolve_report_access)]
 
 
 def require_report_role(
-    minimum_role: ReportRole,
+    minimum_role: ReportRoleName,
 ) -> Callable[..., Awaitable[ReportAccess]]:
     """
     Build a dependency that lets a caller through only if they hold at least

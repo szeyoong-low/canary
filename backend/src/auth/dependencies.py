@@ -10,13 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db.repositories.models import PlatformRole, User
 from ..db.repositories.platform_roles import (
     DEFAULT_PLATFORM_ROLE,
-    PlatformRoleName,
     get_current_platform_role,
     grant_first_platform_role,
 )
 from ..db.repositories.role_vocabulary import PLATFORM_ROLE_TABLE, get_precedence
 from ..db.repositories.users import get_active_user_by_subject, provision_user
 from ..db.session import DBSession
+from ..global_constants import PlatformRoleName
 from .token import AccessToken, decode
 
 """Where a bearer token becomes a caller FastAPI can hand to a route."""

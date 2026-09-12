@@ -44,3 +44,7 @@ def column_selection_regex(
 
 # Allowed key columns
 DATE_KEY: Column = "date"
+
+# Must keep in sync with seed.__main__.py
+type PlatformRoleName = Literal["suspended", "app_user", "admin"]
+type ReportRoleName = Literal["viewer", "commenter", "editor", "owner"]
