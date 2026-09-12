@@ -19,6 +19,23 @@ export const PROMPT_FORM_FIELD: string = "prompt";
 // checked at compile time. Safe to share as it only carries the origin.
 const api = createClient<paths>({ baseUrl: apiOrigin });
 
+// The backend's `ChartConfigModel` and ECharts' `EChartsOption` describe the
+// same object with different strictness, so consumers get the ECharts type and
+// never have to know the generated one exists.
+export type ContentContainerType = Omit<
+  components["schemas"]["DisplayedContentContainer"],
+  "chart"
+> & {
+  chart: EChartsOption;
+};
+
+export type Report = Omit<
+  components["schemas"]["ReportFull"],
+  "content_containers"
+> & {
+  content_containers: ContentContainerType[];
+};
+
 export async function createBlankReport({
   context,
 }: ActionFunctionArgs): Promise<Response> {
@@ -41,7 +58,7 @@ export async function createBlankReport({
 export async function getFullReport({
   params,
   context,
-}: ActionFunctionArgs): Promise<components["schemas"]["ReportFull"]> {
+}: ActionFunctionArgs): Promise<Report> {
   // Guaranteed by the route segment. Just for type narrowing.
   if (!params.reportID) {
     throw new Error("Missing `reportID` route parameter.");
@@ -64,7 +81,13 @@ export async function getFullReport({
     );
   }
 
-  return data;
+  return {
+    ...data,
+    content_containers: data.content_containers.map((container) => ({
+      ...container,
+      chart: container.chart as EChartsOption,
+    })),
+  };
 }
 
 export async function getChartFromPrompt({

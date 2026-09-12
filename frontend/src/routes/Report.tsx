@@ -2,10 +2,19 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { type EChartsOption } from "echarts";
 import { ChevronDown } from "lucide-react";
-import { type FetcherWithComponents, useFetcher } from "react-router";
-import { Chart, Prompt } from "@/components";
+import {
+  type FetcherWithComponents,
+  useFetcher,
+  useLoaderData,
+} from "react-router";
+import { Chart, ContentContainer, Prompt } from "@/components";
+import { type getFullReport } from "@/lib/reports";
 
 export default function Report() {
+  // The route loader has already resolved before this renders, so the report
+  // is always present. No loading branch is needed.
+  const report = useLoaderData<typeof getFullReport>();
+
   const fetcher: FetcherWithComponents<EChartsOption> =
     useFetcher<EChartsOption>();
   const { isAuthenticated } = useAuth0();
@@ -13,6 +22,15 @@ export default function Report() {
   return (
     <div className="flex justify-center">
       <div className="mx-10 sm:w-150 md:w-175 flex flex-col items-center gap-y-5">
+        <Masthead title={report.title} authors={report.authors} />
+
+        {report.content_containers.map((container) => (
+          <ContentContainer
+            key={container.container_id}
+            container={container}
+          />
+        ))}
+
         <PreviewDisclaimer />
 
         {fetcher.data === undefined ? (
@@ -22,6 +40,15 @@ export default function Report() {
         )}
       </div>
     </div>
+  );
+}
+
+function Masthead({ title, authors }: { title: string; authors: string[] }) {
+  return (
+    <header className="w-full flex flex-col items-center">
+      <h2 className="text-xl font-medium">{title}</h2>
+      <p className="text-sm opacity-70">{authors.join(", ")}</p>
+    </header>
   );
 }
 
