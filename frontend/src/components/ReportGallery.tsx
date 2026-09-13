@@ -139,7 +139,7 @@ function ReportCard({ preview }: { preview: ReportPreview }) {
     <li>
       <Link
         to={`${reportBrowserPath}/${preview.report_id}`}
-        className="flex h-full flex-col gap-y-2 rounded-xl border border-(--border-color-primary) p-4 transition-colors hover:bg-(--background-color-secondary)"
+        className="flex h-full flex-col gap-y-2 rounded-lg border border-(--border-color-primary) p-4 transition-colors hover:bg-(--background-color-secondary)"
       >
         {preview.chart !== null ? (
           // `pointer-events-none` so a click on the canvas reaches the link
