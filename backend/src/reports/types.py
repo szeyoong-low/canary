@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import Query
-from pydantic import AfterValidator, BaseModel, ConfigDict
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
 from ..display.output_models import ChartConfigModel
 from ..global_constants import ReportRoleName
@@ -78,5 +78,11 @@ class ReportVisibility(StrictBaseModel):
     public: bool
 
 
+# Long enough for a detailed question, short enough that a pasted transcript
+# (the usual shape of a prompt injection payload) is rejected before it reaches
+# the model. Also caps what one request can cost in input tokens
+PROMPT_MAX_LENGTH: int = 2000
+
+
 class PromptBody(StrictBaseModel):
-    prompt: str
+    prompt: Annotated[NonEmptyString, Field(max_length=PROMPT_MAX_LENGTH)]

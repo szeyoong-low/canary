@@ -1,7 +1,6 @@
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, Response
-from httpx import codes
+from fastapi import Depends, Header, HTTPException, Response, status
 
 from ..db.repositories.exceptions import MissingVersionError
 
@@ -48,20 +47,20 @@ def require_if_match(
     # `*` means "any current representation", i.e. proceed if the row exists at all
     if candidate == "*":
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"{IF_MATCH_HEADER}: * is not supported. Send the version you read.",
         )
 
     # The header may carry a comma-separated list. Ours are single-row versions.
     if "," in candidate:
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"{IF_MATCH_HEADER} must carry exactly one entity tag.",
         )
 
     if candidate.startswith(_WEAK_PREFIX):
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"{IF_MATCH_HEADER} must carry a strong entity tag, not {candidate}.",
         )
 
@@ -69,7 +68,7 @@ def require_if_match(
         candidate.startswith('"') and candidate.endswith('"') and len(candidate) > 2
     ):
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"Malformed {IF_MATCH_HEADER}: entity tags are quoted.",
         )
 
@@ -77,13 +76,13 @@ def require_if_match(
         version = int(candidate[1:-1])
     except ValueError:
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"Malformed {IF_MATCH_HEADER}: an entity tag issued here is a number.",
         )
 
     if not _MIN_VERSION <= version <= _MAX_VERSION:
         raise HTTPException(
-            codes.BAD_REQUEST,
+            status.HTTP_400_BAD_REQUEST,
             f"Malformed {IF_MATCH_HEADER}: {version} is not a version any row holds.",
         )
 

@@ -42,14 +42,15 @@ export default function ReportGallery({ className }: ClassNameProps) {
 
   return (
     <div className={mergeClassName("flex flex-col gap-y-5 mb-5", className)}>
-      <hr className="SectionDivider" />
-
       {isAuthenticated && (
-        <PreviewList
-          heading="Your reports"
-          filters={ANY_GRANT}
-          emptyMessage="You have not been given access to any reports yet."
-        />
+        <span>
+          <hr className="SectionDivider" />
+          <PreviewList
+            heading="Your reports"
+            filters={ANY_GRANT}
+            emptyMessage="You have not been given access to any reports yet."
+          />
+        </span>
       )}
 
       <hr className="SectionDivider" />

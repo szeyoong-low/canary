@@ -52,7 +52,7 @@ export type Report = Omit<
 export async function createBlankReport({
   context,
 }: ActionFunctionArgs): Promise<Response> {
-  const { response } = await api.POST("/reports/", {
+  const { error, response } = await api.POST("/reports/", {
     headers: {
       Authorization: `${BEARER} ${await getAccessToken(context)}`,
     },
@@ -60,7 +60,7 @@ export async function createBlankReport({
 
   // TODO: make schema document the error shape
   if (!response.ok) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   return redirect(response.headers.get(LOCATION_HEADER_KEY) ?? "/");
@@ -79,7 +79,7 @@ export async function getFullReport(reportID: string): Promise<Report> {
   });
 
   if (error) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   return {
@@ -131,7 +131,7 @@ export async function generateReportContent(
   );
 
   if (error) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   // Only once the prompt has actually produced a chart, so the draft survives
@@ -162,7 +162,7 @@ export async function renameReport(
   });
 
   if (error) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   return readReportRole(response);
@@ -185,7 +185,7 @@ export async function updateReportVisibility(
   });
 
   if (error) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   return readReportRole(response);
@@ -231,7 +231,7 @@ async function getReportPreviews(
   });
 
   if (error) {
-    throw new APIError(response);
+    throw new APIError(response, error);
   }
 
   return {

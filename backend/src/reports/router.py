@@ -25,6 +25,7 @@ from ..db.repositories.reports import (
 from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
 from ..global_constants import LOCATION_HEADER, PlatformRoleName, ReportRoleName
+from ..observability.telemetry import log
 from ..terminal.utility import TerminalToolResult
 from ..validators.primitives import NonNegativeInt
 from . import types
@@ -86,6 +87,8 @@ async def create_new_report(
 
     # React router can handle relative paths
     response.headers[LOCATION_HEADER] = f"{REPORTS_PATH_PREFIX}/{report_id}"
+
+    log("INFO", "reports.created", user_id=user.user_id, report_id=report_id)
 
 
 @router.get("/previews")
@@ -243,9 +246,12 @@ async def publish_or_unpublish_report(
 async def add_generated_content_to_report(
     report_id: UUID,
     prompt_body: types.PromptBody,
+    user: CurrentUser,
     session: DBSession,
     position: NonNegativeInt | None = None,
 ) -> types.DisplayedContentContainer:
+    log("INFO", "agent.prompt", user_id=user.user_id, report_id=report_id)
+
     result: TerminalToolResult = await invoke_agent(prompt_body.prompt)
 
     container_id: UUID = await create_mounted_container(

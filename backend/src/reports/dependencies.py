@@ -2,8 +2,7 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Response
-from httpx import codes
+from fastapi import Depends, HTTPException, Response, status
 
 from ..auth.dependencies import OptionalUser, unauthorised
 from ..db.repositories.models import ReportAccess
@@ -124,7 +123,7 @@ def require_report_role(
             raise unauthorised("Not authenticated", token_supplied=False)
 
         raise HTTPException(
-            codes.FORBIDDEN, f"Requires at least the {minimum_role} role"
+            status.HTTP_403_FORBIDDEN, f"Requires at least the {minimum_role} role"
         )
 
     return guard
