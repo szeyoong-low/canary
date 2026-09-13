@@ -85,9 +85,18 @@ export async function getAccessToken(
       throw error;
     }
 
-    // Leaves the page, so nothing below this runs. The `throw` is unreachable at
-    // runtime and exists to tell TypeScript the function ends here.
+    // Starts the redirect, but does not stop this task: `window.location.assign`
+    // only schedules the navigation, so execution continues here.
     await loginWithReturn();
+
+    // The browser is on its way out. Never settling suspends the caller until it
+    // leaves, instead of surfacing the expired session as a real failure (which
+    // a route action would show in the error boundary).
+    await new Promise<never>(() => {
+      // Deliberately never resolved or rejected
+    });
+
+    // Unreachable at runtime, just to tell TS this branch never returns a token
     throw error;
   }
 }
