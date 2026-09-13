@@ -265,5 +265,6 @@ export function reportPreviewsQueryOptions(
     // The backend sends `next_cursor: null` on the last page, which is exactly
     // how the cache is told there is nothing further to fetch.
     getNextPageParam: (lastPage: ReportPreviewPage) => lastPage.next_cursor,
+    refetchOnMount: "always",
   });
 }
