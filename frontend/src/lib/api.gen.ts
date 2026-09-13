@@ -267,7 +267,7 @@ export interface components {
              */
             color: components["schemas"]["RGBA"] | components["schemas"]["HexColor"];
             /** @default 0 */
-            dashOffset: components["schemas"]["NonNegativeNumberField"];
+            dashOffset: components["schemas"]["NonNegativeInt"];
             /**
              * Join
              * @default bevel
@@ -281,14 +281,12 @@ export interface components {
              */
             type: "solid" | "dashed" | "dotted";
             /** @default 2 */
-            width: components["schemas"]["NonNegativeNumberField"];
+            width: components["schemas"]["NonNegativeInt"];
         };
         MinimumReportRole: components["schemas"]["ReportRoleName"];
         NonEmptyString: string;
         NonNegativeInt: number;
-        NonNegativeNumberField: components["schemas"]["Number"];
         NormalisedFloatField: number;
-        Number: number;
         Params: {
             [key: string]: unknown;
         };

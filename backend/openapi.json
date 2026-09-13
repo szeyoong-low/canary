@@ -232,7 +232,7 @@
             "title": "Color"
           },
           "dashOffset": {
-            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "$ref": "#/components/schemas/NonNegativeInt",
             "default": 0
           },
           "join": {
@@ -256,7 +256,7 @@
             "type": "string"
           },
           "width": {
-            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "$ref": "#/components/schemas/NonNegativeInt",
             "default": 2
           }
         },
@@ -272,21 +272,8 @@
       "NonNegativeInt": {
         "type": "integer"
       },
-      "NonNegativeNumberField": {
-        "$ref": "#/components/schemas/Number"
-      },
       "NormalisedFloatField": {
         "type": "number"
-      },
-      "Number": {
-        "anyOf": [
-          {
-            "type": "integer"
-          },
-          {
-            "type": "number"
-          }
-        ]
       },
       "Params": {
         "additionalProperties": true,
