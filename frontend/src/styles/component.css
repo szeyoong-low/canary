@@ -128,12 +128,31 @@
   min-width: 0;
 }
 
+/* Hover cards */
+
+.HoverCard,
+.OptionCard {
+  --card-border-radius: 0.75rem;
+
+  cursor: pointer;
+
+  border: var(--border-width-primary) solid var(--border-color-muted);
+  border-radius: var(--card-border-radius);
+
+  transition:
+    background-color var(--transition-delay),
+    border-color var(--transition-delay);
+  &:hover:not(:disabled) {
+    background-color: var(--background-color-secondary);
+    border-color: var(--border-color-primary);
+  }
+}
+
 /* Option cards */
 
 .OptionCard {
   --card-width: 16rem;
   --card-min-height: 4rem;
-  --card-border-radius: 0.75rem;
   --card-padding: 1rem;
   --card-inactive-opacity: 0.6;
   --card-active-opacity: 1;
@@ -148,19 +167,7 @@
   justify-content: center;
   gap: 0.25rem;
   text-align: start;
-
-  border: var(--border-width-primary) solid var(--border-color-muted);
-  border-radius: var(--card-border-radius);
   padding: var(--card-padding);
-
-  cursor: pointer;
-  transition:
-    background-color var(--transition-delay),
-    border-color var(--transition-delay);
-  &:hover:not(:disabled) {
-    background-color: var(--background-color-secondary);
-    border-color: var(--border-color-primary);
-  }
 
   &:focus-visible {
     outline: var(--card-focus-ring-width) solid var(--canary-theme-color);
