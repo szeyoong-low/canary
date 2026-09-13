@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
+import { reportBrowserPath } from "@/shared/constants";
+import { ReportGallery } from "@/components";
 
 export default function Home() {
   return (
@@ -8,6 +10,7 @@ export default function Home() {
         <Hero />
         <hr className="SectionDivider" />
         <CallToAction />
+        <ReportGallery />
       </div>
     </div>
   );
@@ -35,7 +38,7 @@ function CallToAction() {
     <div className="flex flex-col gap-2">
       <div className="CallToAction">
         <div className="SlidingUnderline">
-          <Link to="/reports">Tell your compelling story </Link>
+          <Link to={reportBrowserPath}>Tell your compelling story </Link>
           <ArrowRight className="inline" />
         </div>
       </div>

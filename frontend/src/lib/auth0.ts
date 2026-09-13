@@ -88,3 +88,22 @@ export async function getAccessToken(
     throw error;
   }
 }
+
+// Like `getAccessToken`, but for surfaces that also serve signed-out callers.
+//
+// Only a reauthentication failure becomes `null`. Anything else (a network
+// fault, a misconfigured audience) still throws, so a broken client is never
+// silently mistaken for a signed-out one.
+//
+// No `context` parameter: only components call this.
+export async function getAccessTokenIfSignedIn(): Promise<string | null> {
+  try {
+    return await auth0Client.getTokenSilently();
+  } catch (error: unknown) {
+    if (needsReauthentication(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}

@@ -1,10 +1,10 @@
 import { type EChartsOption } from "echarts";
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import createClient from "openapi-fetch";
 import { redirect, type ActionFunctionArgs } from "react-router";
 import type { components, paths } from "@/lib/api.gen";
 import { apiOrigin } from "@/lib/env";
-import { getAccessToken } from "@/lib/auth0";
+import { getAccessToken, getAccessTokenIfSignedIn } from "@/lib/auth0";
 import { clearPromptDraft } from "@/lib/promptDraft";
 import { APIError, type ReportRole } from "@/shared/types";
 
@@ -187,4 +187,83 @@ export async function updateReportVisibility(
   }
 
   return readReportRole(response);
+}
+
+export type ReportPreview = Omit<
+  components["schemas"]["ReportPreview"],
+  "chart"
+> & {
+  chart: EChartsOption | null;
+};
+
+export type ReportPreviewPage = Omit<
+  components["schemas"]["ReportPreviewPage"],
+  "previews"
+> & {
+  previews: ReportPreview[];
+};
+
+export interface ReportPreviewFilters {
+  publiclyVisible: boolean;
+  minimumReportRole: ReportRole | null;
+}
+
+const FIRST_PAGE: string | null = null;
+
+async function getReportPreviews(
+  { publiclyVisible, minimumReportRole }: ReportPreviewFilters,
+  cursor: string | null,
+  // Page size left at backend default
+): Promise<ReportPreviewPage> {
+  const token: string | null = await getAccessTokenIfSignedIn();
+
+  const { data, error, response } = await api.GET("/reports/previews", {
+    headers: token ? { Authorization: `${BEARER} ${token}` } : {},
+    params: {
+      query: {
+        public: publiclyVisible,
+        minimum_report_role: minimumReportRole,
+        cursor,
+      },
+    },
+  });
+
+  if (error) {
+    throw new APIError(response);
+  }
+
+  return {
+    ...data,
+    previews: data.previews.map((preview) => ({
+      ...preview,
+      chart: preview.chart as EChartsOption | null,
+    })),
+  };
+}
+
+export function reportPreviewsQueryKey(
+  filters: ReportPreviewFilters,
+  isAuthenticated: boolean,
+): readonly unknown[] {
+  // Without `isAuthenticated`, signing in would leave the signed-out
+  // page cached and the user would still see public reports only.
+  //
+  // The filters object is hashed structurally by the cache, so callers may pass a
+  // fresh literal on every render without causing a refetch.
+  return ["reports", "previews", filters, isAuthenticated];
+}
+
+export function reportPreviewsQueryOptions(
+  filters: ReportPreviewFilters,
+  isAuthenticated: boolean,
+) {
+  return infiniteQueryOptions({
+    queryKey: reportPreviewsQueryKey(filters, isAuthenticated),
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
+      getReportPreviews(filters, pageParam),
+    initialPageParam: FIRST_PAGE,
+    // The backend sends `next_cursor: null` on the last page, which is exactly
+    // how the cache is told there is nothing further to fetch.
+    getNextPageParam: (lastPage: ReportPreviewPage) => lastPage.next_cursor,
+  });
 }
