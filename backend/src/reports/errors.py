@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.exception_handlers import http_exception_handler
-from httpx import codes
 
 from ..db.repositories.exceptions import (
     MissingVersionError,
@@ -28,7 +27,7 @@ async def handle_not_found(request: Request, exception: Exception) -> Response:
     assert isinstance(exception, NotFoundError)
 
     return await http_exception_handler(
-        request, HTTPException(codes.NOT_FOUND, exception.message)
+        request, HTTPException(status.HTTP_404_NOT_FOUND, exception.message)
     )
 
 
@@ -46,7 +45,7 @@ async def handle_stale_write(request: Request, exception: Exception) -> Response
     return await http_exception_handler(
         request,
         HTTPException(
-            codes.PRECONDITION_FAILED,
+            status.HTTP_412_PRECONDITION_FAILED,
             exception.message,
             headers={ETAG_HEADER: format_etag(exception.current_version)},
         ),
@@ -58,7 +57,7 @@ async def handle_missing_version(request: Request, exception: Exception) -> Resp
     assert isinstance(exception, MissingVersionError)
 
     return await http_exception_handler(
-        request, HTTPException(codes.PRECONDITION_REQUIRED, exception.message)
+        request, HTTPException(status.HTTP_428_PRECONDITION_REQUIRED, exception.message)
     )
 
 

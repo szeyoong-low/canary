@@ -2,9 +2,8 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from httpx import codes
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.repositories.models import PlatformRole, User
@@ -40,7 +39,7 @@ def unauthorised(detail: str, *, token_supplied: bool) -> HTTPException:
     """
 
     return HTTPException(
-        codes.UNAUTHORIZED,
+        status.HTTP_401_UNAUTHORIZED,
         detail=detail,
         headers={
             AUTHENTICATE_HEADER: 'Bearer error="invalid_token"'
@@ -183,7 +182,7 @@ def require_platform_role(
             session, PLATFORM_ROLE_TABLE, minimum_role
         ):
             raise HTTPException(
-                codes.FORBIDDEN, f"Requires at least the {minimum_role} role"
+                status.HTTP_403_FORBIDDEN, f"Requires at least the {minimum_role} role"
             )
 
         return role

@@ -1,7 +1,6 @@
 from typing import cast
 
-from fastapi import HTTPException
-from httpx import codes
+from fastapi import HTTPException, status
 from langchain.messages import AnyMessage, HumanMessage
 
 from ..terminal.utility import TerminalToolResult
@@ -46,11 +45,11 @@ async def invoke_agent(prompt: str) -> TerminalToolResult:
         # Tool node never ran, planning node declined to call a tool and said
         # why in plain text. Help user to re-prompt
         last_message: AnyMessage = final_state[MESSAGES][-1]
-        raise HTTPException(codes.UNPROCESSABLE_ENTITY, last_message.text)
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, last_message.text)
 
     raise HTTPException(
-        codes.INTERNAL_SERVER_ERROR
+        status.HTTP_500_INTERNAL_SERVER_ERROR
         if failure is ToolFailure.FATAL
-        else codes.UNPROCESSABLE_ENTITY,
+        else status.HTTP_422_UNPROCESSABLE_CONTENT,
         FAILURE_MESSAGE,
     )

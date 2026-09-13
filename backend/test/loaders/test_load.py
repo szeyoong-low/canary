@@ -2,7 +2,7 @@ from json import loads
 from unittest.mock import AsyncMock, Mock, patch
 
 from anyio import open_file
-from httpx import codes
+from fastapi import status
 from polars import DataFrame, read_json
 from polars.testing import assert_frame_equal
 
@@ -22,7 +22,9 @@ async def test_load_only_regular():
         data: str = await f.read()
 
     # Injected dependencies are mocked
-    response: Mock = Mock(status_code=codes.OK, **{"json.return_value": loads(data)})
+    response: Mock = Mock(
+        status_code=status.HTTP_200_OK, **{"json.return_value": loads(data)}
+    )
     http_client: Mock = Mock(get=AsyncMock(return_value=response))
 
     actual: DataFrame = (
