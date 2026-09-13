@@ -10,9 +10,14 @@ import {
   generateReportContent,
   reportQueryKey,
   reportQueryOptions,
+  renameReport,
+  updateReportVisibility,
   type ContentContainerType,
   type Report as ReportType,
 } from "@/lib/reports";
+import { useErrorToast } from "@/lib/useToast";
+
+const TITLE_FORM_FIELD: string = "title";
 
 export default function Report() {
   // Guaranteed by the route segment; the check only narrows the type.
@@ -51,6 +56,60 @@ export default function Report() {
     },
   });
 
+  // Both metadata endpoints answer 204. Optimistic update: the cache is patched
+  // before the request goes out and rolled back if it fails.
+  const patchCachedReport = async (
+    patch: Partial<ReportType>,
+  ): Promise<ReportType | undefined> => {
+    // A background refetch already in flight could land after this patch but
+    // before the it succeeds, so it will overwrite it with pre-edit server state
+    await queryClient.cancelQueries({ queryKey: reportQueryKey(reportID) });
+
+    const previous: ReportType | undefined = queryClient.getQueryData(
+      reportQueryKey(reportID),
+    );
+
+    queryClient.setQueryData(
+      reportQueryKey(reportID),
+      (report: ReportType | undefined) => report && { ...report, ...patch },
+    );
+
+    return previous; // Handed to `onError` as its third argument
+  };
+
+  const rollBack = (previous: ReportType | undefined) => {
+    queryClient.setQueryData(reportQueryKey(reportID), previous);
+  };
+
+  const rename = useMutation({
+    mutationFn: (newTitle: string) => renameReport(reportID, newTitle),
+    onMutate: (newTitle: string) => patchCachedReport({ title: newTitle }),
+    onError: (_error, _newTitle, previous) => {
+      rollBack(previous);
+    },
+  });
+
+  // The rollback is silent on its own, so the failure has to be announced
+  useErrorToast(rename.error ?? undefined, {
+    id: "report-rename",
+    title: "Could not rename this report",
+  });
+
+  const changeVisibility = useMutation({
+    mutationFn: (publiclyVisible: boolean) =>
+      updateReportVisibility(reportID, publiclyVisible),
+    onMutate: (publiclyVisible: boolean) =>
+      patchCachedReport({ public: publiclyVisible }),
+    onError: (_error, _publiclyVisible, previous) => {
+      rollBack(previous);
+    },
+  });
+
+  useErrorToast(changeVisibility.error ?? undefined, {
+    id: "report-visibility",
+    title: "Could not change who can see this report",
+  });
+
   if (isPending) {
     return (
       <div className="flex justify-center py-20">
@@ -70,6 +129,14 @@ export default function Report() {
           title={report.title}
           authors={report.authors}
           publiclyVisible={report.public}
+          onRename={(newTitle: string) => {
+            rename.mutate(newTitle);
+          }}
+          onToggleVisibility={() => {
+            changeVisibility.mutate(!report.public);
+          }}
+          isRenaming={rename.isPending}
+          isChangingVisibility={changeVisibility.isPending}
         />
 
         {report.content_containers.map((container) => (
@@ -98,10 +165,18 @@ function Masthead({
   title,
   authors,
   publiclyVisible,
+  onRename,
+  isRenaming,
+  onToggleVisibility,
+  isChangingVisibility,
 }: {
   title: string;
   authors: string[];
   publiclyVisible: boolean;
+  onRename: (newTitle: string) => void;
+  isRenaming: boolean;
+  onToggleVisibility: () => void;
+  isChangingVisibility: boolean;
 }) {
   const VisibilityIcon = publiclyVisible ? Eye : EyeOff;
   const visibilityLabel = publiclyVisible ? "Public" : "Private";
@@ -109,15 +184,60 @@ function Masthead({
   return (
     <header className="w-full flex flex-col items-center">
       <div className="flex items-center gap-x-2">
-        <h2 className="text-xl font-medium ReportTitle">{title}</h2>
-        <span
-          role="img"
-          aria-label={visibilityLabel}
-          title={visibilityLabel}
-          className="shrink-0 opacity-70"
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.currentTarget);
+            const submitted: FormDataEntryValue | null =
+              formData.get(TITLE_FORM_FIELD);
+            const newTitle: string =
+              typeof submitted === "string" ? submitted.trim() : "";
+
+            if (!newTitle || newTitle === title) {
+              event.currentTarget.reset();
+              return;
+            }
+
+            onRename(newTitle);
+          }}
         >
-          <VisibilityIcon size="1em" />
-        </span>
+          <h2 className="text-xl font-medium ReportTitle">
+            <input
+              type="text"
+              name={TITLE_FORM_FIELD}
+              aria-label="Report title"
+              // Uncontrolled: typing re-renders nothing, optimistic cache
+              // update keeps this in step anyway
+              defaultValue={title}
+              className="field-sizing-content bg-transparent text-center focus:outline-none"
+              disabled={isRenaming}
+              // Clicking away commits, the same as pressing Enter. A form with a
+              // single text input submits on Enter without a submit button.
+              onBlur={(event) => {
+                event.currentTarget.form?.requestSubmit();
+              }}
+            />
+          </h2>
+        </form>
+
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onToggleVisibility();
+          }}
+          // Putting in a form gives enter key behaviour
+        >
+          <button
+            type="submit"
+            aria-label={`${visibilityLabel}. Change who can see this report`}
+            title={`${visibilityLabel}ly visible`}
+            disabled={isChangingVisibility}
+            className="flex shrink-0 opacity-70 cursor-pointer disabled:cursor-progress"
+          >
+            <VisibilityIcon size="1em" />
+          </button>
+        </form>
       </div>
       <p className="text-sm opacity-70">{authors.join(", ")}</p>
     </header>
