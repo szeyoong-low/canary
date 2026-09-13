@@ -15,7 +15,6 @@ import {
   type ContentContainerType,
   type Report as ReportType,
 } from "@/lib/reports";
-import { useErrorToast } from "@/lib/useToast";
 
 const EDIT_ROLE: ReportRole = "editor";
 const OWNER_ROLE: ReportRole = "owner";
@@ -44,6 +43,7 @@ export default function Report() {
 
   const generate = useMutation({
     mutationFn: (prompt: string) => generateReportContent(reportID, prompt),
+    meta: { errorTitle: "Could not answer this prompt" },
 
     // Writes the saved container straight into the cached report instead of
     // invalidating it
@@ -89,7 +89,7 @@ export default function Report() {
 
   // The `onMutate` form. A background refetch already in flight could land
   // after this patch but before the write succeeds, overwriting it with
-  // pre-edit server state, so it is cancelled first. react-query awaits
+  // pre-edit server state, so it is cancelled first. TanStack Query awaits
   // `onMutate`, and awaits the snapshot it resolves to before `onError`.
   const patchCachedReportAfterCancelling = async (
     patch: Partial<ReportType>,
@@ -117,6 +117,9 @@ export default function Report() {
 
   const rename = useMutation({
     mutationFn: (newTitle: string) => renameReport(reportID, newTitle),
+    // The rollback below is silent on its own, so the failure has to be
+    // announced. The toast itself is raised globally in `queryClient.ts`.
+    meta: { errorTitle: "Could not rename this report" },
     onMutate: (newTitle: string) =>
       patchCachedReportAfterCancelling({ title: newTitle }),
     // The 204 carries no body, so the role is all there is to write back.
@@ -129,15 +132,10 @@ export default function Report() {
     },
   });
 
-  // The rollback is silent on its own, so the failure has to be announced
-  useErrorToast(rename.error ?? undefined, {
-    id: "report-rename",
-    title: "Could not rename this report",
-  });
-
   const changeVisibility = useMutation({
     mutationFn: (publiclyVisible: boolean) =>
       updateReportVisibility(reportID, publiclyVisible),
+    meta: { errorTitle: "Could not change who can see this report" },
     onMutate: (publiclyVisible: boolean) =>
       patchCachedReportAfterCancelling({ public: publiclyVisible }),
     onSuccess: (role: ReportRole | null) => {
@@ -147,11 +145,6 @@ export default function Report() {
       rollBack(previous);
       resyncIfForbidden(error);
     },
-  });
-
-  useErrorToast(changeVisibility.error ?? undefined, {
-    id: "report-visibility",
-    title: "Could not change who can see this report",
   });
 
   if (isPending) {

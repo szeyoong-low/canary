@@ -102,6 +102,8 @@ export function reportQueryOptions(reportID: string) {
   return queryOptions({
     queryKey: reportQueryKey(reportID),
     queryFn: () => getFullReport(reportID),
+    // Only shown when a refetch fails while the report is already on screen.
+    meta: { errorTitle: "Could not refresh this report" },
   });
 }
 
@@ -259,6 +261,8 @@ export function reportPreviewsQueryOptions(
 ) {
   return infiniteQueryOptions({
     queryKey: reportPreviewsQueryKey(filters, isAuthenticated),
+    // Covers a failed "load more" or refetch.
+    meta: { errorTitle: "Could not load more reports" },
     queryFn: ({ pageParam }: { pageParam: string | null }) =>
       getReportPreviews(filters, pageParam),
     initialPageParam: FIRST_PAGE,

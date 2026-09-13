@@ -2,7 +2,12 @@
 // instance is shared by the component tree and by any non-component code
 // that needs to seed or invalidate it.
 
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
+import { toast } from "@/lib/toast";
+
+// Used when a query or mutation did not declare its own `errorTitle` in `meta`
+// (see `queryMeta.ts` for how that field is typed).
+const FALLBACK_ERROR_TITLE: string = "Something went wrong";
 
 const MINUTE_MS: number = 60 * 1000;
 
@@ -45,6 +50,35 @@ function isClientError(error: unknown): boolean {
 }
 
 export const queryClient: QueryClient = new QueryClient({
+  // One handler for every query in the app, called after the last retry fails.
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // With no cached data there is nothing on screen to toast over, so the
+      // component owns that state instead (an error boundary, or inline retry).
+      // A toast would auto-dismiss and leave the user facing a blank page.
+      if (query.state.data === undefined) {
+        return;
+      }
+
+      // Keyed by the query so a failing refetch updates its own toast rather
+      // than stacking a new one on every attempt.
+      toast.error(query.meta?.errorTitle ?? FALLBACK_ERROR_TITLE, {
+        id: query.queryHash,
+        description: error.message,
+      });
+    },
+  }),
+
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _onMutateResult, mutation) => {
+      const title: string = mutation.meta?.errorTitle ?? FALLBACK_ERROR_TITLE;
+
+      // The title is the only stable identity a mutation has here, so repeated
+      // failures of the same action collapse into one toast.
+      toast.error(title, { id: title, description: error.message });
+    },
+  }),
+
   defaultOptions: {
     queries: {
       staleTime: STALE_TIME,

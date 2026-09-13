@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { type ReactNode } from "react";
-import { type ToastType } from "@/lib/useToast";
+import { toastManager, type ToastType } from "@/lib/toast";
 
 const iconByType: Record<ToastType, LucideIcon> = {
   error: CircleAlert,
@@ -48,7 +48,7 @@ function ToastList() {
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   return (
-    <Toast.Provider>
+    <Toast.Provider toastManager={toastManager}>
       {children}
 
       <Toast.Portal>
