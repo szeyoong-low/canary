@@ -18,7 +18,7 @@
   --background-color-secondary: light-dark(var(--color-gray-200), #1e1e1e);
 
   --text-color-secondary: light-dark(
-    var(--color-gray-600),
+    var(--color-neutral-500),
     var(--color-gray-400)
   );
   --border-color-primary: light-dark(var(--color-black), var(--color-white));

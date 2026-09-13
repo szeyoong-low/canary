@@ -283,7 +283,7 @@ function Masthead({
               aria-label={`${visibilityLabel}. Change who can see this report`}
               title={`${visibilityLabel}ly visible`}
               disabled={isChangingVisibility}
-              className="flex shrink-0 opacity-70 cursor-pointer disabled:cursor-progress"
+              className="flex shrink-0 text-(--text-color-secondary) cursor-pointer disabled:cursor-progress"
             >
               <VisibilityIcon size="1em" />
             </button>
@@ -293,13 +293,15 @@ function Masthead({
             role="img"
             aria-label={visibilityLabel}
             title={visibilityLabel}
-            className="shrink-0 opacity-70"
+            className="shrink-0 text-(--text-color-secondary)"
           >
             <VisibilityIcon size="1em" />
           </span>
         )}
       </div>
-      <p className="text-sm opacity-70">{authors.join(", ")}</p>
+      <p className="text-sm text-(--text-color-secondary)">
+        {authors.join(", ")}
+      </p>
     </header>
   );
 }
@@ -318,7 +320,7 @@ function PreviewDisclaimer() {
         />
       </Collapsible.Trigger>
 
-      <Collapsible.Panel className="flex flex-col gap-y-3 pt-3 text-sm opacity-70">
+      <Collapsible.Panel className="flex flex-col gap-y-3 pt-3 text-sm text-(--text-color-secondary)">
         <p>
           This preview supports a limited selection of analysis. These examples
           are representative of what the agent can handle:

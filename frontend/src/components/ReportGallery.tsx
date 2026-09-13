@@ -168,7 +168,9 @@ function ReportCard({ preview }: { preview: ReportPreview }) {
         )}
 
         <span className="font-medium">{preview.title}</span>
-        <span className="text-sm opacity-70">{preview.authors.join(", ")}</span>
+        <span className="text-sm text-(--text-color-secondary)">
+          {preview.authors.join(", ")}
+        </span>
       </Link>
     </li>
   );
