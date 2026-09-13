@@ -27,6 +27,9 @@ export const auth0Client: Auth0Client = new Auth0Client({
   // Terraform configures rotating refresh tokens, but the SDK only asks for one
   // when this is set.
   useRefreshTokens: true,
+  // Allow Auth0 to use a hidden <iframe> to get new access and refresh tokens
+  // using the Auth0 session cookie.
+  useRefreshTokensFallback: true,
 });
 
 // The channel that carries the client to route actions (wired up in
@@ -63,23 +66,56 @@ export function needsReauthentication(error: unknown): boolean {
   );
 }
 
+// `context` is how router actions receive a (possibly stand-in) client.
+// Components have no router context, so they call this with no argument and
+// get the module singleton.
 export async function getAccessToken(
-  context: Readonly<RouterContextProvider>,
+  context?: Readonly<RouterContextProvider>,
 ): Promise<string> {
-  const auth0Client: Auth0Client = context.get(auth0ClientContext);
+  const client: Auth0Client = context
+    ? context.get(auth0ClientContext)
+    : auth0Client;
 
   try {
     // Serves the cached token when it is still valid, and silently redeems the
     // refresh token when it is not.
-    return await auth0Client.getTokenSilently();
+    return await client.getTokenSilently();
   } catch (error: unknown) {
     if (!needsReauthentication(error)) {
       throw error;
     }
 
-    // Leaves the page, so nothing below this runs. The `throw` is unreachable at
-    // runtime and exists to tell TypeScript the function ends here.
+    // Starts the redirect, but does not stop this task: `window.location.assign`
+    // only schedules the navigation, so execution continues here.
     await loginWithReturn();
+
+    // The browser is on its way out. Never settling suspends the caller until it
+    // leaves, instead of surfacing the expired session as a real failure (which
+    // a route action would show in the error boundary).
+    await new Promise<never>(() => {
+      // Deliberately never resolved or rejected
+    });
+
+    // Unreachable at runtime, just to tell TS this branch never returns a token
+    throw error;
+  }
+}
+
+// Like `getAccessToken`, but for surfaces that also serve signed-out callers.
+//
+// Only a reauthentication failure becomes `null`. Anything else (a network
+// fault, a misconfigured audience) still throws, so a broken client is never
+// silently mistaken for a signed-out one.
+//
+// No `context` parameter: only components call this.
+export async function getAccessTokenIfSignedIn(): Promise<string | null> {
+  try {
+    return await auth0Client.getTokenSilently();
+  } catch (error: unknown) {
+    if (needsReauthentication(error)) {
+      return null;
+    }
+
     throw error;
   }
 }

@@ -20,15 +20,14 @@
     </p>
 </div>
 
-
-
 Check out [the project wiki](https://github.com/szeyoong-low/canary/wiki) for deep dives on my design process.
 
 ## Tech stack 
 | Layer | Choice |
 |---|---|
-| Frontend | React (Compiler), TypeScript, Vite, React Router, Apache ECharts, Zod, OpenAPI TypeScript + Fetch, Tailwind CSS, Base UI |
 | Backend | FastAPI, Python 3.12, httpx, Pydantic |
+| Frontend | React (Compiler), TypeScript, Vite, React Router, TanStack Query, Zod, OpenAPI TypeScript + Fetch |
+| User interface | Apache ECharts, Tailwind CSS, Base UI |
 | Data sources | Financial Modelling Prep |
 | Data pipeline | Polars |
 | Database | PostgreSQL, SQLAlchemy, asyncpg, Alembic, dbeaver, AWS boto3 SDK |

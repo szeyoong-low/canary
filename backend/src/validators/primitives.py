@@ -25,6 +25,16 @@ def _check_positive_int(n: int) -> int:
 type PositiveInt = Annotated[int, AfterValidator(_check_positive_int)]
 
 
+def _check_nonnegative_int(n: int) -> int:
+    if n >= 0:
+        return n
+
+    raise ValueError(f"{n} must be a non-negative integer")
+
+
+type NonNegativeInt = Annotated[int, AfterValidator(_check_nonnegative_int)]
+
+
 def _check_nonempty_string(s: str) -> str:
     if s.strip():
         return s

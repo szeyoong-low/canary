@@ -4,4 +4,6 @@ export { default as ToastProvider } from "./ToastProvider";
 export { default as AuthButton } from "./AuthButton";
 export { default as Prompt } from "./Prompt";
 export { default as Chart } from "./Chart";
+export { default as ContentContainer } from "./ContentContainer";
 export { default as OptionCard } from "./OptionCard";
+export { default as ReportGallery } from "./ReportGallery";

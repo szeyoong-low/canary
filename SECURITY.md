@@ -1,0 +1,1 @@
+Kindly report all security vulnerabilities and suggestions on how to resolve them to [low.szeyoong@gmail.com](mailto:low.szeyoong@gmail.com). Do not open an issue or pull request.

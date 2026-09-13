@@ -1,9 +1,9 @@
-from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import Row, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...global_constants import PlatformRoleName
 from .models import PlatformRole
 
 # The non-assumable account that grants what nobody else can. `provider|id` is
@@ -12,8 +12,6 @@ from .models import PlatformRole
 SYSTEM_SUBJECT = "system|canary"
 SYSTEM_DISPLAY_NAME = "Canary"
 
-# Must keep in sync with seed.__main__.py
-type PlatformRoleName = Literal["suspended", "app_user", "admin"]
 
 # What a newly provisioned account starts as: an ordinary signed-in user.
 DEFAULT_PLATFORM_ROLE: PlatformRoleName = "app_user"

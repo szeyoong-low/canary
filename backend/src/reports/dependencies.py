@@ -2,7 +2,7 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from httpx import codes
 
 from ..auth.dependencies import OptionalUser, unauthorised
@@ -10,7 +10,7 @@ from ..db.repositories.models import ReportAccess
 from ..db.repositories.report_access import get_report_access
 from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
-from .types import ReportRole
+from ..global_constants import REPORT_ROLE_HEADER, ReportRoleName
 
 """Resolving a caller's standing on one report, and enforcing it."""
 
@@ -45,6 +45,25 @@ def _is_permitted(
     return effective_precedence >= minimum_precedence
 
 
+def effective_role(access: ReportAccess, public_role_precedence: int) -> str | None:
+    """The role this caller actually holds, which is not always the one granted
+    to them: a public report hands `viewer` to everyone, including callers with
+    no grant at all.
+
+    `None` means they hold nothing, which only a private report can produce.
+
+    The same question `_is_permitted` answers, phrased as a name rather than a
+    yes or no, so a client can be told what it may attempt.
+    """
+
+    granted: int = access.precedence or _UNGRANTED_PRECEDENCE
+
+    if access.public and public_role_precedence > granted:
+        return IMPLICIT_PUBLIC_ROLE
+
+    return access.role
+
+
 async def resolve_report_access(
     report_id: UUID, user: OptionalUser, session: DBSession
 ) -> ReportAccess:
@@ -62,7 +81,7 @@ CallerReportAccess = Annotated[ReportAccess, Depends(resolve_report_access)]
 
 
 def require_report_role(
-    minimum_role: ReportRole,
+    minimum_role: ReportRoleName,
 ) -> Callable[..., Awaitable[ReportAccess]]:
     """
     Build a dependency that lets a caller through only if they hold at least
@@ -80,13 +99,25 @@ def require_report_role(
     """
 
     async def guard(
-        access: CallerReportAccess, user: OptionalUser, session: DBSession
+        access: CallerReportAccess,
+        user: OptionalUser,
+        session: DBSession,
+        response: Response,
     ) -> ReportAccess:
+        # Read once and used twice: to decide, and to name what was decided.
+        public_role_precedence: int = await get_precedence(
+            session, REPORT_ROLE_TABLE, IMPLICIT_PUBLIC_ROLE
+        )
+
         if _is_permitted(
             access,
             await get_precedence(session, REPORT_ROLE_TABLE, minimum_role),
-            await get_precedence(session, REPORT_ROLE_TABLE, IMPLICIT_PUBLIC_ROLE),
+            public_role_precedence,
         ):
+            role: str | None = effective_role(access, public_role_precedence)
+            if role is not None:
+                response.headers[REPORT_ROLE_HEADER] = role
+
             return access
 
         if user is None:

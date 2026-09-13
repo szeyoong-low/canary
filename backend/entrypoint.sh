@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Brings the schema up to date, then hands the container over to whatever the
 # image's CMD is. Splitting the two means the server stays overridable: a one-off
@@ -6,7 +6,7 @@
 
 # `-e` aborts on first failure (including failed migrations)
 # `-u` catches a mistyped variable name rather than treating it as empty.
-set -eu
+set -euo pipefail
 
 echo "Running migrations..."
 uv run alembic upgrade head

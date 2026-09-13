@@ -51,8 +51,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Report Previews */
-        get: operations["get_report_previews"];
+        /**
+         * List Report Previews
+         * @description One page of report previews, newest first.
+         *
+         *     The two criteria are a union, not an intersection.
+         *
+         *     `cursor` is the `report_id` of the last preview already held. Omit it for
+         *     the first page, and stop when the response carries no `next_cursor`.
+         */
+        get: operations["list_report_previews"];
         put?: never;
         post?: never;
         delete?: never;
@@ -68,20 +76,20 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Specific Report */
+        /**
+         * Get Specific Report
+         * @description Read one report in full: its metadata and every container mounted in it.
+         *
+         *     A report that does not exist, or that this caller may not read, never
+         *     reaches this body. The guard above answers both.
+         */
         get: operations["get_specific_report"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update Report Metadata
-         * @description Since metadata changes are very straightforward, a 204 is sufficient to
-         *     confirm success. No need to waste bandwidth returning the entire report.
-         *     https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH
-         */
-        patch: operations["update_report_metadata"];
+        patch?: never;
         trace?: never;
     };
     "/reports/{report_id}/contents": {
@@ -95,6 +103,52 @@ export interface paths {
         put?: never;
         /** Add Generated Content To Report */
         post: operations["add_generated_content_to_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report_id}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rename Specific Report
+         * @description Retitle a report.
+         *
+         *     A 204 is enough to confirm it: the caller already knows the title it sent,
+         *     so returning the report again would only waste bandwidth.
+         */
+        put: operations["rename_specific_report"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report_id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Publish Or Unpublish Report
+         * @description Publish a report to everyone, or take it private again.
+         *
+         *     The caller is recorded alongside the flip: `report_visibility` is an
+         *     append-only history, and who published a report is part of what it answers.
+         */
+        put: operations["publish_or_unpublish_report"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -168,9 +222,14 @@ export interface components {
         DatasetType: components["schemas"]["RowObjectDataset"] | components["schemas"]["ColumnarDataset"];
         /** DisplayedContentContainer */
         DisplayedContentContainer: {
-            chart: components["schemas"]["ChartConfigModel"];
+            chart: components["schemas"]["ChartConfigModel"] | null;
+            /**
+             * Container Id
+             * Format: uuid
+             */
+            container_id: string;
             /** Prose */
-            prose: string;
+            prose: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -208,7 +267,7 @@ export interface components {
              */
             color: components["schemas"]["RGBA"] | components["schemas"]["HexColor"];
             /** @default 0 */
-            dashOffset: components["schemas"]["NonNegativeNumberField"];
+            dashOffset: components["schemas"]["NonNegativeInt"];
             /**
              * Join
              * @default bevel
@@ -222,13 +281,12 @@ export interface components {
              */
             type: "solid" | "dashed" | "dotted";
             /** @default 2 */
-            width: components["schemas"]["NonNegativeNumberField"];
+            width: components["schemas"]["NonNegativeInt"];
         };
-        MinimumReportRole: components["schemas"]["ReportRole"];
+        MinimumReportRole: components["schemas"]["ReportRoleName"];
         NonEmptyString: string;
-        NonNegativeNumberField: components["schemas"]["Number"];
+        NonNegativeInt: number;
         NormalisedFloatField: number;
-        Number: number;
         Params: {
             [key: string]: unknown;
         };
@@ -254,23 +312,43 @@ export interface components {
             authors: components["schemas"]["NonEmptyString"][];
             /** Content Containers */
             content_containers: components["schemas"]["DisplayedContentContainer"][];
-            title: components["schemas"]["NonEmptyString"];
-        };
-        /** ReportMetadata */
-        ReportMetadata: {
             /** Public */
-            public?: boolean | null;
-            title?: components["schemas"]["NonEmptyString"] | null;
+            public: boolean;
+            title: components["schemas"]["NonEmptyString"];
         };
         /** ReportPreview */
         ReportPreview: {
             /** Authors */
             authors: components["schemas"]["NonEmptyString"][];
-            chart: components["schemas"]["ChartConfigModel"];
+            chart: components["schemas"]["ChartConfigModel"] | null;
+            /**
+             * Report Id
+             * Format: uuid
+             */
+            report_id: string;
             title: components["schemas"]["NonEmptyString"];
         };
+        /**
+         * ReportPreviewPage
+         * @description One page of a gallery, and how to ask for the next.
+         */
+        ReportPreviewPage: {
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Previews */
+            previews: components["schemas"]["ReportPreview"][];
+        };
         /** @enum {string} */
-        ReportRole: "viewer" | "commenter" | "editor" | "owner";
+        ReportRoleName: "viewer" | "commenter" | "editor" | "owner";
+        /** ReportTitle */
+        ReportTitle: {
+            title: components["schemas"]["NonEmptyString"];
+        };
+        /** ReportVisibility */
+        ReportVisibility: {
+            /** Public */
+            public: boolean;
+        };
         RowObjectDataset: components["schemas"]["Params"][];
         /** Series */
         Series: {
@@ -395,10 +473,10 @@ export interface operations {
             };
         };
     };
-    get_report_previews: {
+    list_report_previews: {
         parameters: {
             query?: {
-                public?: boolean | null;
+                public?: boolean;
                 minimum_report_role?: components["schemas"]["MinimumReportRole"] | null;
                 cursor?: string | null;
                 page_size?: number;
@@ -415,7 +493,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportPreview"][];
+                    "application/json": components["schemas"]["ReportPreviewPage"];
                 };
             };
             /** @description Validation Error */
@@ -460,7 +538,44 @@ export interface operations {
             };
         };
     };
-    update_report_metadata: {
+    add_generated_content_to_report: {
+        parameters: {
+            query?: {
+                position?: components["schemas"]["NonNegativeInt"] | null;
+            };
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromptBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisplayedContentContainer"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_specific_report: {
         parameters: {
             query?: never;
             header?: never;
@@ -471,7 +586,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReportMetadata"];
+                "application/json": components["schemas"]["ReportTitle"];
             };
         };
         responses: {
@@ -493,7 +608,7 @@ export interface operations {
             };
         };
     };
-    add_generated_content_to_report: {
+    publish_or_unpublish_report: {
         parameters: {
             query?: never;
             header?: never;
@@ -504,18 +619,16 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PromptBody"];
+                "application/json": components["schemas"]["ReportVisibility"];
             };
         };
         responses: {
             /** @description Successful Response */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["DisplayedContentContainer"];
-                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

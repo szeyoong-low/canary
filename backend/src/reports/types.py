@@ -1,12 +1,17 @@
-from typing import Annotated, Literal
+from typing import Annotated
+from uuid import UUID
 
 from fastapi import Query
 from pydantic import AfterValidator, BaseModel, ConfigDict
 
 from ..display.output_models import ChartConfigModel
+from ..global_constants import ReportRoleName
 from ..validators.primitives import NonEmptyString
 
-type ReportRole = Literal["viewer", "commenter", "editor", "owner"]
+
+class StrictBaseModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
 
 PAGE_SIZE_MIN: int = 1
 PAGE_SIZE_MAX: int = 100
@@ -24,12 +29,18 @@ def _valid_page_size(n: int) -> int:
 type PageSizeParam = Annotated[int, Query(), AfterValidator(_valid_page_size)]
 
 # Must keep in sync with seed.__main__.py
-type MinimumReportRole = Annotated[ReportRole, Query()]
+type MinimumReportRole = Annotated[ReportRoleName, Query()]
 
 
 class DisplayedContentContainer(BaseModel):
-    chart: ChartConfigModel
-    prose: str
+    # Exposed so clients can identify a container across refetches.
+    # Positions are not stable, since containers can be reordered and
+    # unmounted into the report's recycling bin.
+    container_id: UUID
+    # Both nullable: a block can be deleted while its container stays mounted,
+    # and the client shows what is left rather than the container disappearing.
+    chart: ChartConfigModel | None
+    prose: str | None
 
 
 class BaseReport(BaseModel):
@@ -40,19 +51,32 @@ class BaseReport(BaseModel):
 
 
 class ReportPreview(BaseReport):
-    chart: ChartConfigModel
+    # The link target for the card, and the cursor that asks for the page after
+    # this one. One value serving both is a property of `report_id` being a
+    # uuidv7: it identifies the report and orders it at the same time.
+    report_id: UUID
+    chart: ChartConfigModel | None  # First chart of the report
+
+
+class ReportPreviewPage(BaseModel):
+    """One page of a gallery, and how to ask for the next."""
+
+    previews: list[ReportPreview]
+    next_cursor: UUID | None  # `None` means this was the last page
 
 
 class ReportFull(BaseReport):
+    public: bool
     content_containers: list[DisplayedContentContainer]
 
 
-class ReportMetadata(BaseModel):
-    title: NonEmptyString | None = None
-    public: bool | None = None
+class ReportTitle(StrictBaseModel):
+    title: NonEmptyString
 
 
-class PromptBody(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class ReportVisibility(StrictBaseModel):
+    public: bool
 
+
+class PromptBody(StrictBaseModel):
     prompt: str

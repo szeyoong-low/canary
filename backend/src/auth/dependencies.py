@@ -10,13 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db.repositories.models import PlatformRole, User
 from ..db.repositories.platform_roles import (
     DEFAULT_PLATFORM_ROLE,
-    PlatformRoleName,
     get_current_platform_role,
     grant_first_platform_role,
 )
 from ..db.repositories.role_vocabulary import PLATFORM_ROLE_TABLE, get_precedence
 from ..db.repositories.users import get_active_user_by_subject, provision_user
 from ..db.session import DBSession
+from ..global_constants import PlatformRoleName
 from .token import AccessToken, decode
 
 """Where a bearer token becomes a caller FastAPI can hand to a route."""
@@ -189,3 +189,32 @@ def require_platform_role(
         return role
 
     return guard
+
+
+# The lowest standing that still counts as a participant rather than a spectator.
+ACTIVE_PLATFORM_ROLE: PlatformRoleName = DEFAULT_PLATFORM_ROLE
+
+
+async def get_active_user_or_none(
+    user: OptionalUser, role: CallerPlatformRole, session: DBSession
+) -> User | None:
+    """
+    Whoever is calling, provided they are in good standing. `None` for a visitor
+    who is not signed in, and equally for a suspended account (shown what a
+    logged-out one is shown).
+
+    For routes where being anonymous is an ordinary state to be in.
+    """
+
+    if user is None or role is None:
+        return None
+
+    if role.precedence < await get_precedence(
+        session, PLATFORM_ROLE_TABLE, ACTIVE_PLATFORM_ROLE
+    ):
+        return None
+
+    return user
+
+
+type ActiveUser = Annotated[User | None, Depends(get_active_user_or_none)]

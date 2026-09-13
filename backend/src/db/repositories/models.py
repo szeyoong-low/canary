@@ -72,3 +72,50 @@ class ReportAccess(DatabaseRecord):
 class PlatformRole(DatabaseRecord):
     role: str
     precedence: int
+
+
+class ReportHeader(DatabaseRecord):
+    """A report's own row, plus the display names of whoever can currently
+    change its content.
+
+    Authors are folded in here rather than fetched separately because they are
+    one aggregated value per report, not a collection the caller pages through.
+    """
+
+    report_id: UUID
+    title: str
+    # Display names, not ids: nothing downstream links to a user yet, and they
+    # are not unique, so duplicates are possible and harmless.
+    authors: list[str]
+
+
+class ReportContentContainer(DatabaseRecord):
+    """One container, with the payloads of the blocks it points at
+    already resolved.
+
+    Either payload may be `None`, meaning that block has been soft deleted. The
+    container outlives its blocks, so a half-empty one is a state to render.
+    """
+
+    container_id: UUID
+    # Whatever the driver decoded the JSONB into, exactly as `BlobBlock.payload`.
+    # This layer does not know a chart config from any other object.
+    chart: Any | None
+    prose: str | None
+
+
+class ReportPreviewRecord(DatabaseRecord):
+    """One report as it appears in a gallery: enough to render a card and link
+    to it, and nothing more.
+
+    Deliberately not a subclass of `ReportHeader` despite the overlap. A preview
+    is one row of a paginated list and a header is the top of one report, so the
+    two are expected to diverge.
+    """
+
+    # Doubles as the pagination cursor. `report_id` is a uuidv7, so it sorts by
+    # creation time, which is what makes keyset pagination possible here at all.
+    report_id: UUID
+    title: str
+    authors: list[str]
+    chart: Any | None

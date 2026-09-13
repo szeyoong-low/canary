@@ -3,7 +3,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from ..global_types import DatasetType
-from .fields import ByteField, HexColor, NonNegativeNumberField, NormalisedFloatField
+from ..validators.primitives import NonNegativeInt
+from .fields import ByteField, HexColor, NormalisedFloatField
 
 # Will not use generic types to enforce that lists are homogeneous:
 # 1. It doesn't matter for ECharts rendering
@@ -49,9 +50,9 @@ class Axis(EChartsBaseModel):
 
 class LineStyle(EChartsBaseModel):
     color: RGBA | HexColor = "#000"
-    width: NonNegativeNumberField = 2
+    width: NonNegativeInt = 2
     type: Literal["solid", "dashed", "dotted"] = "solid"
-    dashOffset: NonNegativeNumberField = 0
+    dashOffset: NonNegativeInt = 0
     cap: Literal["butt", "round", "square"] = "butt"
     join: Literal["bevel", "round", "miter"] = "bevel"
 

@@ -12,7 +12,7 @@ export default function Layout() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <header className="flex items-center justify-center-safe">
+        <nav className="flex items-center justify-center-safe">
           <title>{projectName}</title>
           <Link to="/">
             <h1 className="page-title font-stretch-30% text-3xl">
@@ -20,7 +20,7 @@ export default function Layout() {
             </h1>
           </Link>
           <UtilityButtons />
-        </header>
+        </nav>
         <main>
           <Outlet />
         </main>

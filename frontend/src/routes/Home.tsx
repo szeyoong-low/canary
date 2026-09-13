@@ -1,14 +1,18 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
+import { reportBrowserPath } from "@/shared/constants";
+import { ReportGallery } from "@/components";
 
 export default function Home() {
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col items-center gap-4">
       <div className="mx-10 md:mx-0 md:w-175 flex flex-col gap-4 text-justify">
         <Hero />
         <hr className="SectionDivider" />
         <CallToAction />
       </div>
+
+      <ReportGallery className="w-full max-w-250 px-10" />
     </div>
   );
 }
@@ -21,10 +25,8 @@ function Hero() {
           <span className="text-theme">Canary</span>
           <span className="HeroBird" />
         </div>
-        crystallises <br />
-        chaos <br />
-        into <br />
-        charts.
+        crystallises chaos <br />
+        into charts.
       </h2>
     </div>
   );
@@ -35,7 +37,7 @@ function CallToAction() {
     <div className="flex flex-col gap-2">
       <div className="CallToAction">
         <div className="SlidingUnderline">
-          <Link to="/reports">Tell your compelling story </Link>
+          <Link to={reportBrowserPath}>Tell your compelling story </Link>
           <ArrowRight className="inline" />
         </div>
       </div>
@@ -45,8 +47,8 @@ function CallToAction() {
         for financial analysts.
       </p>
       <p>
-        It turns your questions about market movements and trade flows into
-        professional reports with compelling, elegant charts.
+        It turns your questions about market movements into compelling, elegant
+        reports.
       </p>
     </div>
   );

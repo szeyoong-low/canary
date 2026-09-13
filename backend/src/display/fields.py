@@ -47,15 +47,3 @@ def _validate_hex_string(string: str) -> str:
 type HexColor = Annotated[str, AfterValidator(_validate_hex_string)]
 
 type Number = int | float
-
-
-def _validate_non_negative_number(n: Number) -> Number:
-    if n > 0:
-        return n
-
-    raise ValueError(f"{n} must be a positive number")
-
-
-type NonNegativeNumberField = Annotated[
-    Number, AfterValidator(_validate_non_negative_number)
-]

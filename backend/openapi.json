@@ -124,14 +124,34 @@
       "DisplayedContentContainer": {
         "properties": {
           "chart": {
-            "$ref": "#/components/schemas/ChartConfigModel"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartConfigModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "container_id": {
+            "format": "uuid",
+            "title": "Container Id",
+            "type": "string"
           },
           "prose": {
-            "title": "Prose",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prose"
           }
         },
         "required": [
+          "container_id",
           "chart",
           "prose"
         ],
@@ -212,7 +232,7 @@
             "title": "Color"
           },
           "dashOffset": {
-            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "$ref": "#/components/schemas/NonNegativeInt",
             "default": 0
           },
           "join": {
@@ -236,7 +256,7 @@
             "type": "string"
           },
           "width": {
-            "$ref": "#/components/schemas/NonNegativeNumberField",
+            "$ref": "#/components/schemas/NonNegativeInt",
             "default": 2
           }
         },
@@ -244,26 +264,16 @@
         "type": "object"
       },
       "MinimumReportRole": {
-        "$ref": "#/components/schemas/ReportRole"
+        "$ref": "#/components/schemas/ReportRoleName"
       },
       "NonEmptyString": {
         "type": "string"
       },
-      "NonNegativeNumberField": {
-        "$ref": "#/components/schemas/Number"
+      "NonNegativeInt": {
+        "type": "integer"
       },
       "NormalisedFloatField": {
         "type": "number"
-      },
-      "Number": {
-        "anyOf": [
-          {
-            "type": "integer"
-          },
-          {
-            "type": "number"
-          }
-        ]
       },
       "Params": {
         "additionalProperties": true,
@@ -322,6 +332,10 @@
             "title": "Content Containers",
             "type": "array"
           },
+          "public": {
+            "title": "Public",
+            "type": "boolean"
+          },
           "title": {
             "$ref": "#/components/schemas/NonEmptyString"
           }
@@ -329,36 +343,10 @@
         "required": [
           "title",
           "authors",
+          "public",
           "content_containers"
         ],
         "title": "ReportFull",
-        "type": "object"
-      },
-      "ReportMetadata": {
-        "properties": {
-          "public": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Public"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/NonEmptyString"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "title": "ReportMetadata",
         "type": "object"
       },
       "ReportPreview": {
@@ -371,7 +359,19 @@
             "type": "array"
           },
           "chart": {
-            "$ref": "#/components/schemas/ChartConfigModel"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartConfigModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "report_id": {
+            "format": "uuid",
+            "title": "Report Id",
+            "type": "string"
           },
           "title": {
             "$ref": "#/components/schemas/NonEmptyString"
@@ -380,12 +380,43 @@
         "required": [
           "title",
           "authors",
+          "report_id",
           "chart"
         ],
         "title": "ReportPreview",
         "type": "object"
       },
-      "ReportRole": {
+      "ReportPreviewPage": {
+        "description": "One page of a gallery, and how to ask for the next.",
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "previews": {
+            "items": {
+              "$ref": "#/components/schemas/ReportPreview"
+            },
+            "title": "Previews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "previews",
+          "next_cursor"
+        ],
+        "title": "ReportPreviewPage",
+        "type": "object"
+      },
+      "ReportRoleName": {
         "enum": [
           "viewer",
           "commenter",
@@ -393,6 +424,33 @@
           "owner"
         ],
         "type": "string"
+      },
+      "ReportTitle": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/NonEmptyString"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ReportTitle",
+        "type": "object"
+      },
+      "ReportVisibility": {
+        "additionalProperties": false,
+        "properties": {
+          "public": {
+            "title": "Public",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "public"
+        ],
+        "title": "ReportVisibility",
+        "type": "object"
       },
       "RowObjectDataset": {
         "items": {
@@ -623,22 +681,17 @@
     },
     "/reports/previews": {
       "get": {
-        "operationId": "get_report_previews",
+        "description": "One page of report previews, newest first.\n\nThe two criteria are a union, not an intersection.\n\n`cursor` is the `report_id` of the last preview already held. Omit it for\nthe first page, and stop when the response carries no `next_cursor`.",
+        "operationId": "list_report_previews",
         "parameters": [
           {
             "in": "query",
             "name": "public",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Public"
+              "default": false,
+              "title": "Public",
+              "type": "boolean"
             }
           },
           {
@@ -690,11 +743,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ReportPreview"
-                  },
-                  "title": "Response Get Report Previews",
-                  "type": "array"
+                  "$ref": "#/components/schemas/ReportPreviewPage"
                 }
               }
             },
@@ -711,11 +760,17 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Report Previews"
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Report Previews"
       }
     },
     "/reports/{report_id}": {
       "get": {
+        "description": "Read one report in full: its metadata and every container mounted in it.\n\nA report that does not exist, or that this caller may not read, never\nreaches this body. The guard above answers both.",
         "operationId": "get_specific_report",
         "parameters": [
           {
@@ -751,49 +806,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Specific Report"
-      },
-      "patch": {
-        "description": "Since metadata changes are very straightforward, a 204 is sufficient to\nconfirm success. No need to waste bandwidth returning the entire report.\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH",
-        "operationId": "update_report_metadata",
-        "parameters": [
+        "security": [
           {
-            "in": "path",
-            "name": "report_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Report Id",
-              "type": "string"
-            }
+            "HTTPBearer": []
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReportMetadata"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update Report Metadata"
+        "summary": "Get Specific Report"
       }
     },
     "/reports/{report_id}/contents": {
@@ -808,6 +826,22 @@
               "format": "uuid",
               "title": "Report Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "position",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/NonNegativeInt"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Position"
             }
           }
         ],
@@ -843,7 +877,110 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Add Generated Content To Report"
+      }
+    },
+    "/reports/{report_id}/title": {
+      "put": {
+        "description": "Retitle a report.\n\nA 204 is enough to confirm it: the caller already knows the title it sent,\nso returning the report again would only waste bandwidth.",
+        "operationId": "rename_specific_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportTitle"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rename Specific Report"
+      }
+    },
+    "/reports/{report_id}/visibility": {
+      "put": {
+        "description": "Publish a report to everyone, or take it private again.\n\nThe caller is recorded alongside the flip: `report_visibility` is an\nappend-only history, and who published a report is part of what it answers.",
+        "operationId": "publish_or_unpublish_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportVisibility"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Publish Or Unpublish Report"
       }
     }
   }

@@ -16,7 +16,16 @@
     var(--color-black)
   );
   --background-color-secondary: light-dark(var(--color-gray-200), #1e1e1e);
+
+  --text-color-secondary: light-dark(
+    var(--color-neutral-500),
+    var(--color-gray-400)
+  );
   --border-color-primary: light-dark(var(--color-black), var(--color-white));
+  --border-color-muted: light-dark(
+    var(--color-gray-300),
+    var(--color-gray-700)
+  );
   --transparent-color: rgba(0, 0, 0, 0);
   --border-width-primary: 1px;
 

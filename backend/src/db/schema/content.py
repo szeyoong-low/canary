@@ -6,12 +6,11 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
-    func,
     text,
 )
 from sqlalchemy.dialects.postgresql import ENUM, JSONB, TIMESTAMP, UUID
 
-from . import metadata
+from . import metadata, write_timestamp
 
 """Content blocks, the containers that group them, and where they are mounted."""
 
@@ -35,13 +34,13 @@ text_store = Table(
         "created_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column(
         "content_last_modified_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column("deleted_at", TIMESTAMP(timezone=True), nullable=True),
     CheckConstraint("size_bytes >= 0", name="size_bytes_non_negative"),
@@ -77,13 +76,13 @@ blob_store = Table(
         "created_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column(
         "content_last_modified_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column("deleted_at", TIMESTAMP(timezone=True), nullable=True),
     CheckConstraint("size_bytes >= 0", name="size_bytes_non_negative"),
@@ -110,7 +109,7 @@ content_container = Table(
         "created_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column("deleted_at", TIMESTAMP(timezone=True), nullable=True),
     # Blocks are not reusable, so the chart and the dataset must be separate

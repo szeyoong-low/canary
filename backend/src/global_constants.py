@@ -20,6 +20,9 @@ AUTHORIZATION_HEADER: str = "Authorization"
 
 LOCATION_HEADER: str = "Location"
 
+# Not `X-`prefixed: RFC 6648 deprecated that convention.
+REPORT_ROLE_HEADER: str = "Report-Role"
+
 
 def column_selection_regex(
     column_name: str, tagged: Literal["tagged", "untagged", "any"]
@@ -44,3 +47,7 @@ def column_selection_regex(
 
 # Allowed key columns
 DATE_KEY: Column = "date"
+
+# Must keep in sync with seed.__main__.py
+type PlatformRoleName = Literal["suspended", "app_user", "admin"]
+type ReportRoleName = Literal["viewer", "commenter", "editor", "owner"]

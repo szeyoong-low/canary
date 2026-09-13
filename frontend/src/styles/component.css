@@ -128,33 +128,50 @@
   min-width: 0;
 }
 
+/* Hover cards */
+
+.HoverCard,
+.OptionCard {
+  --card-border-radius: 0.75rem;
+
+  cursor: pointer;
+
+  border: var(--border-width-primary) solid var(--border-color-muted);
+  border-radius: var(--card-border-radius);
+
+  transition:
+    background-color var(--transition-delay),
+    border-color var(--transition-delay);
+  &:hover:not(:disabled) {
+    background-color: var(--background-color-secondary);
+    border-color: var(--border-color-primary);
+  }
+}
+
 /* Option cards */
 
 .OptionCard {
   --card-width: 16rem;
   --card-min-height: 4rem;
-  --card-border-radius: 0.75rem;
   --card-padding: 1rem;
-  --card-inactive-opacity: 0.5;
+  --card-inactive-opacity: 0.6;
   --card-active-opacity: 1;
+  --card-focus-ring-width: 2px;
+  --card-focus-ring-offset: 2px;
 
   width: var(--card-width);
   min-height: var(--card-min-height);
 
-  /* To centre the text */
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  text-align: center;
-
-  border: var(--border-width-primary) solid var(--border-color-primary);
-  border-radius: var(--card-border-radius);
+  gap: 0.25rem;
+  text-align: start;
   padding: var(--card-padding);
 
-  cursor: pointer;
-  transition: background-color var(--transition-delay);
-  &:hover:not(:disabled) {
-    background-color: var(--background-color-secondary);
+  &:focus-visible {
+    outline: var(--card-focus-ring-width) solid var(--canary-theme-color);
+    outline-offset: var(--card-focus-ring-offset);
   }
 
   &:disabled {
@@ -166,6 +183,11 @@
     opacity: var(--card-active-opacity);
     cursor: progress;
   }
+}
+
+.OptionCardHint {
+  color: var(--text-color-secondary);
+  font-size: var(--text-sm);
 }
 
 /* Authentication */
@@ -268,4 +290,30 @@ a,
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   position: relative;
+}
+
+/* Report layout */
+.ReportTitle {
+  font-family: var(--title-font-family);
+
+  /* Tailwind text-xl */
+  font-size: var(--text-xl);
+  line-height: var(--tw-leading, var(--text-xl--line-height));
+
+  /* Tailwind font-medium */
+  --tw-font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Report creation page */
+
+.PageHeading {
+  font-family: var(--title-font-family);
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+  font-weight: var(--font-weight-medium);
+}
+
+.PageSubheading {
+  color: var(--text-color-secondary);
 }
