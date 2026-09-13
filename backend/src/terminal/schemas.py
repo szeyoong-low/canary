@@ -28,7 +28,7 @@ class AssetPriceDailyParams(ParamBaseModel):
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""
-                    Base metrics available: {ASSET_PRICE_DAILY_BASE_METRICS},
+                    Base metrics available: {sorted(ASSET_PRICE_DAILY_BASE_METRICS)},
                     where `vwap` is the volume-weighted average price
                 """),
             ),
@@ -53,7 +53,7 @@ class MarketCompositionParams(ParamBaseModel):
             Field(
                 discriminator=UNION_DISCRIMINATOR,
                 description=cleandoc(f"""
-                    Base metrics available: {MARKET_COMPOSITION_BASE_METRICS}
+                    Base metrics available: {sorted(MARKET_COMPOSITION_BASE_METRICS)}
                 """),
             ),
         ]
@@ -62,7 +62,7 @@ class MarketCompositionParams(ParamBaseModel):
     drilldown: Annotated[
         MarketDrilldownParam,
         Field(
-            description=cleandoc(f"""One or many of {MARKET_DRILLDOWN}, from most
+            description=cleandoc(f"""One or many of {sorted(MARKET_DRILLDOWN)}, from most
             high-level to most granular, e.g. [sector, industry, companyName]""")
         ),
     ]
