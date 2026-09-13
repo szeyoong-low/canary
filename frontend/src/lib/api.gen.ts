@@ -292,8 +292,7 @@ export interface components {
         };
         /** PromptBody */
         PromptBody: {
-            /** Prompt */
-            prompt: string;
+            prompt: components["schemas"]["NonEmptyString"];
         };
         /** RGBA */
         RGBA: {
