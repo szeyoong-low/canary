@@ -11,7 +11,7 @@ export default function ContentContainer({
   return (
     <section className="flex w-full flex-col items-center gap-y-3">
       {container.prose !== null && (
-        <p className="w-full text-sm">{container.prose}</p>
+        <p className="w-full text-justify">{container.prose}</p>
       )}
 
       {container.chart !== null && (
