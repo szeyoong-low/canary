@@ -1,14 +1,15 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { Link } from "react-router";
 import { BounceLoader } from "react-spinners";
-import { canaryThemeColour } from "@/shared/constants";
+import { canaryThemeColour, reportBrowserPath } from "@/shared/constants";
+import { type ClassNameProps } from "@/shared/types";
+import { mergeClassName } from "@/lib/mergeClassName";
 import {
   type ReportPreview,
   type ReportPreviewFilters,
   reportPreviewsQueryOptions,
   type ReportPreviewPage,
 } from "@/lib/reports";
-import { reportBrowserPath } from "@/shared/constants";
 import Chart from "./Chart";
 import {
   useInfiniteQuery,
@@ -34,11 +35,11 @@ function useReportPreviews(
   return useInfiniteQuery(reportPreviewsQueryOptions(filters, isAuthenticated));
 }
 
-export default function ReportGallery() {
+export default function ReportGallery({ className }: ClassNameProps) {
   const { isAuthenticated } = useAuth0();
 
   return (
-    <div className="flex flex-col gap-y-10">
+    <div className={mergeClassName("flex flex-col gap-y-10", className)}>
       {isAuthenticated && (
         <PreviewList
           heading="Your reports"

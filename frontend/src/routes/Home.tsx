@@ -5,13 +5,14 @@ import { ReportGallery } from "@/components";
 
 export default function Home() {
   return (
-    <div className="flex justify-center">
+    <div className="flex flex-col items-center gap-4">
       <div className="mx-10 md:mx-0 md:w-175 flex flex-col gap-4 text-justify">
         <Hero />
         <hr className="SectionDivider" />
         <CallToAction />
-        <ReportGallery />
       </div>
+
+      <ReportGallery className="w-full max-w-250 px-10" />
     </div>
   );
 }
