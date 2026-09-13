@@ -129,7 +129,7 @@ function PreviewList({
           type="button"
           disabled={isFetchingNextPage}
           onClick={() => void fetchNextPage()}
-          className="SlidingUnderline self-center cursor-pointer disabled:cursor-progress"
+          className="SlidingUnderline self-center cursor-pointer disabled:cursor-progress mt-3"
         >
           {isFetchingNextPage ? "Loading..." : "Load more"}
         </button>

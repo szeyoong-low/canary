@@ -25,10 +25,8 @@ function Hero() {
           <span className="text-theme">Canary</span>
           <span className="HeroBird" />
         </div>
-        crystallises <br />
-        chaos <br />
-        into <br />
-        charts.
+        crystallises chaos <br />
+        into charts.
       </h2>
     </div>
   );
@@ -49,8 +47,8 @@ function CallToAction() {
         for financial analysts.
       </p>
       <p>
-        It turns your questions about market movements and trade flows into
-        professional reports with compelling, elegant charts.
+        It turns your questions about market movements into compelling, elegant
+        reports.
       </p>
     </div>
   );
