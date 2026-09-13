@@ -1,14 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from ..agent.invoke import invoke_agent
-from ..auth.dependencies import CurrentUser, require_platform_role
+from ..auth.dependencies import ActiveUser, CurrentUser, require_platform_role
 from ..db.repositories.models import (
     ReportAccess,
     ReportContentContainer,
     ReportHeader,
+    ReportPreviewRecord,
 )
 from ..db.repositories.report_contents import (
     create_mounted_container,
@@ -17,9 +18,11 @@ from ..db.repositories.report_contents import (
 from ..db.repositories.reports import (
     create_report,
     get_report_header,
+    get_report_previews,
     rename_report,
     set_report_visibility,
 )
+from ..db.repositories.role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 from ..db.session import DBSession
 from ..global_constants import LOCATION_HEADER, PlatformRoleName, ReportRoleName
 from ..terminal.utility import TerminalToolResult
@@ -86,21 +89,60 @@ async def create_new_report(
 
 
 @router.get("/previews")
-def get_report_previews(
-    public: bool | None = None,
+async def list_report_previews(
+    user: ActiveUser,
+    session: DBSession,
+    public: bool = False,
     minimum_report_role: types.MinimumReportRole | None = None,
     cursor: UUID | None = None,
     page_size: types.PageSizeParam = DEFAULT_PAGINATION_PAGE_SIZE,
-) -> list[types.ReportPreview]:
-    print(
-        {
-            "public": public,
-            "minimum_report_role": minimum_report_role,
-            "cursor": cursor,
-            "page_size": page_size,
-        }
+) -> types.ReportPreviewPage:
+    """
+    One page of report previews, newest first.
+
+    The two criteria are a union, not an intersection.
+
+    `cursor` is the `report_id` of the last preview already held. Omit it for
+    the first page, and stop when the response carries no `next_cursor`.
+    """
+
+    if not public and minimum_report_role is None:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Ask for public reports, a minimum report role, or both.",
+        )
+
+    records: list[ReportPreviewRecord] = await get_report_previews(
+        session,
+        user_id=user.user_id if user is not None else None,
+        include_public=public,
+        minimum_granted_precedence=(
+            await get_precedence(session, REPORT_ROLE_TABLE, minimum_report_role)
+            if minimum_report_role is not None and user is not None
+            else None
+        ),
+        cursor=cursor,
+        limit=page_size + 1,  # One more than asked for, to get the next cursor
     )
-    return []
+
+    page: list[ReportPreviewRecord] = records[:page_size]
+
+    return types.ReportPreviewPage(
+        previews=[
+            types.ReportPreview(
+                report_id=record.report_id,
+                title=record.title,
+                authors=record.authors,
+                chart=(
+                    types.ChartConfigModel.model_validate(record.chart)
+                    if record.chart is not None
+                    else None
+                ),
+            )
+            for record in page
+        ],
+        next_cursor=page[-1].report_id if len(records) > page_size else None,
+    )
 
 
 @router.get(REPORT_ID_PATH_PARAM_SEGMENT)

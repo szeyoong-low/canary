@@ -102,3 +102,20 @@ class ReportContentContainer(DatabaseRecord):
     # This layer does not know a chart config from any other object.
     chart: Any | None
     prose: str | None
+
+
+class ReportPreviewRecord(DatabaseRecord):
+    """One report as it appears in a gallery: enough to render a card and link
+    to it, and nothing more.
+
+    Deliberately not a subclass of `ReportHeader` despite the overlap. A preview
+    is one row of a paginated list and a header is the top of one report, so the
+    two are expected to diverge.
+    """
+
+    # Doubles as the pagination cursor. `report_id` is a uuidv7, so it sorts by
+    # creation time, which is what makes keyset pagination possible here at all.
+    report_id: UUID
+    title: str
+    authors: list[str]
+    chart: Any | None

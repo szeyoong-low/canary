@@ -51,8 +51,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Report Previews */
-        get: operations["get_report_previews"];
+        /**
+         * List Report Previews
+         * @description One page of report previews, newest first.
+         *
+         *     The two criteria are a union, not an intersection.
+         *
+         *     `cursor` is the `report_id` of the last preview already held. Omit it for
+         *     the first page, and stop when the response carries no `next_cursor`.
+         */
+        get: operations["list_report_previews"];
         put?: never;
         post?: never;
         delete?: never;
@@ -314,8 +322,23 @@ export interface components {
         ReportPreview: {
             /** Authors */
             authors: components["schemas"]["NonEmptyString"][];
-            chart: components["schemas"]["ChartConfigModel"];
+            chart: components["schemas"]["ChartConfigModel"] | null;
+            /**
+             * Report Id
+             * Format: uuid
+             */
+            report_id: string;
             title: components["schemas"]["NonEmptyString"];
+        };
+        /**
+         * ReportPreviewPage
+         * @description One page of a gallery, and how to ask for the next.
+         */
+        ReportPreviewPage: {
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Previews */
+            previews: components["schemas"]["ReportPreview"][];
         };
         /** @enum {string} */
         ReportRoleName: "viewer" | "commenter" | "editor" | "owner";
@@ -452,10 +475,10 @@ export interface operations {
             };
         };
     };
-    get_report_previews: {
+    list_report_previews: {
         parameters: {
             query?: {
-                public?: boolean | null;
+                public?: boolean;
                 minimum_report_role?: components["schemas"]["MinimumReportRole"] | null;
                 cursor?: string | null;
                 page_size?: number;
@@ -472,7 +495,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportPreview"][];
+                    "application/json": components["schemas"]["ReportPreviewPage"];
                 };
             };
             /** @description Validation Error */

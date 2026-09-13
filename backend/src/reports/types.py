@@ -51,7 +51,18 @@ class BaseReport(BaseModel):
 
 
 class ReportPreview(BaseReport):
-    chart: ChartConfigModel
+    # The link target for the card, and the cursor that asks for the page after
+    # this one. One value serving both is a property of `report_id` being a
+    # uuidv7: it identifies the report and orders it at the same time.
+    report_id: UUID
+    chart: ChartConfigModel | None  # First chart of the report
+
+
+class ReportPreviewPage(BaseModel):
+    """One page of a gallery, and how to ask for the next."""
+
+    previews: list[ReportPreview]
+    next_cursor: UUID | None  # `None` means this was the last page
 
 
 class ReportFull(BaseReport):

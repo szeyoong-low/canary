@@ -372,7 +372,19 @@
             "type": "array"
           },
           "chart": {
-            "$ref": "#/components/schemas/ChartConfigModel"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartConfigModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "report_id": {
+            "format": "uuid",
+            "title": "Report Id",
+            "type": "string"
           },
           "title": {
             "$ref": "#/components/schemas/NonEmptyString"
@@ -381,9 +393,40 @@
         "required": [
           "title",
           "authors",
+          "report_id",
           "chart"
         ],
         "title": "ReportPreview",
+        "type": "object"
+      },
+      "ReportPreviewPage": {
+        "description": "One page of a gallery, and how to ask for the next.",
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "previews": {
+            "items": {
+              "$ref": "#/components/schemas/ReportPreview"
+            },
+            "title": "Previews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "previews",
+          "next_cursor"
+        ],
+        "title": "ReportPreviewPage",
         "type": "object"
       },
       "ReportRoleName": {
@@ -651,22 +694,17 @@
     },
     "/reports/previews": {
       "get": {
-        "operationId": "get_report_previews",
+        "description": "One page of report previews, newest first.\n\nThe two criteria are a union, not an intersection.\n\n`cursor` is the `report_id` of the last preview already held. Omit it for\nthe first page, and stop when the response carries no `next_cursor`.",
+        "operationId": "list_report_previews",
         "parameters": [
           {
             "in": "query",
             "name": "public",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Public"
+              "default": false,
+              "title": "Public",
+              "type": "boolean"
             }
           },
           {
@@ -718,11 +756,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ReportPreview"
-                  },
-                  "title": "Response Get Report Previews",
-                  "type": "array"
+                  "$ref": "#/components/schemas/ReportPreviewPage"
                 }
               }
             },
@@ -739,7 +773,12 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get Report Previews"
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Report Previews"
       }
     },
     "/reports/{report_id}": {

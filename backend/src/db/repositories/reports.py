@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 from fastapi import status
@@ -6,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...global_types import ImplementationError
 from .exceptions import NotFoundError
-from .models import ReportHeader
+from .models import ReportHeader, ReportPreviewRecord
 from .platform_roles import SYSTEM_SUBJECT
 from .role_vocabulary import REPORT_ROLE_TABLE, get_precedence
 
@@ -83,21 +84,23 @@ async def create_report(
 
 MINIMUM_AUTHOR_ROLE: str = "editor"
 
-# Note this differs from the LATERAL subqueries in `report_access`, which narrow
-# to one known user before taking the latest row. Here every grantee is wanted,
-# so there is no single id to correlate on.
-#
-# The whole aggregate hangs off a LATERAL so it can see `report.report_id`, and
-# is LEFT joined so that a report whose owners have all been soft deleted still
-# comes back (with no authors) rather than vanishing.
-_REPORT_HEADER = """
-    SELECT
-        report.report_id,
-        report.title,
-        -- `array_agg` over no rows is NULL, not an empty array.
-        COALESCE(authors.display_names, ARRAY[]::text[]) AS authors
-    FROM report_live AS report
 
+def _authors_lateral(report_alias: str) -> str:
+    """Render the join that names everyone who can currently change a report.
+
+    Note this differs from the LATERAL subqueries in `report_access`, which
+    narrow to one known user before taking the latest row. Here every grantee is
+    wanted, so there is no single id to correlate on.
+
+    The whole aggregate hangs off a LATERAL so it can see the report's id, and is
+    LEFT joined so that a report whose owners have all been soft deleted still
+    comes back (with no authors) rather than vanishing.
+
+    Binds `:minimum_author_precedence`. The caller supplies it.
+    """
+
+    # Everything interpolated is a hardcoded alias from this module.
+    return f"""
     LEFT JOIN LATERAL (
         SELECT array_agg(author.display_name ORDER BY current_grant.set_at)
             AS display_names
@@ -105,7 +108,7 @@ _REPORT_HEADER = """
             SELECT DISTINCT ON (ledger.granted_to_user_id)
                 ledger.granted_to_user_id, ledger.role, ledger.set_at
             FROM report_role_ledger AS ledger
-            WHERE ledger.report_id = report.report_id
+            WHERE ledger.report_id = {report_alias}.report_id
             ORDER BY ledger.granted_to_user_id, ledger.set_at DESC
         ) AS current_grant
 
@@ -115,8 +118,20 @@ _REPORT_HEADER = """
 
         JOIN report_role ON report_role.role = current_grant.role
 
-        WHERE report_role.precedence >= :minimum_precedence
+        WHERE report_role.precedence >= :minimum_author_precedence
     ) AS authors ON TRUE
+"""
+
+
+_REPORT_HEADER = f"""
+    SELECT
+        report.report_id,
+        report.title,
+        -- `array_agg` over no rows is NULL, not an empty array.
+        COALESCE(authors.display_names, ARRAY[]::text[]) AS authors
+    FROM report_live AS report
+
+    {_authors_lateral("report")}
 
     WHERE report.report_id = :report_id
 """
@@ -135,7 +150,7 @@ async def get_report_header(session: AsyncSession, report_id: UUID) -> ReportHea
             text(_REPORT_HEADER),
             {
                 "report_id": report_id,
-                "minimum_precedence": await get_precedence(
+                "minimum_author_precedence": await get_precedence(
                     session, REPORT_ROLE_TABLE, MINIMUM_AUTHOR_ROLE
                 ),
             },
@@ -214,3 +229,134 @@ async def set_report_visibility(
 
     if row is None:
         raise NotFoundError(f"No report with id {report_id}.")
+
+
+# Two stages on purpose. The CTE picks the page and nothing else, and only then
+# does the outer query decorate those rows with authors and a chart. Written as
+# one flat statement, the planner would be free to compute both aggregates for
+# every report in the table before discarding all but a pageful.
+#
+# MATERIALIZED forces that. Postgres inlines a CTE that is referenced once,
+# which would undo the separation.
+# https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-CTE-MATERIALIZATION
+_REPORT_PREVIEWS = f"""
+    WITH page AS MATERIALIZED (
+        SELECT report.report_id, report.title
+        FROM report_live AS report
+
+        LEFT JOIN LATERAL (
+            SELECT history.public
+            FROM report_visibility AS history
+            WHERE history.report_id = report.report_id
+            ORDER BY history.set_at DESC
+            LIMIT 1
+        ) AS visibility ON TRUE
+
+        LEFT JOIN LATERAL (
+            SELECT history.role
+            FROM report_role_ledger AS history
+            WHERE history.report_id = report.report_id
+              AND history.granted_to_user_id = CAST(:user_id AS uuid)
+            ORDER BY history.set_at DESC
+            LIMIT 1
+        ) AS report_grant ON TRUE
+
+        LEFT JOIN report_role ON report_role.role = report_grant.role
+
+        WHERE
+            (
+                -- Opens the range for the first page
+                CAST(:cursor AS uuid) IS NULL
+
+                -- Strictly less than, so the row the cursor names is
+                -- the last of the previous page and is not served twice.
+                OR report.report_id < CAST(:cursor AS uuid)
+            )
+            AND (
+                -- A null parameter switches off a branch
+                (
+                    CAST(:include_public AS boolean)
+                    AND COALESCE(visibility.public, FALSE)
+                )
+                OR report_role.precedence
+                    >= CAST(:minimum_granted_precedence AS integer)
+            )
+
+        -- `report_id` is a uuidv7, so this is newest first. It is also unique,
+        -- which is what lets the cursor above be a single column with no
+        -- tiebreaker, and immutable, so a row never moves between pages.
+        ORDER BY report.report_id DESC
+        LIMIT CAST(:limit AS bigint)
+    )
+    SELECT
+        page.report_id,
+        page.title,
+        -- `array_agg` over no rows is NULL, not an empty array.
+        COALESCE(authors.display_names, ARRAY[]::text[]) AS authors,
+        first_container.chart
+    FROM page
+
+    {_authors_lateral("page")}
+
+    LEFT JOIN LATERAL (
+        -- The first container's chart, which is not the same as the first chart
+        -- in the report: if that container's block has been soft deleted this
+        -- yields NULL rather than falling through to the next container. The
+        -- preview is of the top of the report, whatever is there.
+        SELECT chart.payload AS chart
+        FROM content_mount_live AS mount
+        JOIN content_container_live AS container
+            ON container.container_id = mount.container_id
+        LEFT JOIN blob_store_live AS chart ON chart.blob_id = container.chart_id
+        WHERE mount.report_id = page.report_id
+        ORDER BY mount.position
+        LIMIT 1
+    ) AS first_container ON TRUE
+
+    -- Ordering is not carried out of CTEs
+    ORDER BY page.report_id DESC
+"""
+
+
+async def get_report_previews(
+    session: AsyncSession,
+    *,
+    user_id: UUID | None,
+    include_public: bool,
+    minimum_granted_precedence: int | None,
+    cursor: UUID | None,
+    limit: int,
+) -> list[ReportPreviewRecord]:
+    """
+    Read one page of report previews, newest first.
+
+    A report is included if it is public and `include_public` is set, or if
+    `user_id` holds a grant on it ranking at or above
+    `minimum_granted_precedence`. Passing neither criterion is not an error
+    here: it honestly returns nothing, and refusing the request is the route's
+    job, not this layer's.
+
+    `cursor` is the `report_id` of the last preview the caller already has.
+    Pass `None` for the first page.
+
+    Note the caller decides what `limit` means. To learn whether a further page
+    exists, ask for one more row than is wanted and check whether it arrived.
+    """
+
+    rows: Sequence[Row] = (
+        await session.execute(
+            text(_REPORT_PREVIEWS),
+            {
+                "user_id": user_id,
+                "include_public": include_public,
+                "minimum_granted_precedence": minimum_granted_precedence,
+                "cursor": cursor,
+                "limit": limit,
+                "minimum_author_precedence": await get_precedence(
+                    session, REPORT_ROLE_TABLE, MINIMUM_AUTHOR_ROLE
+                ),
+            },
+        )
+    ).all()
+
+    return [ReportPreviewRecord.model_validate(row) for row in rows]
