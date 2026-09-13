@@ -15,7 +15,7 @@ export default function ContentContainer({
       )}
 
       {container.chart !== null && (
-        <Chart config={container.chart} className="w-full" />
+        <Chart config={container.chart} className="w-full h-100 md:h-150" />
       )}
     </section>
   );

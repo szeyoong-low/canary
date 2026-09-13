@@ -56,7 +56,7 @@ export default function Chart({
   return (
     <div
       ref={containerRef}
-      className={twMerge("w-200 h-100 md:w-250 md:h-150", className)}
+      className={twMerge("w-full h-full", className)}
     ></div>
   );
 }

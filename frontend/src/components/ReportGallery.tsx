@@ -22,6 +22,8 @@ const ANY_GRANT: ReportPreviewFilters = {
   minimumReportRole: "viewer",
 };
 
+const THUMBNAIL_DIMENSIONS: string = "h-75 w-full";
+
 const PUBLIC_ONLY: ReportPreviewFilters = {
   publiclyVisible: true,
   minimumReportRole: null,
@@ -109,7 +111,7 @@ function PreviewList({
       )}
 
       {previews.length > 0 && (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-10">
           {previews.map((preview) => (
             <ReportCard key={preview.report_id} preview={preview} />
           ))}
@@ -139,11 +141,25 @@ function ReportCard({ preview }: { preview: ReportPreview }) {
         to={`${reportBrowserPath}/${preview.report_id}`}
         className="flex h-full flex-col gap-y-2 rounded-xl border border-(--border-color-primary) p-4 transition-colors hover:bg-(--background-color-secondary)"
       >
-        {preview.chart !== null && (
+        {preview.chart !== null ? (
           // `pointer-events-none` so a click on the canvas reaches the link
           // instead of being taken by ECharts' own interaction layer.
-          <div className="pointer-events-none">
-            <Chart config={preview.chart} className="w-full h-32" />
+          <div
+            className={mergeClassName(
+              THUMBNAIL_DIMENSIONS,
+              "pointer-events-none",
+            )}
+          >
+            <Chart config={preview.chart} />
+          </div>
+        ) : (
+          <div
+            className={mergeClassName(
+              THUMBNAIL_DIMENSIONS,
+              "flex items-center justify-center rounded-lg border border-dashed border-(--border-color-primary) opacity-50",
+            )}
+          >
+            <span className="text-sm">No chart yet</span>
           </div>
         )}
 
