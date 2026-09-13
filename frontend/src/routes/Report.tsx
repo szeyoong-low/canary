@@ -253,7 +253,7 @@ function Masthead({
               onRename(newTitle);
             }}
           >
-            <h2 className="text-xl font-medium ReportTitle">
+            <h2 className="ReportTitle">
               <input
                 type="text"
                 name={TITLE_FORM_FIELD}
@@ -274,7 +274,7 @@ function Masthead({
             </h2>
           </form>
         ) : (
-          <h2 className="text-xl font-medium ReportTitle">{title}</h2>
+          <h2 className="ReportTitle">{title}</h2>
         )}
 
         {canPublish ? (

@@ -273,4 +273,12 @@ a,
 /* Report layout */
 .ReportTitle {
   font-family: var(--title-font-family);
+
+  /* Tailwind text-xl */
+  font-size: var(--text-xl);
+  line-height: var(--tw-leading, var(--text-xl--line-height));
+
+  /* Tailwind font-medium */
+  --tw-font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-medium);
 }
