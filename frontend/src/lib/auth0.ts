@@ -27,6 +27,9 @@ export const auth0Client: Auth0Client = new Auth0Client({
   // Terraform configures rotating refresh tokens, but the SDK only asks for one
   // when this is set.
   useRefreshTokens: true,
+  // Allow Auth0 to use a hidden <iframe> to get new access and refresh tokens
+  // using the Auth0 session cookie.
+  useRefreshTokensFallback: true,
 });
 
 // The channel that carries the client to route actions (wired up in
