@@ -67,10 +67,10 @@ export async function createBlankReport({
 }
 
 export async function getFullReport(reportID: string): Promise<Report> {
+  const token: string | null = await getAccessTokenIfSignedIn();
+
   const { data, error, response } = await api.GET("/reports/{report_id}", {
-    headers: {
-      Authorization: `${BEARER} ${await getAccessToken()}`,
-    },
+    headers: token ? { Authorization: `${BEARER} ${token}` } : {},
     params: {
       path: {
         report_id: reportID,
