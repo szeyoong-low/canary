@@ -41,7 +41,9 @@ export default function ReportGallery({ className }: ClassNameProps) {
   const { isAuthenticated } = useAuth0();
 
   return (
-    <div className={mergeClassName("flex flex-col gap-y-10", className)}>
+    <div className={mergeClassName("flex flex-col gap-y-5 mb-5", className)}>
+      <hr className="SectionDivider" />
+
       {isAuthenticated && (
         <PreviewList
           heading="Your reports"
@@ -49,6 +51,8 @@ export default function ReportGallery({ className }: ClassNameProps) {
           emptyMessage="You have not been given access to any reports yet."
         />
       )}
+
+      <hr className="SectionDivider" />
 
       <PreviewList
         heading="Discover"
