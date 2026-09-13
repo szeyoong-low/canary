@@ -48,16 +48,28 @@ class AgentState(TypedDict):
     tool_attempts: int
 
 
-async def _planning_node(state: AgentState) -> dict:
-    """LLM node that turns user's question into a tool call."""
-    response: AIMessage = await planning_node_llm().ainvoke(state[MESSAGES])
-    return {MESSAGES: [response]}
-
-
 # Tool call TypedDict keys
 TOOL_NAME: str = "name"
 TOOL_ARGS: str = "args"
 TOOL_ID: str = "id"
+
+
+async def _planning_node(state: AgentState) -> dict:
+    """LLM node that turns user's question into a tool call."""
+    response: AIMessage = await planning_node_llm().ainvoke(state[MESSAGES])
+
+    log(
+        "INFO",
+        "agent.planned",
+        # The names the model picked, or an empty list when it replied in plain
+        # text instead. Arguments are left to the tool node, which logs them.
+        tools_called=[call[TOOL_NAME] for call in response.tool_calls],
+        # 0 on the first pass, 1 once the retry edge has sent us back here.
+        attempts=state.get(TOOL_ATTEMPTS, 0),
+    )
+
+    return {MESSAGES: [response]}
+
 
 _ONE_TOOL_ONLY: str = (
     "Expected exactly one tool call, got {count}. Retry with a single tool call "
@@ -100,6 +112,14 @@ async def _tool_node(state: AgentState) -> dict:
     tool_call: ToolCall = last_message.tool_calls[0]
     tool_selected: BaseTool = TERMINAL_TOOLS_MAPPING[tool_call[TOOL_NAME]]
 
+    log(
+        "INFO",
+        "agent.tool_call",
+        tool=tool_call[TOOL_NAME],
+        arguments=tool_call[TOOL_ARGS],
+        attempts=attempts,
+    )
+
     try:
         # Passing the arguments alone (not the whole call) returns the tool's
         # own value; passing the call would return a ToolMessage and discard
@@ -132,6 +152,8 @@ async def _tool_node(state: AgentState) -> dict:
             TOOL_ATTEMPTS: attempts,
         }
 
+    log("INFO", "agent.tool_succeeded", tool=tool_call[TOOL_NAME], attempts=attempts)
+
     return {
         MESSAGES: [
             ToolMessage(
@@ -153,18 +175,31 @@ TOOLS: str = "tools"
 def _after_tool_node(state: AgentState) -> str:
     """Send a recoverable failure back for one more try but end on anything else."""
 
-    if state.get(TERMINAL_TOOL_RESULT) is not None:
-        return END
+    failure: ToolFailure | None = state.get(TERMINAL_TOOL_FAILURE)
 
-    if (
-        state.get(TERMINAL_TOOL_FAILURE) is ToolFailure.RECOVERABLE
-        and state[TOOL_ATTEMPTS] < MAX_TOOL_ATTEMPTS
+    # One exit point, so that the decision can be logged once on the way out
+    # rather than repeated before each return.
+    if state.get(TERMINAL_TOOL_RESULT) is not None:
+        destination: str = END
+    elif (
+        failure is ToolFailure.RECOVERABLE and state[TOOL_ATTEMPTS] < MAX_TOOL_ATTEMPTS
     ):
         # The planning node re-reads the whole history, so the ToolMessage the
         # failure just appended is the correction it works from.
-        return PLANNING
+        destination = PLANNING
+    else:
+        # A fatal failure, or a recoverable one with no attempts left.
+        destination = END
 
-    return END
+    log(
+        "INFO",
+        "agent.routed",
+        destination=destination,
+        failure=failure,
+        attempts=state[TOOL_ATTEMPTS],
+    )
+
+    return destination
 
 
 @cache
