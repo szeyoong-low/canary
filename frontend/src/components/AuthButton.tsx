@@ -3,7 +3,7 @@ import { BounceLoader } from "react-spinners";
 import { type ClassNameProps } from "@/shared/types";
 import { canaryThemeColour } from "@/shared/constants";
 import { mergeClassName } from "@/lib/mergeClassName";
-import { useErrorToast } from "@/lib/useToast";
+import { useErrorToast } from "@/lib/toast";
 import { loginWithReturn } from "@/lib/auth0";
 
 export default function AuthButton({ className }: ClassNameProps) {
