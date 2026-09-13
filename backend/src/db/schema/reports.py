@@ -7,12 +7,11 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Table,
     Text,
-    func,
     text,
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 
-from . import metadata
+from . import metadata, write_timestamp
 
 """Reports, the roles they can be shared under, and the grant history."""
 
@@ -31,7 +30,7 @@ report = Table(
         "created_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     # Denormalised from the content blocks: a cache so listing reports does not
     # have to aggregate over every container. Whoever writes a block is
@@ -40,7 +39,7 @@ report = Table(
         "content_last_modified_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column("deleted_at", TIMESTAMP(timezone=True), nullable=True),
 )
@@ -91,7 +90,7 @@ report_role_ledger = Table(
         "set_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     # Report first, because the primary key's index is only usable from its
     # leading column. That ordering serves both "who has access to this report"
@@ -119,7 +118,7 @@ report_visibility = Table(
         "set_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     # One flip per report per instant, and the leading column is what the
     # "current visibility of this report" lookup filters on.

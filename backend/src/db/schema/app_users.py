@@ -6,12 +6,11 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Table,
     Text,
-    func,
     text,
 )
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 
-from . import metadata
+from . import metadata, write_timestamp
 
 """Users, the platform roles they can hold, and the grant history."""
 
@@ -33,9 +32,7 @@ app_user = Table(
         "created_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        # `now()` is transaction start time, so every row written in one
-        # transaction shares a timestamp.
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     Column("deleted_at", TIMESTAMP(timezone=True), nullable=True),
 )
@@ -85,7 +82,7 @@ platform_role_ledger = Table(
         "set_at",
         TIMESTAMP(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        server_default=write_timestamp(),
     ),
     # One grant per user per instant. Ordering the key by user first makes it
     # usable for the "latest role for this user" lookup, which is the query the

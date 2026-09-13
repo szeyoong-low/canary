@@ -117,7 +117,7 @@ def _versioned_update(
         ),
         updated AS (
             UPDATE {table} AS t
-            SET {assignments}, content_last_modified_at = now()
+            SET {assignments}, content_last_modified_at = clock_timestamp()
             FROM existing AS e -- Implicit JOIN
             WHERE t.{id_column} = e.{id_column} AND t.xmin = :version
             RETURNING {returned_columns}
@@ -343,7 +343,7 @@ _CREATE_MOUNTED_CONTAINER = """
         -- The denormalised cache on `report`, which the schema makes whoever
         -- writes a block responsible for bumping in the same transaction.
         UPDATE report
-        SET content_last_modified_at = now()
+        SET content_last_modified_at = clock_timestamp()
         WHERE report_id = :report_id
     ),
     new_chart AS (
