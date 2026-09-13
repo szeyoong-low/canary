@@ -20,6 +20,9 @@ AUTHORIZATION_HEADER: str = "Authorization"
 
 LOCATION_HEADER: str = "Location"
 
+# Not `X-`prefixed: RFC 6648 deprecated that convention.
+REPORT_ROLE_HEADER: str = "Report-Role"
+
 
 def column_selection_regex(
     column_name: str, tagged: Literal["tagged", "untagged", "any"]

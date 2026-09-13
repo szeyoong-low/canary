@@ -12,6 +12,7 @@ from .src.global_constants import (
     AUTHORIZATION_HEADER,
     CONTENT_TYPE_HEADER,
     LOCATION_HEADER,
+    REPORT_ROLE_HEADER,
 )
 from .src.observability.telemetry import setup_logging
 from .src.reports import dev_router as agent
@@ -75,7 +76,7 @@ app.add_middleware(
     allow_origin_regex=env.allow_origin_regex,  # Allow all development previews
     allow_headers=[AUTHORIZATION_HEADER, CONTENT_TYPE_HEADER, IF_MATCH_HEADER],
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
-    expose_headers=[ETAG_HEADER, LOCATION_HEADER],
+    expose_headers=[ETAG_HEADER, LOCATION_HEADER, REPORT_ROLE_HEADER],
     allow_methods=[HTTPMethod.GET, HTTPMethod.POST, HTTPMethod.PUT],
 )
 

@@ -6,13 +6,14 @@ import type { components, paths } from "@/lib/api.gen";
 import { apiOrigin } from "@/lib/env";
 import { getAccessToken } from "@/lib/auth0";
 import { clearPromptDraft } from "@/lib/promptDraft";
-import { APIError } from "@/shared/types";
+import { APIError, type ReportRole } from "@/shared/types";
 
 // Headers must be built per call as a shared Headers instance would hold
 // one user's token for the lifetime of the browser bundle, including after
 // they sign out.
 
 const LOCATION_HEADER_KEY: string = "Location";
+const REPORT_ROLE_HEADER_KEY: string = "Report-Role";
 const BEARER: string = "Bearer";
 
 // Typed against the backend's OpenAPI schema: paths, methods and bodies are
@@ -29,11 +30,23 @@ export type ContentContainerType = Omit<
   chart: EChartsOption | null;
 };
 
+// The caller's effective role, as the backend saw it on this response. Read off
+// a header rather than the body because the metadata writes answer a bodyless
+// 204, and this page never refetches after a write.
+//
+// Unlike everything else here, it is an unchecked cast: response headers are
+// not modelled by the generated types. `hasAtLeastRole` treats an unrecognised
+// value the same as no grant, since it will not be a key in the ladder.
+function readReportRole(response: Response): ReportRole | null {
+  return response.headers.get(REPORT_ROLE_HEADER_KEY) as ReportRole | null;
+}
+
 export type Report = Omit<
   components["schemas"]["ReportFull"],
   "content_containers"
 > & {
   content_containers: ContentContainerType[];
+  role: ReportRole | null;
 };
 
 export async function createBlankReport({
@@ -71,6 +84,7 @@ export async function getFullReport(reportID: string): Promise<Report> {
 
   return {
     ...data,
+    role: readReportRole(response),
     content_containers: data.content_containers.map((container) => ({
       ...container,
       chart: container.chart as EChartsOption | null,
@@ -94,11 +108,12 @@ export function reportQueryOptions(reportID: string) {
 const APPEND_TO_END = null;
 
 // Returns the saved container so the caller can place it in the cached report
-// exactly as a refetch would have returned it.
+// exactly as a refetch would have returned it, and the role so a grant that
+// changed since the page loaded is picked up without a refetch.
 export async function generateReportContent(
   reportID: string,
   prompt: string,
-): Promise<ContentContainerType> {
+): Promise<{ container: ContentContainerType; role: ReportRole | null }> {
   const { data, error, response } = await api.POST(
     "/reports/{report_id}/contents",
     {
@@ -121,10 +136,17 @@ export async function generateReportContent(
   // an expired session or a failed request.
   clearPromptDraft();
 
-  return { ...data, chart: data.chart as EChartsOption | null };
+  return {
+    container: { ...data, chart: data.chart as EChartsOption | null },
+    role: readReportRole(response),
+  };
 }
 
-export async function renameReport(reportID: string, newTitle: string) {
+// Both metadata writes answer 204, so the role is the only thing they return.
+export async function renameReport(
+  reportID: string,
+  newTitle: string,
+): Promise<ReportRole | null> {
   const { error, response } = await api.PUT("/reports/{report_id}/title", {
     headers: {
       Authorization: `${BEARER} ${await getAccessToken()}`,
@@ -140,12 +162,14 @@ export async function renameReport(reportID: string, newTitle: string) {
   if (error) {
     throw new APIError(response);
   }
+
+  return readReportRole(response);
 }
 
 export async function updateReportVisibility(
   reportID: string,
   publiclyVisible: boolean,
-) {
+): Promise<ReportRole | null> {
   const { error, response } = await api.PUT("/reports/{report_id}/visibility", {
     headers: {
       Authorization: `${BEARER} ${await getAccessToken()}`,
@@ -161,4 +185,6 @@ export async function updateReportVisibility(
   if (error) {
     throw new APIError(response);
   }
+
+  return readReportRole(response);
 }

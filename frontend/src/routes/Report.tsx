@@ -1,4 +1,3 @@
-import { useAuth0 } from "@auth0/auth0-react";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Eye, EyeOff } from "lucide-react";
@@ -6,6 +5,7 @@ import { useParams } from "react-router";
 import { BounceLoader } from "react-spinners";
 import { ContentContainer, Prompt } from "@/components";
 import { canaryThemeColour } from "@/shared/constants";
+import { APIError, hasAtLeastRole, type ReportRole } from "@/shared/types";
 import {
   generateReportContent,
   reportQueryKey,
@@ -17,6 +17,11 @@ import {
 } from "@/lib/reports";
 import { useErrorToast } from "@/lib/useToast";
 
+const EDIT_ROLE: ReportRole = "editor";
+const OWNER_ROLE: ReportRole = "owner";
+
+const FORBIDDEN: number = 403;
+
 const TITLE_FORM_FIELD: string = "title";
 
 export default function Report() {
@@ -25,8 +30,6 @@ export default function Report() {
   if (!reportID) {
     throw new Error("Missing `reportID` route parameter.");
   }
-
-  const { isAuthenticated } = useAuth0();
 
   // The component now owns fetching, so unlike with a route loader it must
   // render the pending and error states itself.
@@ -44,27 +47,34 @@ export default function Report() {
 
     // Writes the saved container straight into the cached report instead of
     // invalidating it
-    onSuccess: (container: ContentContainerType) => {
+    onSuccess: ({
+      container,
+      role,
+    }: {
+      container: ContentContainerType;
+      role: ReportRole | null;
+    }) => {
       queryClient.setQueryData(
         reportQueryKey(reportID),
         (previous: ReportType | undefined) =>
           previous && {
             ...previous,
+            role,
             content_containers: [...previous.content_containers, container],
           },
       );
+    },
+
+    onError: (error: Error) => {
+      resyncIfForbidden(error);
     },
   });
 
   // Both metadata endpoints answer 204. Optimistic update: the cache is patched
   // before the request goes out and rolled back if it fails.
-  const patchCachedReport = async (
+  const patchCachedReport = (
     patch: Partial<ReportType>,
-  ): Promise<ReportType | undefined> => {
-    // A background refetch already in flight could land after this patch but
-    // before the it succeeds, so it will overwrite it with pre-edit server state
-    await queryClient.cancelQueries({ queryKey: reportQueryKey(reportID) });
-
+  ): ReportType | undefined => {
     const previous: ReportType | undefined = queryClient.getQueryData(
       reportQueryKey(reportID),
     );
@@ -77,15 +87,45 @@ export default function Report() {
     return previous; // Handed to `onError` as its third argument
   };
 
+  // The `onMutate` form. A background refetch already in flight could land
+  // after this patch but before the write succeeds, overwriting it with
+  // pre-edit server state, so it is cancelled first. react-query awaits
+  // `onMutate`, and awaits the snapshot it resolves to before `onError`.
+  const patchCachedReportAfterCancelling = async (
+    patch: Partial<ReportType>,
+  ): Promise<ReportType | undefined> => {
+    await queryClient.cancelQueries({ queryKey: reportQueryKey(reportID) });
+
+    return patchCachedReport(patch);
+  };
+
   const rollBack = (previous: ReportType | undefined) => {
     queryClient.setQueryData(reportQueryKey(reportID), previous);
   };
 
+  // A 403 means the cached role is out of date: the grant was changed by
+  // someone else after this page last heard from the backend. Refetching is the
+  // one case where this page wants a revalidation, because the alternative is
+  // leaving a control on screen that can only keep failing.
+  const resyncIfForbidden = (error: Error) => {
+    if (error instanceof APIError && error.status === FORBIDDEN) {
+      void queryClient.invalidateQueries({
+        queryKey: reportQueryKey(reportID),
+      });
+    }
+  };
+
   const rename = useMutation({
     mutationFn: (newTitle: string) => renameReport(reportID, newTitle),
-    onMutate: (newTitle: string) => patchCachedReport({ title: newTitle }),
-    onError: (_error, _newTitle, previous) => {
+    onMutate: (newTitle: string) =>
+      patchCachedReportAfterCancelling({ title: newTitle }),
+    // The 204 carries no body, so the role is all there is to write back.
+    onSuccess: (role: ReportRole | null) => {
+      patchCachedReport({ role });
+    },
+    onError: (error, _newTitle, previous) => {
       rollBack(previous);
+      resyncIfForbidden(error);
     },
   });
 
@@ -99,9 +139,13 @@ export default function Report() {
     mutationFn: (publiclyVisible: boolean) =>
       updateReportVisibility(reportID, publiclyVisible),
     onMutate: (publiclyVisible: boolean) =>
-      patchCachedReport({ public: publiclyVisible }),
-    onError: (_error, _publiclyVisible, previous) => {
+      patchCachedReportAfterCancelling({ public: publiclyVisible }),
+    onSuccess: (role: ReportRole | null) => {
+      patchCachedReport({ role });
+    },
+    onError: (error, _publiclyVisible, previous) => {
       rollBack(previous);
+      resyncIfForbidden(error);
     },
   });
 
@@ -126,6 +170,8 @@ export default function Report() {
     <div className="flex justify-center">
       <div className="mx-10 sm:w-150 md:w-175 flex flex-col items-center gap-y-5">
         <Masthead
+          canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
+          canPublish={hasAtLeastRole(report.role, OWNER_ROLE)}
           title={report.title}
           authors={report.authors}
           publiclyVisible={report.public}
@@ -148,7 +194,7 @@ export default function Report() {
 
         <PreviewDisclaimer />
 
-        {isAuthenticated && (
+        {hasAtLeastRole(report.role, EDIT_ROLE) && (
           <Prompt
             onSubmit={(prompt: string) => {
               generate.mutate(prompt);
@@ -162,6 +208,8 @@ export default function Report() {
 }
 
 function Masthead({
+  canRename,
+  canPublish,
   title,
   authors,
   publiclyVisible,
@@ -170,6 +218,8 @@ function Masthead({
   onToggleVisibility,
   isChangingVisibility,
 }: {
+  canRename: boolean;
+  canPublish: boolean;
   title: string;
   authors: string[];
   publiclyVisible: boolean;
@@ -184,60 +234,77 @@ function Masthead({
   return (
     <header className="w-full flex flex-col items-center">
       <div className="flex items-center gap-x-2">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
+        {canRename ? (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
 
-            const formData = new FormData(event.currentTarget);
-            const submitted: FormDataEntryValue | null =
-              formData.get(TITLE_FORM_FIELD);
-            const newTitle: string =
-              typeof submitted === "string" ? submitted.trim() : "";
+              const formData = new FormData(event.currentTarget);
+              const submitted: FormDataEntryValue | null =
+                formData.get(TITLE_FORM_FIELD);
+              const newTitle: string =
+                typeof submitted === "string" ? submitted.trim() : "";
 
-            if (!newTitle || newTitle === title) {
-              event.currentTarget.reset();
-              return;
-            }
+              if (!newTitle || newTitle === title) {
+                event.currentTarget.reset();
+                return;
+              }
 
-            onRename(newTitle);
-          }}
-        >
-          <h2 className="text-xl font-medium ReportTitle">
-            <input
-              type="text"
-              name={TITLE_FORM_FIELD}
-              aria-label="Report title"
-              // Uncontrolled: typing re-renders nothing, optimistic cache
-              // update keeps this in step anyway
-              defaultValue={title}
-              className="field-sizing-content bg-transparent text-center focus:outline-none"
-              disabled={isRenaming}
-              // Clicking away commits, the same as pressing Enter. A form with a
-              // single text input submits on Enter without a submit button.
-              onBlur={(event) => {
-                event.currentTarget.form?.requestSubmit();
-              }}
-            />
-          </h2>
-        </form>
+              onRename(newTitle);
+            }}
+          >
+            <h2 className="text-xl font-medium ReportTitle">
+              <input
+                type="text"
+                name={TITLE_FORM_FIELD}
+                aria-label="Report title"
+                // Uncontrolled: typing re-renders nothing, optimistic cache
+                // update keeps this in step anyway
+                defaultValue={title}
+                className="field-sizing-content bg-transparent text-center focus:outline-none"
 
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            onToggleVisibility();
-          }}
-          // Putting in a form gives enter key behaviour
-        >
-          <button
-            type="submit"
-            aria-label={`${visibilityLabel}. Change who can see this report`}
-            title={`${visibilityLabel}ly visible`}
-            disabled={isChangingVisibility}
-            className="flex shrink-0 opacity-70 cursor-pointer disabled:cursor-progress"
+                disabled={isRenaming}
+                // Clicking away commits, the same as pressing Enter. A form
+                // with a single text input submits on Enter without a submit
+                // button.
+                onBlur={(event) => {
+                  event.currentTarget.form?.requestSubmit();
+                }}
+              />
+            </h2>
+          </form>
+        ) : (
+          <h2 className="text-xl font-medium ReportTitle">{title}</h2>
+        )}
+
+        {canPublish ? (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              onToggleVisibility();
+            }}
+            // Putting in a form gives enter key behaviour
+          >
+            <button
+              type="submit"
+              aria-label={`${visibilityLabel}. Change who can see this report`}
+              title={`${visibilityLabel}ly visible`}
+              disabled={isChangingVisibility}
+              className="flex shrink-0 opacity-70 cursor-pointer disabled:cursor-progress"
+            >
+              <VisibilityIcon size="1em" />
+            </button>
+          </form>
+        ) : (
+          <span
+            role="img"
+            aria-label={visibilityLabel}
+            title={visibilityLabel}
+            className="shrink-0 opacity-70"
           >
             <VisibilityIcon size="1em" />
-          </button>
-        </form>
+          </span>
+        )}
       </div>
       <p className="text-sm opacity-70">{authors.join(", ")}</p>
     </header>
