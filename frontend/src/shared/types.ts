@@ -37,13 +37,42 @@ export interface ClassNameProps {
   className?: string;
 }
 
+// FastAPI puts the message from every `HTTPException` under this key.
+interface ErrorBody {
+  detail: string;
+}
+
+// `detail` is only a string when the backend raised `HTTPException` itself.
+// FastAPI's own request validation answers 422 with an array of error objects,
+// which is for developers.
+function hasDetailMessage(body: unknown): body is ErrorBody {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "detail" in body &&
+    typeof body.detail === "string"
+  );
+}
+
 // Carries the HTTP status so callers can tell a permanent failure (403, 404)
 // from a transient one. The cache's retry policy reads `status` off this.
 export class APIError extends Error {
   readonly status: number;
 
-  constructor(response: Response) {
-    super(`Error ${String(response.status)}: ${response.statusText}`);
+  // `body` is the already-parsed response body, because a response can only be
+  // read once: `openapi-fetch` has consumed the stream by the time it hands us
+  // a failure, so reading it again here would throw. Callers pass it through as
+  // the `error` field of that result.
+  //
+  // The message becomes the description of the error toast (see
+  // `queryClient.ts`), so the backend's own wording reaches the user whenever
+  // it sent one worth showing.
+  constructor(response: Response, body?: unknown) {
+    super(
+      hasDetailMessage(body)
+        ? body.detail
+        : `Error ${String(response.status)}: ${response.statusText}`,
+    );
     this.name = "APIError";
     this.status = response.status;
   }
