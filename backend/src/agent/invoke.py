@@ -2,7 +2,7 @@ from typing import cast
 
 from fastapi import HTTPException
 from httpx import codes
-from langchain.messages import AnyMessage, HumanMessage, SystemMessage
+from langchain.messages import AnyMessage, HumanMessage
 
 from ..terminal.utility import TerminalToolResult
 from .graph import (
@@ -13,7 +13,7 @@ from .graph import (
     ToolFailure,
     build_graph,
 )
-from .llm import PLANNING_SYSTEM_PROMPT
+from .llm import PLANNING_SYSTEM_MESSAGE
 
 # Mask internal failures
 FAILURE_MESSAGE: str = (
@@ -29,7 +29,7 @@ async def invoke_agent(prompt: str) -> TerminalToolResult:
         await build_graph().ainvoke(
             {
                 MESSAGES: [
-                    SystemMessage(PLANNING_SYSTEM_PROMPT),
+                    PLANNING_SYSTEM_MESSAGE,
                     HumanMessage(prompt),
                 ]
             }

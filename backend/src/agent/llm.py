@@ -2,7 +2,7 @@ from functools import cache
 from inspect import cleandoc
 
 from langchain.chat_models import init_chat_model
-from langchain.messages import AIMessage
+from langchain.messages import AIMessage, SystemMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
 
@@ -75,6 +75,21 @@ There are three types of analysis functions:
         output column of `Scope.COLLECTIVE`, e.g. index to peer, rank, benchmark.
     - Not supported by all tools, and the supported set varies.
 """)
+
+# The prefix sent on every request is ordered `tools -> system prompt -> user
+# messages`, and is only cacheable up to an explicit breakpoint (Qwen does not
+# cache implicitly). Marking the last block of the system prompt therefore caches
+# the tool schemas in front of it too, which is the whole stable prefix.
+# A plain string `content` has nowhere to hang the marker, hence the block form
+PLANNING_SYSTEM_MESSAGE: SystemMessage = SystemMessage(
+    content=[
+        {
+            "type": "text",
+            "text": PLANNING_SYSTEM_PROMPT,
+            "cache_control": {"type": "ephemeral"},  # 5 minute TTL
+        }
+    ]
+)
 
 
 @cache
