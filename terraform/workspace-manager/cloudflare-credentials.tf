@@ -1,9 +1,3 @@
-variable "CLOUDFLARE_API_TOKEN" {
-  type        = string
-  description = "Cloudflare API token with DNS edit rights on the canary.markets zone. Every workspace that writes a DNS record authenticates with this."
-  sensitive   = true
-}
-
 locals {
   cloudflare_credential_key      = "CLOUDFLARE_API_TOKEN"
   cloudflare_credential_category = "env"

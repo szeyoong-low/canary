@@ -1,32 +1,3 @@
-variable "BACKEND_SECRETS" {
-  type        = map(string)
-  description = "Every environment value the backend reads"
-  sensitive   = true
-
-  validation {
-    // A missing key does not fail here by default: it fails at container start,
-    // as a pydantic ValidationError in CloudWatch, after ECS has cycled the task
-    // several times.
-    //
-    // The message cannot name which keys are missing. Terraform treats anything
-    // derived from a sensitive value as sensitive, and an error message may not be.
-    condition = length(setsubtract(
-      [
-        "ALLOW_ORIGINS",
-        "ALLOW_ORIGIN_REGEX",
-        "FMP_API_KEY",
-        "FMP_BASE_URL",
-        "OPENROUTER_API_KEY",
-        "PLANNING_NODE_MODEL",
-        "PLANNING_NODE_PROVIDER",
-      ],
-      keys(var.BACKEND_SECRETS)
-    )) == 0
-
-    error_message = "BACKEND_SECRETS must contain every field on the backend's settings model"
-  }
-}
-
 locals {
   production_secret_recovery  = 30
   development_secret_recovery = 0
