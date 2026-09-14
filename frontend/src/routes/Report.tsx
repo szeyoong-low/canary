@@ -1,9 +1,9 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Eye, EyeOff } from "lucide-react";
-import { useParams } from "react-router";
+import { ChevronDown, Eye, EyeOff, Trash2 } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
 import { BounceLoader } from "react-spinners";
-import { ContentContainer, Prompt } from "@/components";
+import { ConfirmDialog, ContentContainer, Prompt } from "@/components";
 import { canaryThemeColour } from "@/shared/constants";
 import { APIError, hasAtLeastRole, type ReportRole } from "@/shared/types";
 import {
@@ -12,9 +12,12 @@ import {
   reportQueryOptions,
   renameReport,
   updateReportVisibility,
+  deleteReport,
+  REPORT_PREVIEWS_QUERY_KEY_PREFIX,
   type ContentContainerType,
   type Report as ReportType,
 } from "@/lib/reports";
+import { toast } from "@/lib/toast";
 
 const EDIT_ROLE: ReportRole = "editor";
 const OWNER_ROLE: ReportRole = "owner";
@@ -22,6 +25,8 @@ const OWNER_ROLE: ReportRole = "owner";
 const FORBIDDEN: number = 403;
 
 const TITLE_FORM_FIELD: string = "title";
+
+const HOME_PATH: string = "/";
 
 export default function Report() {
   // Guaranteed by the route segment; the check only narrows the type.
@@ -40,6 +45,7 @@ export default function Report() {
   } = useQuery(reportQueryOptions(reportID));
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const generate = useMutation({
     mutationFn: (prompt: string) => generateReportContent(reportID, prompt),
@@ -132,6 +138,31 @@ export default function Report() {
     },
   });
 
+  // Not optimistic, unlike the two above. There is nothing to patch: the report
+  // being edited ceases to exist, so the page waits for the 204 and then leaves.
+  const remove = useMutation({
+    mutationFn: () => deleteReport(reportID),
+    meta: { errorTitle: "Could not delete this report" },
+    onSuccess: () => {
+      toast.success("Report deleted");
+
+      void navigate(HOME_PATH);
+
+      // Dropped rather than invalidated: refetching a deleted report would only
+      // 404. Without this, a back-button visit would render the stale cache
+      // entry before the failure came back.
+      queryClient.removeQueries({ queryKey: reportQueryKey(reportID) });
+
+      // The gallery is a separate cache entry and still lists this report.
+      void queryClient.invalidateQueries({
+        queryKey: REPORT_PREVIEWS_QUERY_KEY_PREFIX,
+      });
+    },
+    onError: (error: Error) => {
+      resyncIfForbidden(error);
+    },
+  });
+
   const changeVisibility = useMutation({
     mutationFn: (publiclyVisible: boolean) =>
       updateReportVisibility(reportID, publiclyVisible),
@@ -165,6 +196,7 @@ export default function Report() {
         <Masthead
           canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
           canPublish={hasAtLeastRole(report.role, OWNER_ROLE)}
+          canDelete={hasAtLeastRole(report.role, OWNER_ROLE)}
           title={report.title}
           authors={report.authors}
           publiclyVisible={report.public}
@@ -174,8 +206,12 @@ export default function Report() {
           onToggleVisibility={() => {
             changeVisibility.mutate(!report.public);
           }}
+          onDelete={() => {
+            remove.mutate();
+          }}
           isRenaming={rename.isPending}
           isChangingVisibility={changeVisibility.isPending}
+          isDeleting={remove.isPending}
         />
 
         {report.content_containers.map((container) => (
@@ -203,6 +239,7 @@ export default function Report() {
 function Masthead({
   canRename,
   canPublish,
+  canDelete,
   title,
   authors,
   publiclyVisible,
@@ -210,9 +247,12 @@ function Masthead({
   isRenaming,
   onToggleVisibility,
   isChangingVisibility,
+  onDelete,
+  isDeleting,
 }: {
   canRename: boolean;
   canPublish: boolean;
+  canDelete: boolean;
   title: string;
   authors: string[];
   publiclyVisible: boolean;
@@ -220,6 +260,8 @@ function Masthead({
   isRenaming: boolean;
   onToggleVisibility: () => void;
   isChangingVisibility: boolean;
+  onDelete: () => void;
+  isDeleting: boolean;
 }) {
   const VisibilityIcon = publiclyVisible ? Eye : EyeOff;
   const visibilityLabel = publiclyVisible ? "Public" : "Private";
@@ -297,6 +339,27 @@ function Masthead({
           >
             <VisibilityIcon size="1em" />
           </span>
+        )}
+
+        {canDelete && (
+          <ConfirmDialog
+            title="Delete this report?"
+            description="This report and everything in it will be permanently deleted. This cannot be undone."
+            confirmLabel="Delete"
+            onConfirm={onDelete}
+            isPending={isDeleting}
+            trigger={
+              <button
+                type="button"
+                aria-label="Delete this report"
+                title="Delete this report"
+                disabled={isDeleting}
+                className="flex shrink-0 text-(--text-color-secondary) cursor-pointer disabled:cursor-progress"
+              >
+                <Trash2 size="1em" />
+              </button>
+            }
+          />
         )}
       </div>
       <p className="text-sm text-(--text-color-secondary)">

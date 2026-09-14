@@ -243,6 +243,11 @@ async function getReportPreviews(
   };
 }
 
+export const REPORT_PREVIEWS_QUERY_KEY_PREFIX: readonly unknown[] = [
+  "reports",
+  "previews",
+];
+
 export function reportPreviewsQueryKey(
   filters: ReportPreviewFilters,
   isAuthenticated: boolean,
@@ -252,7 +257,7 @@ export function reportPreviewsQueryKey(
   //
   // The filters object is hashed structurally by the cache, so callers may pass a
   // fresh literal on every render without causing a refetch.
-  return ["reports", "previews", filters, isAuthenticated];
+  return [...REPORT_PREVIEWS_QUERY_KEY_PREFIX, filters, isAuthenticated];
 }
 
 export function reportPreviewsQueryOptions(
@@ -271,4 +276,19 @@ export function reportPreviewsQueryOptions(
     getNextPageParam: (lastPage: ReportPreviewPage) => lastPage.next_cursor,
     refetchOnMount: "always",
   });
+}
+
+export async function deleteReport(reportID: string): Promise<void> {
+  const { error, response } = await api.DELETE("/reports/{report_id}", {
+    headers: {
+      Authorization: `${BEARER} ${await getAccessToken()}`,
+    },
+    params: {
+      path: { report_id: reportID },
+    },
+  });
+
+  if (error) {
+    throw new APIError(response, error);
+  }
 }

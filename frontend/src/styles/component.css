@@ -324,3 +324,105 @@ a,
 .PageSubheading {
   color: var(--text-color-secondary);
 }
+
+/* Confirmation dialogs (TODO: vet) */
+
+.AlertDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 0.4);
+  /* Outranks the toast viewport at 20, so a toast cannot cover the dialog. */
+  z-index: 30;
+  transition: opacity var(--transition-delay);
+  /* Base UI keeps the element mounted until its transition ends, so the
+     closed states have to be styled rather than simply removed. */
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+}
+
+.AlertDialogPopup {
+  --popup-border-radius: 10px;
+  --popup-padding: 1.25rem;
+  --popup-max-width: 24rem;
+
+  position: fixed;
+  /* Centres the box on its own midpoint, which needs no knowledge of its
+     height the way a top/left offset would. */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: calc(100vw - 2 * var(--popup-padding));
+  max-width: var(--popup-max-width);
+  z-index: 30;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: var(--popup-padding);
+
+  background-color: var(--background-color-primary);
+  border: var(--border-width-primary) solid var(--border-color-primary);
+  border-radius: var(--popup-border-radius);
+
+  transition:
+    opacity var(--transition-delay),
+    transform var(--transition-delay);
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    /* Scales about the same midpoint the centring transform establishes, so
+       both have to be written together. */
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+}
+
+.AlertDialogTitle {
+  font-family: var(--title-font-family);
+  font-weight: var(--font-weight-medium);
+}
+
+.AlertDialogDescription {
+  color: var(--text-color-secondary);
+  font-size: var(--text-sm);
+}
+
+.AlertDialogActions {
+  display: flex;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+.AlertDialogButton {
+  --button-padding-inline: 0.75rem;
+  --button-padding-block: 0.375rem;
+
+  cursor: pointer;
+  padding-inline: var(--button-padding-inline);
+  padding-block: var(--button-padding-block);
+  border-radius: var(--pill-border-radius);
+  border: var(--border-width-primary) solid var(--border-color-muted);
+  font-size: var(--text-sm);
+
+  transition:
+    background-color var(--transition-delay),
+    border-color var(--transition-delay);
+  &:hover:not(:disabled) {
+    background-color: var(--background-color-secondary);
+    border-color: var(--border-color-primary);
+  }
+  &:disabled {
+    cursor: progress;
+  }
+}
+
+/* The irreversible choice, marked by colour rather than position so it reads
+   the same to a user who cannot distinguish the two buttons by order. */
+.AlertDialogButton[data-destructive] {
+  --destructive-color: light-dark(var(--color-red-700), var(--color-red-400));
+
+  color: var(--destructive-color);
+  border-color: var(--destructive-color);
+}
