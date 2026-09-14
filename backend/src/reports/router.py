@@ -17,6 +17,7 @@ from ..db.repositories.report_contents import (
 )
 from ..db.repositories.reports import (
     create_report,
+    delete_report,
     get_report_header,
     get_report_previews,
     rename_report,
@@ -279,5 +280,7 @@ async def add_generated_content_to_report(
         Depends(require_platform_role(ACTIVE_ROLE)),
     ],
 )
-async def soft_delete_report(report_id: UUID):
-    pass
+async def soft_delete_report(report_id: UUID, session: DBSession) -> None:
+    """Hide a report from every read without destroying it."""
+
+    await delete_report(session, report_id)

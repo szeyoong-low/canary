@@ -770,6 +770,7 @@
     },
     "/reports/{report_id}": {
       "delete": {
+        "description": "Hide a report from every read without destroying it.",
         "operationId": "soft_delete_report",
         "parameters": [
           {

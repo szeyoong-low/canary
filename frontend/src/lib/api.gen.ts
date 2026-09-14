@@ -86,7 +86,10 @@ export interface paths {
         get: operations["get_specific_report"];
         put?: never;
         post?: never;
-        /** Soft Delete Report */
+        /**
+         * Soft Delete Report
+         * @description Hide a report from every read without destroying it.
+         */
         delete: operations["soft_delete_report"];
         options?: never;
         head?: never;
