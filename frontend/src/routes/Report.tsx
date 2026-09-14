@@ -1,6 +1,12 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Eye, EyeOff, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { BounceLoader } from "react-spinners";
 import { ConfirmDialog, ContentContainer, Prompt } from "@/components";
@@ -169,8 +175,12 @@ export default function Report() {
     meta: { errorTitle: "Could not change who can see this report" },
     onMutate: (publiclyVisible: boolean) =>
       patchCachedReportAfterCancelling({ public: publiclyVisible }),
-    onSuccess: (role: ReportRole | null) => {
+    onSuccess: (role: ReportRole | null, publiclyVisible: boolean) => {
       patchCachedReport({ role });
+
+      toast.success(
+        publiclyVisible ? "Report published" : "Report is now private",
+      );
     },
     onError: (error, _publiclyVisible, previous) => {
       rollBack(previous);
@@ -195,7 +205,7 @@ export default function Report() {
       <div className="mx-10 sm:w-150 md:w-175 flex flex-col items-center gap-y-5">
         <Masthead
           canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
-          canPublish={hasAtLeastRole(report.role, OWNER_ROLE)}
+          canChangeVisibility={hasAtLeastRole(report.role, OWNER_ROLE)}
           canDelete={hasAtLeastRole(report.role, OWNER_ROLE)}
           title={report.title}
           authors={report.authors}
@@ -238,7 +248,7 @@ export default function Report() {
 
 function Masthead({
   canRename,
-  canPublish,
+  canChangeVisibility,
   canDelete,
   title,
   authors,
@@ -251,7 +261,7 @@ function Masthead({
   isDeleting,
 }: {
   canRename: boolean;
-  canPublish: boolean;
+  canChangeVisibility: boolean;
   canDelete: boolean;
   title: string;
   authors: string[];
@@ -263,8 +273,8 @@ function Masthead({
   onDelete: () => void;
   isDeleting: boolean;
 }) {
-  const VisibilityIcon = publiclyVisible ? Eye : EyeOff;
-  const visibilityLabel = publiclyVisible ? "Public" : "Private";
+  const { Icon: VisibilityIcon, label: visibilityLabel } =
+    describeVisibility(publiclyVisible);
 
   return (
     <header className="w-full flex flex-col items-center">
@@ -312,24 +322,12 @@ function Masthead({
           <h2 className="ReportTitle">{title}</h2>
         )}
 
-        {canPublish ? (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              onToggleVisibility();
-            }}
-            // Putting in a form gives enter key behaviour
-          >
-            <button
-              type="submit"
-              aria-label={`${visibilityLabel}. Change who can see this report`}
-              title={`${visibilityLabel}ly visible`}
-              disabled={isChangingVisibility}
-              className="flex shrink-0 text-(--text-color-secondary) cursor-pointer disabled:cursor-progress"
-            >
-              <VisibilityIcon size="1em" />
-            </button>
-          </form>
+        {canChangeVisibility ? (
+          <VisibilityControl
+            publiclyVisible={publiclyVisible}
+            onToggle={onToggleVisibility}
+            isPending={isChangingVisibility}
+          />
         ) : (
           <span
             role="img"
@@ -346,6 +344,7 @@ function Masthead({
             title="Delete this report?"
             description="This report and everything in it will be permanently deleted. This cannot be undone."
             confirmLabel="Delete"
+            destructive
             onConfirm={onDelete}
             isPending={isDeleting}
             trigger={
@@ -366,6 +365,59 @@ function Masthead({
         {authors.join(", ")}
       </p>
     </header>
+  );
+}
+
+function describeVisibility(publiclyVisible: boolean): {
+  Icon: LucideIcon;
+  label: string;
+} {
+  return publiclyVisible
+    ? { Icon: Eye, label: "Public" }
+    : { Icon: EyeOff, label: "Private" };
+}
+
+function VisibilityControl({
+  publiclyVisible,
+  onToggle,
+  isPending,
+}: {
+  publiclyVisible: boolean;
+  onToggle: () => void;
+  isPending: boolean;
+}) {
+  const { Icon, label } = describeVisibility(publiclyVisible);
+  const needsConfirmation: boolean = !publiclyVisible;
+
+  // `type="button"` for the same reason: as a submit button inside a form, the
+  // click would reach the form's `onSubmit` as well.
+  const toggleButton = (onClick?: () => void) => (
+    <button
+      type="button"
+      aria-label={`${label}. Change who can see this report`}
+      title={`${label}ly visible`}
+      disabled={isPending}
+      className="flex shrink-0 text-(--text-color-secondary) cursor-pointer disabled:cursor-progress"
+      onClick={onClick}
+    >
+      <Icon size="1em" />
+    </button>
+  );
+
+  if (!needsConfirmation) {
+    return toggleButton(onToggle);
+  }
+
+  return (
+    <ConfirmDialog
+      title="Publish this report?"
+      description="Anyone will be able to view this report at its link and find it on the home page. You can make it private again at any time."
+      confirmLabel="Publish"
+      onConfirm={onToggle}
+      isPending={isPending}
+      // No `onClick`: opening the dialog is the whole of this button's job.
+      trigger={toggleButton()}
+    />
   );
 }
 

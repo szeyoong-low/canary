@@ -15,6 +15,7 @@ export default function ConfirmDialog({
   confirmLabel,
   onConfirm,
   isPending = false,
+  destructive = false,
 }: {
   // The caller's own button. Base UI merges the trigger's behaviour onto this
   // element via `render`, so appearance and accessible name stay with caller
@@ -24,6 +25,7 @@ export default function ConfirmDialog({
   confirmLabel: string;
   onConfirm: () => void;
   isPending?: boolean;
+  destructive?: boolean;
 }) {
   return (
     <AlertDialog.Root>
@@ -55,7 +57,7 @@ export default function ConfirmDialog({
             <button
               type="button"
               className="AlertDialogButton"
-              data-destructive
+              data-destructive={destructive ? "" : undefined}
               disabled={isPending}
               onClick={onConfirm}
             >

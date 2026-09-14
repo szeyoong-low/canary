@@ -56,7 +56,7 @@ export default function ReportGallery({ className }: ClassNameProps) {
       <hr className="SectionDivider" />
 
       <PreviewList
-        heading="Discover"
+        heading="Discover insights shared by others"
         filters={PUBLIC_ONLY}
         emptyMessage="No public reports have been published yet."
       />
