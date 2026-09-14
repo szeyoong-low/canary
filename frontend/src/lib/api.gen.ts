@@ -86,7 +86,8 @@ export interface paths {
         get: operations["get_specific_report"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Soft Delete Report */
+        delete: operations["soft_delete_report"];
         options?: never;
         head?: never;
         patch?: never;
@@ -525,6 +526,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReportFull"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    soft_delete_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
