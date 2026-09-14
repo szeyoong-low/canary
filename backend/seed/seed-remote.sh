@@ -1,4 +1,6 @@
 #!/bin/bash
+# Usage:
+#   SEED_ENVIRONMENT='...' SEED_ADMIN_SUBJECT='<auth0|...>' ./seed/seed-remote.sh
 
 set -euo pipefail
 
