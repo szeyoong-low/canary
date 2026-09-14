@@ -1,15 +1,3 @@
-variable "PRODUCTION_BACKEND_SECRETS" {
-  type        = map(string)
-  description = "Environment values for the production backend."
-  sensitive   = true
-}
-
-variable "DEVELOPMENT_BACKEND_SECRETS" {
-  type        = map(string)
-  description = "Environment values shared by every pull request backend."
-  sensitive   = true
-}
-
 locals {
   backend_secrets_variable_key = "BACKEND_SECRETS"
   backend_secrets_category     = "terraform"

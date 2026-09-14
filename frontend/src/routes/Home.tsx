@@ -8,7 +8,7 @@ export default function Home() {
     <div className="flex flex-col items-center gap-4">
       <div className="mx-10 md:mx-0 md:w-175 flex flex-col gap-4 text-justify">
         <Hero />
-        <hr className="SectionDivider" />
+        {/* <hr className="SectionDivider" /> */}
         <CallToAction />
       </div>
 
@@ -21,12 +21,14 @@ function Hero() {
   return (
     <div className="Hero">
       <h2>
-        <div className="flex items-center">
+        <div className="HeroBrandName flex items-center">
           <span className="text-theme">Canary</span>
           <span className="HeroBird" />
         </div>
-        crystallises chaos <br />
-        into charts.
+        <span>
+          crystallises chaos <br />
+          into charts.
+        </span>
       </h2>
     </div>
   );
@@ -34,22 +36,18 @@ function Hero() {
 
 function CallToAction() {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <p>
+        Leverage an agentic Jupyter Notebook to turn your instincts about market
+        movements into compelling, elegant reports that readers can engage with.
+      </p>
       <div className="CallToAction">
         <div className="SlidingUnderline">
-          <Link to={reportBrowserPath}>Tell your compelling story </Link>
-          <ArrowRight className="inline" />
+          <Link to={reportBrowserPath}>
+            Make your best case today <ArrowRight className="inline" />
+          </Link>
         </div>
       </div>
-
-      <p>
-        <span className="emphasis">Canary</span> is an agentic Jupyter Notebook
-        for financial analysts.
-      </p>
-      <p>
-        It turns your questions about market movements into compelling, elegant
-        reports.
-      </p>
     </div>
   );
 }

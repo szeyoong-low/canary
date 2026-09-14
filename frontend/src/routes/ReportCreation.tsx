@@ -32,7 +32,7 @@ export default function ReportCreation() {
             <LayoutTemplate size={18} />
             Start from existing report
           </span>
-          <span className="OptionCardHint">Coming soon.</span>
+          <span className="OptionCardHint">Coming soon</span>
         </OptionCard>
       </div>
     </div>

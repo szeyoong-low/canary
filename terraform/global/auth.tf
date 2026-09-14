@@ -1,24 +1,3 @@
-# tflint-ignore: terraform_unused_declarations
-variable "AUTH0_DOMAIN" {
-  type        = string
-  description = "Canonical domain of the Auth0 tenant, not the custom domain. It is what addresses the Management API."
-  sensitive   = false
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "AUTH0_CLIENT_ID" {
-  type        = string
-  description = "Client ID of the machine-to-machine application the Auth0 provider authenticates as. Created by hand in the Auth0 dashboard, because Terraform cannot create the thing it logs in with."
-  sensitive   = false
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "AUTH0_CLIENT_SECRET" {
-  type        = string
-  description = "Secret of that machine-to-machine application. Rotating it in the Auth0 dashboard means re-setting this variable."
-  sensitive   = true
-}
-
 locals {
   // The `aud` claim the backend requires on every access token.
   // An opaque identifier that is never fetched. A URL only because that is the
@@ -128,6 +107,50 @@ resource "auth0_connection" "password" {
 
 resource "auth0_connection_clients" "password" {
   connection_id   = auth0_connection.password.id
+  enabled_clients = [auth0_client.frontend.id]
+}
+
+
+locals {
+  // Credentials are absent because Terraform refuses a `for_each` derived from a
+  // sensitive value. They are looked up by the same key below.
+  social_connections = {
+    "github"        = { scopes = ["email", "profile"] }
+    "google-oauth2" = { scopes = ["email", "profile"] }
+  }
+
+  social_credentials = {
+    "github" = {
+      client_id     = var.GITHUB_OAUTH_CLIENT_ID
+      client_secret = var.GITHUB_OAUTH_CLIENT_SECRET
+    }
+    "google-oauth2" = {
+      client_id     = var.GOOGLE_OAUTH_CLIENT_ID
+      client_secret = var.GOOGLE_OAUTH_CLIENT_SECRET
+    }
+  }
+}
+
+
+resource "auth0_connection" "social" {
+  for_each = local.social_connections
+
+  name     = each.key
+  strategy = each.key
+
+  options {
+    client_id     = local.social_credentials[each.key].client_id
+    client_secret = local.social_credentials[each.key].client_secret
+
+    scopes = each.value.scopes
+  }
+}
+
+
+resource "auth0_connection_clients" "social" {
+  for_each = local.social_connections
+
+  connection_id   = auth0_connection.social[each.key].id
   enabled_clients = [auth0_client.frontend.id]
 }
 

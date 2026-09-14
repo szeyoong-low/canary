@@ -1,5 +1,12 @@
 import { createBrowserRouter, RouterContextProvider } from "react-router";
-import { Error, Home, Layout, Report, ReportCreation } from "@/routes";
+import {
+  Error,
+  Home,
+  Layout,
+  PrivacyPolicy,
+  Report,
+  ReportCreation,
+} from "@/routes";
 import { auth0Client, auth0ClientContext } from "@/lib/auth0";
 import { createBlankReport } from "@/lib/reports";
 
@@ -21,6 +28,10 @@ export default createBrowserRouter(
         {
           path: `${REPORT_BROWSER_PATH}/${REPORT_ID_BROWSER_PATH_PARAM}`,
           Component: Report,
+        },
+        {
+          path: "privacy-policy",
+          Component: PrivacyPolicy,
         },
       ],
     },
