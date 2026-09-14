@@ -111,6 +111,66 @@ resource "auth0_connection_clients" "password" {
 }
 
 
+locals {
+  // Credentials are absent because Terraform refuses a `for_each` derived from a
+  // sensitive value. They are looked up by the same key below.
+  social_connections = {
+    "github"        = { scopes = ["email", "profile"] }
+    "google-oauth2" = { scopes = ["email", "profile"] }
+  }
+
+  social_credentials = {
+    "github" = {
+      client_id     = var.GITHUB_OAUTH_CLIENT_ID
+      client_secret = var.GITHUB_OAUTH_CLIENT_SECRET
+    }
+    "google-oauth2" = {
+      client_id     = var.GOOGLE_OAUTH_CLIENT_ID
+      client_secret = var.GOOGLE_OAUTH_CLIENT_SECRET
+    }
+  }
+}
+
+
+resource "auth0_connection" "social" {
+  for_each = local.social_connections
+
+  name     = each.key
+  strategy = each.key
+
+  options {
+    client_id     = local.social_credentials[each.key].client_id
+    client_secret = local.social_credentials[each.key].client_secret
+
+    scopes = each.value.scopes
+  }
+}
+
+
+resource "auth0_connection_clients" "social" {
+  for_each = local.social_connections
+
+  connection_id   = auth0_connection.social[each.key].id
+  enabled_clients = [auth0_client.frontend.id]
+}
+
+
+// GitHub was its own resource before the others joined it in a `for_each`.
+// Renames state rather than destroying and recreating the connection, which
+// would drop every user already signed up through it.
+//
+// A no-op if the old address was never applied. Safe to delete once it has run.
+moved {
+  from = auth0_connection.github
+  to   = auth0_connection.social["github"]
+}
+
+moved {
+  from = auth0_connection_clients.github
+  to   = auth0_connection_clients.social["github"]
+}
+
+
 resource "auth0_action" "profile_claims" {
   name = "Add profile claims in the ID token to the access token"
 
