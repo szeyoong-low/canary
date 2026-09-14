@@ -268,3 +268,16 @@ async def add_generated_content_to_report(
         chart=result["chart"],
         prose=prompt_body.prompt,
     )
+
+
+@router.delete(
+    REPORT_ID_PATH_PARAM_SEGMENT,
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    dependencies=[
+        Depends(require_report_role(OWNER_ROLE)),
+        Depends(require_platform_role(ACTIVE_ROLE)),
+    ],
+)
+async def soft_delete_report(report_id: UUID):
+    pass

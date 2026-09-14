@@ -192,6 +192,35 @@ async def rename_report(session: AsyncSession, report_id: UUID, title: str) -> N
         raise NotFoundError(f"No report with id {report_id}.")
 
 
+_DELETE_REPORT = """
+    UPDATE report SET deleted_at = clock_timestamp()
+    WHERE report_id = :report_id AND deleted_at IS NULL
+    RETURNING report_id
+"""
+
+
+async def delete_report(session: AsyncSession, report_id: UUID) -> None:
+    """
+    Soft delete a report, hiding it from every read that goes through
+    `report_live` without destroying it or its history.
+
+    The report's content is deliberately left alone. Nothing can reach it once
+    the report itself is gone, and leaving it untouched keeps the record of
+    which blocks were already deleted beforehand intact. Restoring will be
+    supported soon.
+
+    Raises `NotFoundError` if the report does not exist or has already been soft
+    deleted, which are not distinguishable from here.
+    """
+
+    row: Row | None = (
+        await session.execute(text(_DELETE_REPORT), {"report_id": report_id})
+    ).one_or_none()
+
+    if row is None:
+        raise NotFoundError(f"No report with id {report_id}.")
+
+
 # The SELECT source rather than VALUES so that a soft deleted report inserts no
 # row at all, which the caller then turns into a 404. A bare VALUES would have
 # nothing to filter on and would happily record a flip on a dead report.
