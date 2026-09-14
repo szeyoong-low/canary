@@ -155,22 +155,6 @@ resource "auth0_connection_clients" "social" {
 }
 
 
-// GitHub was its own resource before the others joined it in a `for_each`.
-// Renames state rather than destroying and recreating the connection, which
-// would drop every user already signed up through it.
-//
-// A no-op if the old address was never applied. Safe to delete once it has run.
-moved {
-  from = auth0_connection.github
-  to   = auth0_connection.social["github"]
-}
-
-moved {
-  from = auth0_connection_clients.github
-  to   = auth0_connection_clients.social["github"]
-}
-
-
 resource "auth0_action" "profile_claims" {
   name = "Add profile claims in the ID token to the access token"
 
