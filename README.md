@@ -1,12 +1,10 @@
 # <img src="frontend/public/favicon.svg" height="32" align="top"> Canary crystallises chaos into charts
 **[Canary](https://canary.markets)** is an agentic analyst who uncovers business stories hidden in data. You can interact with it just like how you would prepare a report or write scripts on a Jupyter Notebook.
 
-<table>
-    <tr>
-        <td width="500" align="center"><img src="public/landing-page.png" alt="Landing page for unauthenticated users" width="500"/></td>
-        <td width="500" align="center"><img src="public/report-page.png" alt="Report page (top)" width="500"/></td>
-    </tr>
-<table>
+<div align="center">
+    <img src="public/landing-page.png" alt="Landing page for unauthenticated users" width="500"/>
+    <img src="public/report-page.png" alt="Report page (top)" width="500"/>
+</div>
 
 > **Disclaimer:** This project is still in development. The user experience and functionality may differ from what is described in documentation.
 
