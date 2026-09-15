@@ -5,6 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Canary</title>
+
+    <!-- Link previews. Crawlers do not run JavaScript, so these must be static in
+         the served HTML -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Canary" />
+    <meta property="og:title" content="Canary" />
+    <meta
+      property="og:description"
+      content="Agentic Jupyter Notebook for building analyst reports"
+    />
+    <!-- Absolute URLs: a crawler has no page context to resolve "/og.png" against. -->
+    <meta property="og:url" content="https://canary.markets" />
+    <meta property="og:image" content="https://canary.markets/og.png" />
+    <!-- Declaring the size lets a client reserve the space before the image
+         downloads, so the card renders large on first paint instead of reflowing. -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Canary logo, a yellow bird" />
+
+    <!-- X falls back to the og: tags for title, description and image, so only the
+         card size has to be repeated here. -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Search results, not link previews — a separate mechanism that happens to
+         share the wording. -->
+    <meta
+      name="description"
+      content="Agentic Jupyter Notebook for building analyst reports"
+    />
     <script>
       // Runs synchronously before <body> and React to prevent FOUC.
       // The constants must match src/components/ThemeToggle.tsx.

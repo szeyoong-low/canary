@@ -15,9 +15,10 @@ html_handling = "drop-trailing-slash"
 # same file for deep links like `/demo/0`. Both would skip the injection, so
 # every route has to be claimed here.
 #
-# The negative rules hand the hashed bundles and the favicon back to the asset
-# worker, which serves them directly. Only HTML ever reaches the Worker.
-run_worker_first = ["/*", "!/assets/*", "!/favicon.svg"]
+# The negative rules hand the hashed bundles, the favicon and the link-preview
+# image back to the asset worker, which serves them directly. Only HTML ever
+# reaches the Worker.
+run_worker_first = ["/*", "!/assets/*", "!/favicon.svg", "!/og.png"]
 
 # Workers Logs. This cannot be managed from Terraform: every `wrangler versions
 # upload` patches the Worker's non-versioned settings and sends
