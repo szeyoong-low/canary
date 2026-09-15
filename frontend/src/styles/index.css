@@ -30,6 +30,7 @@
   --border-width-primary: 1px;
 
   /* Constants */
+  --header-height: 70px;
   --pill-border-radius: 9999px;
   --transition-delay: 300ms;
 

@@ -26,7 +26,10 @@ function Hero() {
           <span className="HeroBird" />
         </div>
         <span>
-          crystallises chaos <br />
+          crystallises chaos{" "}
+          <span className="md:hidden">
+            <br />
+          </span>{" "}
           into charts.
         </span>
       </h2>

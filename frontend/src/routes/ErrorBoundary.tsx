@@ -33,7 +33,7 @@ function ErrorCard({
 
   return (
     <div className="flex items-center justify-center px-4 mt-8">
-      <div className="flex min-w-sm max-w-xl flex-col gap-5 rounded-lg border border-(--border-color-primary) p-6">
+      <div className="flex min-w-3xs max-w-xl flex-col gap-5 rounded-lg border border-(--border-color-primary) p-6">
         <h2 className="ReportTitle">{title ?? "Error"}</h2>
         <p className="text-justify">{description ?? ""}</p>
 

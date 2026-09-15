@@ -7,6 +7,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { BounceLoader } from "react-spinners";
 import { ConfirmDialog, ContentContainer, Prompt } from "@/components";
@@ -53,6 +54,12 @@ export default function Report() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  // The container the page should jump to once it renders. Naming the target
+  // rather than assuming it is the last one keeps this working if containers
+  // ever arrive out of order or get removed.
+  // Starting at `null` means nothing steals focus on a first visit.
+  const [containerToFocus, setContainerToFocus] = useState<string | null>(null);
+
   const generate = useMutation({
     mutationFn: (prompt: string) => generateReportContent(reportID, prompt),
     meta: { errorTitle: "Could not answer this prompt" },
@@ -75,6 +82,8 @@ export default function Report() {
             content_containers: [...previous.content_containers, container],
           },
       );
+
+      setContainerToFocus(container.container_id);
     },
 
     onError: (error: Error) => {
@@ -201,8 +210,8 @@ export default function Report() {
   }
 
   return (
-    <div className="flex justify-center">
-      <div className="mx-10 w-full max-w-175 min-w-100 flex flex-col items-center gap-y-5">
+    <div className="flex justify-center mx-5">
+      <div className="mx-10 w-full max-w-175 flex flex-col items-center gap-y-5">
         <Masthead
           canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
           canChangeVisibility={hasAtLeastRole(report.role, OWNER_ROLE)}
@@ -228,6 +237,7 @@ export default function Report() {
           <ContentContainer
             key={container.container_id}
             container={container}
+            shouldFocus={container.container_id === containerToFocus}
           />
         ))}
 
