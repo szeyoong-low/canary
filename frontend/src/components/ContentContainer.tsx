@@ -15,10 +15,7 @@ export default function ContentContainer({
       )}
 
       {container.chart !== null && (
-        <Chart
-          config={container.chart}
-          className="w-200 h-100 md:w-250 md:h-150"
-        />
+        <Chart config={container.chart} className="w-full aspect-video" />
       )}
     </section>
   );
