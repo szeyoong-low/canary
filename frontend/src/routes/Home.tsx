@@ -25,7 +25,13 @@ function Hero() {
           <span className="text-theme">Canary</span>
           <span className="HeroBird" />
         </div>
-        <span>crystallises chaos into charts.</span>
+        <span>
+          crystallises chaos{" "}
+          <span className="md:hidden">
+            <br />
+          </span>{" "}
+          into charts.
+        </span>
       </h2>
     </div>
   );
