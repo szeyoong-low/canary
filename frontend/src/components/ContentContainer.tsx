@@ -14,9 +14,7 @@ export default function ContentContainer({
         <p className="w-full text-justify">{container.prose}</p>
       )}
 
-      {container.chart !== null && (
-        <Chart config={container.chart} className="w-full aspect-video" />
-      )}
+      {container.chart !== null && <Chart config={container.chart} />}
     </section>
   );
 }
