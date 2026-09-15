@@ -53,7 +53,9 @@ export default function ContentContainer({
       )}
 
       {container.chart !== null && (
-        <Chart config={container.chart} className="w-full aspect-video" />
+        <div className="min-h-100 w-full aspect-video">
+          <Chart config={container.chart} />
+        </div>
       )}
     </section>
   );

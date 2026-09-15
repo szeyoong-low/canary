@@ -210,7 +210,7 @@ export default function Report() {
   }
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center mx-5">
       <div className="mx-10 w-full max-w-175 flex flex-col items-center gap-y-5">
         <Masthead
           canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
