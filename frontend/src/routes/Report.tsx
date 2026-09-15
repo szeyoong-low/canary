@@ -202,7 +202,7 @@ export default function Report() {
 
   return (
     <div className="flex justify-center">
-      <div className="mx-10 sm:w-150 md:w-175 flex flex-col items-center gap-y-5">
+      <div className="mx-10 w-full max-w-175 min-w-100 flex flex-col items-center gap-y-5">
         <Masthead
           canRename={hasAtLeastRole(report.role, EDIT_ROLE)}
           canChangeVisibility={hasAtLeastRole(report.role, OWNER_ROLE)}
@@ -281,6 +281,7 @@ function Masthead({
       <div className="flex items-center gap-x-2">
         {canRename ? (
           <form
+            className="min-w-0"
             onSubmit={(event) => {
               event.preventDefault();
 
@@ -298,20 +299,29 @@ function Masthead({
               onRename(newTitle);
             }}
           >
-            <h2 className="ReportTitle">
-              <input
-                type="text"
+            <h2 className="ReportTitle min-w-0">
+              {/* A textarea, not an input, because inputs are single-line
+                  and cannot wrap. `field-sizing-content` sizes it to its
+                  content, so it grows in height once `max-w` stops it
+                  growing in width. */}
+              <textarea
+                rows={1}
                 name={TITLE_FORM_FIELD}
                 aria-label="Report title"
                 // Uncontrolled: typing re-renders nothing, optimistic cache
                 // update keeps this in step anyway
                 defaultValue={title}
-                className="field-sizing-content bg-transparent text-center focus:outline-none"
-
+                className="field-sizing-content max-w-full resize-none bg-transparent text-center focus:outline-none sm:max-w-150 md:max-w-175"
                 disabled={isRenaming}
-                // Clicking away commits, the same as pressing Enter. A form
-                // with a single text input submits on Enter without a submit
-                // button.
+                // A textarea takes Enter as a newline, so submit by hand to
+                // keep the single-line input's behaviour
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                // Clicking away commits, the same as pressing Enter.
                 onBlur={(event) => {
                   event.currentTarget.form?.requestSubmit();
                 }}
@@ -319,7 +329,9 @@ function Masthead({
             </h2>
           </form>
         ) : (
-          <h2 className="ReportTitle">{title}</h2>
+          <h2 className="ReportTitle min-w-0 max-w-full text-center sm:max-w-150 md:max-w-175">
+            {title}
+          </h2>
         )}
 
         {canChangeVisibility ? (
@@ -361,7 +373,7 @@ function Masthead({
           />
         )}
       </div>
-      <p className="text-sm text-(--text-color-secondary)">
+      <p className="text-sm text-(--text-color-secondary) min-w-0 max-w-full text-center sm:max-w-150 md:max-w-175">
         {authors.join(", ")}
       </p>
     </header>

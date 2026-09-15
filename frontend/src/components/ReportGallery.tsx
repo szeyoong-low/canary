@@ -168,8 +168,10 @@ function ReportCard({ preview }: { preview: ReportPreview }) {
           </div>
         )}
 
-        <span className="font-medium">{preview.title}</span>
-        <span className="text-sm text-(--text-color-secondary)">
+        <span className="line-clamp-1 font-medium font-(family-name:--title-font-family)">
+          {preview.title}
+        </span>
+        <span className="line-clamp-1 text-sm text-(--text-color-secondary)">
           {preview.authors.join(", ")}
         </span>
       </Link>

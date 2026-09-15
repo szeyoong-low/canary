@@ -6,7 +6,7 @@
 # only re-run by removing it and putting it back.
 #
 # Usage:
-#   MIGRATE_ENVIRONMENT=<env> ./migrations/remigrate-remote.sh <revision>
+#   MIGRATE_ENVIRONMENT='<env>' ./migrations/remigrate-remote.sh <revision>
 
 set -euo pipefail
 
@@ -83,5 +83,14 @@ if [ "$code" != "0" ]; then
   echo "Migration task exited $code. The schema may be partially unwound." >&2
   exit 1
 fi
+
+# Refresh credentials used by Fargate instances to connect in case roles are
+# dropped and recreated.
+echo "Forcing new deployment of cluster-$MIGRATE_ENVIRONMENT/backend-$MIGRATE_ENVIRONMENT"
+
+aws ecs update-service --cluster "cluster-$MIGRATE_ENVIRONMENT" \
+  --service "backend-$MIGRATE_ENVIRONMENT" --force-new-deployment
+
+aws logs tail "/ecs/$service" --follow --since 1m --format short
 
 echo "Done. Schema is at head."
