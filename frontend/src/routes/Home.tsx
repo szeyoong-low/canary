@@ -42,7 +42,8 @@ function CallToAction() {
     <div className="flex flex-col gap-3">
       <p>
         Leverage an agentic Jupyter Notebook to turn your instincts about market
-        movements into compelling, elegant reports that readers can engage with.
+        movements into compelling, elegant, and interactive reports that readers
+        can engage with.
       </p>
       <div className="CallToAction">
         <div className="SlidingUnderline">
