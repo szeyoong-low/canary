@@ -19,6 +19,8 @@ FAILURE_MESSAGE: str = (
     "There were difficulties processing your request. Please try again."
 )
 
+MAX_RESPONSE_LENGTH: int = 300
+
 
 async def invoke_agent(prompt: str) -> TerminalToolResult:
     """Answer a natural language question (in request body) with a chart."""
@@ -45,7 +47,10 @@ async def invoke_agent(prompt: str) -> TerminalToolResult:
         # Tool node never ran, planning node declined to call a tool and said
         # why in plain text. Help user to re-prompt
         last_message: AnyMessage = final_state[MESSAGES][-1]
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, last_message.text)
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            _truncate_message_to_user(last_message.text),
+        )
 
     raise HTTPException(
         status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -53,3 +58,7 @@ async def invoke_agent(prompt: str) -> TerminalToolResult:
         else status.HTTP_422_UNPROCESSABLE_CONTENT,
         FAILURE_MESSAGE,
     )
+
+
+def _truncate_message_to_user(raw_message: str) -> str:
+    return raw_message[:MAX_RESPONSE_LENGTH]
