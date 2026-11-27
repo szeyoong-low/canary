@@ -1,4 +1,7 @@
 # <img src="frontend/public/favicon.svg" height="32" align="top"> Canary crystallises chaos into charts
+
+> Canary has been deprecated: read [here](https://github.com/szeyoong-low/canary/wiki/Deprecation) to learn more.
+
 **[Canary](https://canary.markets)** is an agentic analyst who uncovers business stories hidden in data. You can interact with it just like how you would prepare a report or write scripts on a Jupyter Notebook.
 
 <div align="center">
