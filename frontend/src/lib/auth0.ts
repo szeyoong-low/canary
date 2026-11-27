@@ -54,7 +54,24 @@ export async function loginWithReturn(): Promise<void> {
 export const REAUTHENTICATION_CODES: ReadonlySet<string> = new Set([
   "login_required", // No session at Auth0 any more
   "consent_required", // Session exists, but this audience was never consented to
+  "missing_access_token", // Session hit its expiry ceiling (see `requireToken`)
 ]);
+
+// `getTokenSilently` resolves to `undefined` instead of throwing when the
+// session has reached its expiry ceiling (or on a `cache-only` miss, which we
+// never request). Throwing the SDK's own code for this case lets the callers'
+// existing reauthentication handling cover it.
+// https://github.com/auth0/auth0-spa-js/pull/1733
+function requireToken(token: string | undefined): string {
+  if (token === undefined) {
+    throw new GenericError(
+      "missing_access_token",
+      "No access token available; the session may have expired.",
+    );
+  }
+
+  return token;
+}
 
 export function needsReauthentication(error: unknown): boolean {
   if (error instanceof MissingRefreshTokenError) {
@@ -79,7 +96,7 @@ export async function getAccessToken(
   try {
     // Serves the cached token when it is still valid, and silently redeems the
     // refresh token when it is not.
-    return await client.getTokenSilently();
+    return requireToken(await client.getTokenSilently());
   } catch (error: unknown) {
     if (!needsReauthentication(error)) {
       throw error;
@@ -110,7 +127,7 @@ export async function getAccessToken(
 // No `context` parameter: only components call this.
 export async function getAccessTokenIfSignedIn(): Promise<string | null> {
   try {
-    return await auth0Client.getTokenSilently();
+    return requireToken(await auth0Client.getTokenSilently());
   } catch (error: unknown) {
     if (needsReauthentication(error)) {
       return null;
